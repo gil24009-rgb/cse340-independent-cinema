@@ -52,7 +52,7 @@
 
 - `c2b8e96` Define final cinema project foundation
 - `8bbd18e` Design and verify cinema database
-- Step 3 application architecture commit은 작업 완료 후 기록
+- `0393533` Build cinema application foundation
 
 ## 검증 결과
 
