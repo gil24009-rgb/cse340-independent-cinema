@@ -1,0 +1,13 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="error-page">
+  <p class="error-code">500</p>
+  <h1>This request could not be completed.</h1>
+  <p>Return to the cinema home page and try another route.</p>
+  <% if (errorMessage) { %>
+    <p class="development-error"><%= errorMessage %></p>
+  <% } %>
+  <a class="button button-primary" href="/">Return to now showing</a>
+</main>
+
+<%- include("../partials/document-end") %>

@@ -11,10 +11,10 @@
 | Protected routes | Role and ownership checks | auth and authorization middleware | Forbidden state | Direct URL access tests | Planned |
 | Server-side rendering | 모든 page EJS rendering | Express controllers and EJS | Entire application | Browser inspection | Planned |
 | Dynamic routes | Film, screening, booking detail | Resource lookup by id | Detail pages | Valid/invalid id tests | Defined |
-| Layouts and partials | Shared navigation and components | EJS partial structure | Consistent global UI | Template review | Planned |
-| MVC organization | Models, controllers, routes, views | Folder structure | Predictable data presentation | Code review | Planned |
-| Middleware | Auth, roles, validation, errors | Shared middleware | Form and error feedback | Failure-path tests | Planned |
-| Global error handler | Central error response | Error middleware | 404 and error pages | Forced error tests | Planned |
+| Layouts and partials | Shared navigation and components | EJS partial structure | Consistent global UI | Template review | Verified |
+| MVC organization | Models, controllers, routes, views | Folder structure | Predictable data presentation | Code review | Verified |
+| Middleware | Auth, roles, validation, errors | Shared middleware | Form and error feedback | Failure-path tests | In Progress |
+| Global error handler | Central error response | Error middleware | 404 and error pages | Forced error tests | Verified |
 | Admin content management | Film and screening CRUD | Admin controllers and models | Admin management tables/forms | CRUD tests | Defined |
 | User-generated content | Film reviews | reviews table and ownership | Review list and editor | Ownership tests | Defined |
 | User edit/delete own content | Own review management | Owner check | Edit/delete actions | Cross-account tests | Defined |
@@ -25,7 +25,7 @@
 | Respond to submissions | Contact message status | contact_messages | Staff message queue | Status workflow test | Defined |
 | Moderate content | Hide reviews | review visibility state | Moderation controls | Staff/Owner tests | Defined |
 | Parameterized queries | All SQL inputs parameterized | PostgreSQL query layer | No direct UI difference | Query review | Planned |
-| Input validation | All forms validated server-side | Validation middleware | Inline errors and summaries | Invalid form tests | Planned |
+| Input validation | All forms validated server-side | Validation middleware | Inline errors and summaries | Invalid form tests | In Progress |
 | Sanitization | Review and message inputs sanitized | Input processing | Safe content output | Injection tests | Planned |
 | Secure sessions | Production session settings | Session configuration | Stable login state | Production review | Planned |
 | Render deployment | Live server and DB | Environment variables | Production application | Private browser test | Planned |

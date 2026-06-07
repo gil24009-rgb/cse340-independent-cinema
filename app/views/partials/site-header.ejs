@@ -1,0 +1,18 @@
+<header class="site-header">
+  <a class="wordmark" href="/" aria-label="Independent Cinema home">
+    <span>Independent</span>
+    <strong>Cinema</strong>
+  </a>
+
+  <nav class="primary-nav" aria-label="Primary navigation">
+    <% navigation.primary.forEach((item) => { %>
+      <a href="<%= item.href %>" <%- item.active ? 'aria-current="page"' : "" %>>
+        <%= item.label %>
+      </a>
+    <% }) %>
+  </nav>
+
+  <a class="account-link" href="<%= navigation.account.href %>" <%- navigation.account.active ? 'aria-current="page"' : "" %>>
+    <%= navigation.account.label %>
+  </a>
+</header>
