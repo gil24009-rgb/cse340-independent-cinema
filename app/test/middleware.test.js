@@ -21,8 +21,8 @@ test("buildNavigation provides role-specific destinations", () => {
 
 test("validation middleware collects field errors", () => {
   const middleware = validateRequest({
-    email: [validEmail("email")],
-    name: [requiredText("name", "Name", { maxLength: 80 })],
+    email: [validEmail()],
+    name: [requiredText("Name", { maxLength: 80 })],
   });
   const request = { body: { email: "invalid", name: " " } };
 
@@ -31,4 +31,25 @@ test("validation middleware collects field errors", () => {
   assert.deepEqual(Object.keys(request.validationErrors), ["email", "name"]);
   assert.match(request.validationErrors.email[0], /valid email/);
   assert.match(request.validationErrors.name[0], /required/);
+});
+
+test("validation middleware handles a missing request body", () => {
+  const middleware = validateRequest({
+    name: [requiredText("Name")],
+  });
+  const request = {};
+
+  middleware(request, {}, () => {});
+
+  assert.match(request.validationErrors.name[0], /required/);
+});
+
+test("account navigation only marks exact routes and descendants active", () => {
+  const exact = buildNavigation("/admin", { role: "owner" });
+  const descendant = buildNavigation("/admin/users", { role: "owner" });
+  const falsePrefix = buildNavigation("/administration", { role: "owner" });
+
+  assert.equal(exact.account.active, true);
+  assert.equal(descendant.account.active, true);
+  assert.equal(falsePrefix.account.active, false);
 });

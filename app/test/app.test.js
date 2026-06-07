@@ -55,7 +55,34 @@ test("renders a stable not found page", async () => {
   assert.match(body, /The screening has moved on/);
 });
 
-test("passes database configuration errors to the global error handler", async () => {
+test("falls back to plain text when an error template cannot render", async () => {
+  const brokenApp = createApp();
+  brokenApp.set("views", "/path/that/does/not/exist");
+  const originalConsoleError = console.error;
+  console.error = () => {};
+  let brokenServer;
+
+  try {
+    brokenServer = await new Promise((resolve) => {
+      const listener = brokenApp.listen(0, "127.0.0.1", () => resolve(listener));
+    });
+    const address = brokenServer.address();
+    const response = await fetch(`http://127.0.0.1:${address.port}/missing`);
+    const body = await response.text();
+
+    assert.equal(response.status, 404);
+    assert.equal(body, "Page not found.");
+  } finally {
+    if (brokenServer) {
+      await new Promise((resolve) => brokenServer.close(resolve));
+    }
+    console.error = originalConsoleError;
+  }
+});
+
+test("passes database configuration errors to the global error handler", {
+  skip: Boolean(process.env.DATABASE_URL),
+}, async () => {
   const response = await fetch(`${baseUrl}/health/database`);
   const body = await response.text();
 

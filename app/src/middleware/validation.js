@@ -1,6 +1,6 @@
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function requiredText(field, label, options = {}) {
+export function requiredText(label, options = {}) {
   const { maxLength = 5000, minLength = 1 } = options;
 
   return (value) => {
@@ -18,7 +18,7 @@ export function requiredText(field, label, options = {}) {
   };
 }
 
-export function validEmail(field, label = "Email") {
+export function validEmail(label = "Email") {
   return (value) => {
     const normalized = typeof value === "string" ? value.trim() : "";
     return emailPattern.test(normalized) ? null : `${label} must be a valid email address.`;

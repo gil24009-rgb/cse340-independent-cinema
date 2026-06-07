@@ -180,7 +180,7 @@ DB 설정 누락이나 연결 실패도 controller에서 직접 화면을 만들
 
 ### Automated
 
-- Node test runner tests: 7 passed
+- Node test runner tests: 10 passed
 - Home rendering
 - Planned primary route empty states
 - Application health response
@@ -188,11 +188,15 @@ DB 설정 누락이나 연결 실패도 controller에서 직접 화면을 만들
 - Database configuration error to global handler
 - Role-aware navigation destination
 - Validation error collection
+- Missing request body validation
+- Account navigation route-boundary matching
+- Error template rendering fallback
 
 ### Database Integration
 
 - PostgreSQL 17.10 temporary database에 schema와 seed 적용
 - 실제 `DATABASE_URL`을 사용해 `/health/database` 응답 확인
+- no-op booking status history가 database constraint로 거부됨
 
 ### Browser
 

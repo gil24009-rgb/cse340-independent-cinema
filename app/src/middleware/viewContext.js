@@ -1,3 +1,5 @@
+import { env } from "../config/env.js";
+
 const publicNavigation = [
   { href: "/", label: "Now Showing", match: (path) => path === "/" },
   { href: "/films", label: "Films", match: (path) => path.startsWith("/films") },
@@ -25,7 +27,8 @@ export function buildNavigation(currentPath, currentUser = null) {
   return {
     account: {
       ...accountDestination,
-      active: currentPath.startsWith(accountDestination.href),
+      active: currentPath === accountDestination.href
+        || currentPath.startsWith(`${accountDestination.href}/`),
     },
     primary,
   };
@@ -36,7 +39,7 @@ export function addViewContext(req, res, next) {
 
   res.locals.currentPath = req.path;
   res.locals.currentUser = currentUser;
-  res.locals.environment = process.env.NODE_ENV || "development";
+  res.locals.environment = env.nodeEnv;
   res.locals.navigation = buildNavigation(req.path, currentUser);
   res.locals.year = new Date().getFullYear();
   next();

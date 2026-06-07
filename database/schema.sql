@@ -103,6 +103,9 @@ CREATE TABLE booking_status_history (
   CONSTRAINT booking_history_to_status_allowed CHECK (
     to_status IN ('confirmed', 'checked_in', 'completed', 'cancelled', 'no_show')
   ),
+  CONSTRAINT booking_history_status_changed CHECK (
+    from_status IS DISTINCT FROM to_status
+  ),
   CONSTRAINT booking_history_note_not_blank CHECK (
     note IS NULL OR BTRIM(note) <> ''
   )

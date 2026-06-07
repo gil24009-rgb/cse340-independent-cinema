@@ -65,9 +65,10 @@
 - role, duplicate booking, delete restriction constraint 확인
 - booking status history와 remaining capacity query 확인
 - `SET NULL`, updated timestamp trigger, seed password hash 확인
-- Step 3 automated tests 7개 통과
+- Step 3 automated tests 10개 통과
 - 실제 PostgreSQL 연결 health route 확인
 - Desktop 1280px와 mobile 390px horizontal overflow 없음
+- account navigation 경계, error fallback, validation edge case, no-op status history 보완
 
 ## 새로 결정한 사항
 
