@@ -33,9 +33,7 @@
 
 ## 관련 Commit
 
-아직 commit하지 않음.
-
-완료 시 실제 commit hash와 message를 기록한다.
+- `c2b8e96` Define final cinema project foundation
 
 ## 검증 결과
 
