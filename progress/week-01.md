@@ -42,7 +42,7 @@
 ## 관련 Commit
 
 - `c2b8e96` Define final cinema project foundation
-- Step 2 database design commit은 작업 완료 후 기록
+- `8bbd18e` Design and verify cinema database
 
 ## 검증 결과
 
