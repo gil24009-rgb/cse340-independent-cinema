@@ -23,6 +23,10 @@
 - Initial sitemap 작성
 - Backend 기능과 frontend 화면 연결
 - Requirements traceability matrix 작성
+- ERD와 7개 핵심 table 설계
+- PostgreSQL schema, seed, verification query 작성
+- foreign key delete policy와 index 전략 정의
+- frontend 화면별 database field 계약 정의
 
 ## 관련 문서
 
@@ -30,10 +34,15 @@
 - `final-project/planning/01-project-foundation-ko.md`
 - `final-project/planning/requirements-traceability-ko.md`
 - `final-project/planning/indiespace-structure-analysis-ko.md`
+- `final-project/planning/02-database-design-ko.md`
+- `final-project/database/schema.sql`
+- `final-project/database/seed.sql`
+- `final-project/database/verify.sql`
 
 ## 관련 Commit
 
 - `c2b8e96` Define final cinema project foundation
+- Step 2 database design commit은 작업 완료 후 기록
 
 ## 검증 결과
 
@@ -42,6 +51,10 @@
 - 핵심 multi-stage workflow가 booking으로 고정됨
 - booking history를 사용자가 확인할 수 있도록 frontend 연결이 정의됨
 - 실제 결제, 좌석 선택, 외부 API를 제외해 5-6주 범위로 제한함
+- PostgreSQL 17.10에서 schema와 seed 실행 성공
+- role, duplicate booking, delete restriction constraint 확인
+- booking status history와 remaining capacity query 확인
+- `SET NULL`, updated timestamp trigger, seed password hash 확인
 
 ## 새로 결정한 사항
 
@@ -56,13 +69,11 @@
 
 - 실제 수업 마감일이 현재 문서에 반영되지 않음
 - 최종 브랜드명 미정
-- PostgreSQL schema와 delete policy 미정
-- screening capacity 처리 방식 미정
+- 실제 poster asset 미정
+- application database connection 미구현
 
 ## 다음 작업
 
-- ERD 작성
-- table별 field와 data type 정의
-- foreign key delete policy 정의
-- seed data와 test account 계획
-- DB 구조가 frontend 화면에 제공할 field 검증
+- PostgreSQL connection module 추가
+- MVC folder structure 확정
+- shared middleware와 EJS layout 기반 구현

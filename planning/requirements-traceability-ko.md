@@ -4,8 +4,8 @@
 
 | 수업 요건 | 프로젝트 구현 | 주요 데이터 또는 backend | 연결되는 frontend | 검증 방식 | 상태 |
 | --- | --- | --- | --- | --- | --- |
-| Multiple related tables | 영화, 상영, 예약, 리뷰, 사용자 관계 | Foreign keys and normalized schema | Film detail, schedule, dashboards | ERD and schema review | Planned |
-| CASCADE or SET NULL | 관계별 삭제 정책 정의 | FK delete policy | 삭제 confirmation and resulting states | Database tests | Planned |
+| Multiple related tables | 영화, 상영, 예약, 리뷰, 사용자 관계 | Foreign keys and normalized schema | Film detail, schedule, dashboards | ERD and schema review | Verified |
+| CASCADE or SET NULL | 관계별 삭제 정책 정의 | FK delete policy | 삭제 confirmation and resulting states | Database tests | Verified |
 | Session authentication | Member, Staff, Owner login | express-session, bcrypt | Login, signup, role-aware nav | Role test accounts | Planned |
 | Multiple roles | Owner, Staff, Member | role middleware | Separate dashboards and actions | Permission matrix tests | Defined |
 | Protected routes | Role and ownership checks | auth and authorization middleware | Forbidden state | Direct URL access tests | Planned |
@@ -19,7 +19,7 @@
 | User-generated content | Film reviews | reviews table and ownership | Review list and editor | Ownership tests | Defined |
 | User edit/delete own content | Own review management | Owner check | Edit/delete actions | Cross-account tests | Defined |
 | Multi-stage workflow | Booking status workflow | bookings and status history | Ticket status and timeline | Full workflow test | Defined |
-| Status history | Every booking state change recorded | booking_status_history | Booking detail timeline | History query test | Defined |
+| Status history | Every booking state change recorded | booking_status_history | Booking detail timeline | History query test | Planned |
 | Admin dashboard | Operational management | Aggregated queries and CRUD | Admin dashboard | Role test | Defined |
 | Manage users and roles | Owner changes roles | users role update | User management table | Owner-only tests | Defined |
 | Respond to submissions | Contact message status | contact_messages | Staff message queue | Status workflow test | Defined |
