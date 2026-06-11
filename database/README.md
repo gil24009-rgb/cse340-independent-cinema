@@ -11,9 +11,9 @@
 Run the schema first, then the seed file.
 
 ```bash
-psql "$DATABASE_URL" -f final-project/database/schema.sql
-psql "$DATABASE_URL" -f final-project/database/seed.sql
-psql "$DATABASE_URL" -f final-project/database/verify.sql
+psql "$DATABASE_URL" -f database/schema.sql
+psql "$DATABASE_URL" -f database/seed.sql
+psql "$DATABASE_URL" -f database/verify.sql
 ```
 
 The seed script resets final project table data before inserting test records. Do not run it against production data.

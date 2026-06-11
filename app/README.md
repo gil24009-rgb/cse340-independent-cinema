@@ -1,6 +1,6 @@
 # Independent Cinema Application
 
-This directory contains the standalone final project application. It remains separate from earlier CSE 340 coursework in the repository root.
+This directory contains the standalone final project application.
 
 ## Requirements
 
@@ -18,9 +18,9 @@ cp .env.example .env
 Configure `DATABASE_URL` in `.env`, then apply the database files from the repository root:
 
 ```bash
-psql "$DATABASE_URL" -f final-project/database/schema.sql
-psql "$DATABASE_URL" -f final-project/database/seed.sql
-psql "$DATABASE_URL" -f final-project/database/verify.sql
+psql "$DATABASE_URL" -f ../database/schema.sql
+psql "$DATABASE_URL" -f ../database/seed.sql
+psql "$DATABASE_URL" -f ../database/verify.sql
 ```
 
 ## Run

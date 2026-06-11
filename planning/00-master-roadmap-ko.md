@@ -259,7 +259,7 @@ Frontend 연결:
 ### Branch 기준
 
 - 최종 프로젝트 시작 시 전용 branch를 만든다.
-- 권장 branch name: `codex/final-cinema-foundation`
+- 권장 branch name: 기능 또는 단계가 드러나는 짧은 이름
 - 큰 기능은 가능한 경우 별도 branch에서 작업한다.
 
 ### Commit 기준
@@ -288,7 +288,7 @@ small edits
 
 ### 주간 기록 기준
 
-매주 `final-project/progress/`에 한 개의 기록을 남긴다.
+매주 `progress/`에 한 개의 기록을 남긴다.
 
 각 기록에는 다음이 포함되어야 한다.
 

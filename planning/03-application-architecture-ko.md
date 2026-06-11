@@ -11,14 +11,14 @@
 최종 프로젝트 앱은 아래 경로에서 독립적으로 실행한다.
 
 ```text
-final-project/app/
+app/
 ```
 
 이유:
 
 - repository root의 기존 coursework를 덮어쓰지 않는다.
 - final project 의존성과 실행 script를 명확하게 분리한다.
-- Render에서 `final-project/app`을 root directory로 지정할 수 있다.
+- Render에서 `app`을 root directory로 지정할 수 있다.
 - 최종 프로젝트 구조를 다른 개발자가 빠르게 이해할 수 있다.
 
 ### MVC 책임

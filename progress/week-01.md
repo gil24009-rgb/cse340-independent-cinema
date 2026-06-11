@@ -36,17 +36,17 @@
 
 ## 관련 문서
 
-- `final-project/planning/00-master-roadmap-ko.md`
-- `final-project/planning/01-project-foundation-ko.md`
-- `final-project/planning/requirements-traceability-ko.md`
-- `final-project/planning/indiespace-structure-analysis-ko.md`
-- `final-project/planning/02-database-design-ko.md`
-- `final-project/database/schema.sql`
-- `final-project/database/seed.sql`
-- `final-project/database/verify.sql`
-- `final-project/planning/03-application-architecture-ko.md`
-- `final-project/quality-reviews/step-03-public-shell-review-ko.md`
-- `final-project/app/`
+- `planning/00-master-roadmap-ko.md`
+- `planning/01-project-foundation-ko.md`
+- `planning/requirements-traceability-ko.md`
+- `planning/indiespace-structure-analysis-ko.md`
+- `planning/02-database-design-ko.md`
+- `database/schema.sql`
+- `database/seed.sql`
+- `database/verify.sql`
+- `planning/03-application-architecture-ko.md`
+- `quality-reviews/step-03-public-shell-review-ko.md`
+- `app/`
 
 ## 관련 Commit
 
