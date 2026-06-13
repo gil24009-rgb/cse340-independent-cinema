@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: corepack enable && cd app && pnpm install --frozen-lockfile
+    buildCommand: cd app && pnpm install --frozen-lockfile
     startCommand: cd app && pnpm start
     initialDeployHook: node app/scripts/initialize-database.js
     healthCheckPath: /health
