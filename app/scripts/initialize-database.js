@@ -20,11 +20,18 @@ const client = new Client({
 
 try {
   await client.connect();
+  const existingSchema = await client.query(
+    "SELECT TO_REGCLASS('public.users') AS users_table",
+  );
 
-  for (const filename of ["schema.sql", "seed.sql"]) {
-    const sql = await readFile(path.join(repositoryRoot, "database", filename), "utf8");
-    await client.query(sql);
-    console.log(`Applied database/${filename}`);
+  if (existingSchema.rows[0].users_table) {
+    console.log("Database schema already exists. Initialization skipped.");
+  } else {
+    for (const filename of ["schema.sql", "seed.sql"]) {
+      const sql = await readFile(path.join(repositoryRoot, "database", filename), "utf8");
+      await client.query(sql);
+      console.log(`Applied database/${filename}`);
+    }
   }
 } finally {
   await client.end();

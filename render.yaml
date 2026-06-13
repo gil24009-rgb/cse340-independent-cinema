@@ -5,8 +5,8 @@ services:
     plan: free
     region: oregon
     buildCommand: cd app && pnpm install --frozen-lockfile
+    preDeployCommand: node app/scripts/initialize-database.js
     startCommand: cd app && pnpm start
-    initialDeployHook: node app/scripts/initialize-database.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV

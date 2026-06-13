@@ -69,4 +69,4 @@ The `/health/database` route intentionally reaches the global error handler when
 
 ## Render Deployment
 
-The root `render.yaml` creates the web service and PostgreSQL database. Render runs `scripts/initialize-database.js` once after the first successful deploy to apply the schema and development seed accounts.
+The root `render.yaml` creates the web service and PostgreSQL database. Before each deploy, Render runs `scripts/initialize-database.js`. The script applies the schema and development seed accounts only when the application tables do not exist.
