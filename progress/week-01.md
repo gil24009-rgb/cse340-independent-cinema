@@ -74,6 +74,10 @@
 - 비로그인, Member, Staff, Owner direct route access matrix 확인
 - inactive session, generic login failure, CSRF rejection, logout invalidation 확인
 - Login 화면을 desktop 1280px와 mobile 390px에서 확인하고 horizontal overflow 없음
+- Render Blueprint로 free web service와 PostgreSQL database 생성
+- Production health와 database health route `200` 확인
+- Production Owner, Staff, Member seed login과 role landing page 확인
+- Production secure cookie, forbidden route, logout session invalidation 확인
 
 ## 새로 결정한 사항
 
@@ -90,12 +94,11 @@
 - 최종 브랜드명 미정
 - 실제 poster asset 미정
 - Signup과 resource ownership middleware 미구현
-- Local PostgreSQL이 실행 중이 아니어서 실제 seed login과 PostgreSQL session persistence 미검증
-- Production secure cookie와 PostgreSQL SSL 동작 미검증
+- Render free service는 inactivity 이후 첫 요청이 지연될 수 있음
+- Authentication 이외의 production workflow는 아직 미구현 및 미검증
 
 ## 다음 작업
 
 - Signup과 password hashing 구현
 - Resource ownership middleware와 cross-account test 구현
-- 실제 PostgreSQL seed account와 session store 검증
 - Step 4 independent authentication review 수행

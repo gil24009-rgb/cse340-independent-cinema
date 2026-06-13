@@ -29,6 +29,10 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Database constraints: role, duplicate booking, delete policy, and no-op status transition checks verified
 - Browser widths: 1280px desktop and 390px mobile checked without horizontal overflow
 - Shared layout: public shell, navigation, empty state, 404, and server error rendering available
+- Render deployment: `https://cse340-independent-cinema.onrender.com`
+- Production health and PostgreSQL health routes return `200`
+- Owner, Staff, and Member seed logins work in production with secure session cookies
+- Production role guards and logout session invalidation verified
 
 ## Current Implementation Stage
 
@@ -49,7 +53,6 @@ Remaining Step 4 slices:
 
 - Add signup with server-side validation, duplicate-email conflict handling, and bcrypt password hashing
 - Add reusable resource ownership middleware and cross-account route tests
-- Verify real Owner, Staff, and Member seed logins and PostgreSQL session persistence
 - Run the required independent authentication and authorization review
 
 ## Following Stages
@@ -67,8 +70,8 @@ Remaining Step 4 slices:
 - Final cinema brand name is not selected.
 - Final poster and film image sources are not selected.
 - Course deadline should be added once confirmed.
-- Production session and PostgreSQL SSL behavior require deployment verification.
-- Local PostgreSQL was not running during the first Step 4 slice, so seed password compatibility and PostgreSQL session persistence still require direct verification.
+- Full production workflows beyond authentication remain unimplemented and unverified.
+- Render free services can spin down after inactivity and delay the first request.
 - This repository separation and documentation update is the ninth meaningful commit. At least six more substantial implementation commits are required.
 
 ## Working Checkpoints

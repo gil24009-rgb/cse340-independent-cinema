@@ -28,7 +28,7 @@
 | Input validation | All forms validated server-side | Validation middleware | Inline errors and summaries | Invalid form tests | In Progress |
 | Sanitization | Review and message inputs sanitized | Input processing | Safe content output | Injection tests | Planned |
 | Secure sessions | Production session settings | Session configuration | Stable login state | Production review | In Progress |
-| Render deployment | Live server and DB | Environment variables | Production application | Private browser test | Planned |
+| Render deployment | Live server and DB | Environment variables | Production application | Private browser test | In Progress |
 | README | Required project documentation | README and ERD image | Repository review | Requirement checklist | Planned |
 | 15 substantial commits | Meaningful progress history | Git history | Repository review | `git log` review | In Progress |
 

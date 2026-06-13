@@ -86,3 +86,9 @@ Steps 1 through 3 are complete. Step 4 authentication and authorization is in pr
 ## Deployment
 
 Render deployment is defined in `render.yaml`. The Blueprint creates the Node.js web service, PostgreSQL database, generated session secret, and initial schema and seed setup.
+
+Live URL:
+
+```text
+https://cse340-independent-cinema.onrender.com
+```
