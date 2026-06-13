@@ -12,6 +12,15 @@ export function errorHandler(error, req, res, next) {
   }
 
   const status = Number.isInteger(error.status) ? error.status : 500;
+  if (status >= 500) {
+    console.error("Request failed.", {
+      code: error.code,
+      message: error.message,
+      name: error.name,
+      path: req.path,
+    });
+  }
+
   const template = status === 403
     ? "errors/403"
     : status === 404
