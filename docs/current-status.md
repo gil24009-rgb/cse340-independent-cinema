@@ -1,10 +1,10 @@
 # Current Status
 
-Last updated: June 10, 2026
+Last updated: June 11, 2026
 
 ## Current Stage
 
-Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authentication and Authorization, is next.
+Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authentication and Authorization, is in progress.
 
 ## Completed Work
 
@@ -20,40 +20,37 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Added the public shell, role-aware navigation foundation, stable empty states, and error pages
 - Verified the app with automated tests, PostgreSQL integration, and desktop and mobile browser checks
 - Preserved the meaningful project history from the original course repository
+- Added the first Step 4 vertical slice: PostgreSQL-backed production session configuration, login, logout, current-user loading, role guards, CSRF protection, and protected role landing pages
 
 ## Verified Baseline
 
-- Automated tests: 10 passing
+- Automated tests: 18 passing
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
 - Database constraints: role, duplicate booking, delete policy, and no-op status transition checks verified
 - Browser widths: 1280px desktop and 390px mobile checked without horizontal overflow
 - Shared layout: public shell, navigation, empty state, 404, and server error rendering available
 
-## Next Implementation Stage
+## Current Implementation Stage
 
 ### Step 4: Authentication and Authorization
 
-Build:
+Completed first vertical slice:
 
-- PostgreSQL-backed session storage
-- Secure development and production session configuration
-- Signup, login, and logout
-- Password hashing and verification
-- `req.currentUser` loading
-- Member, Staff, and Owner role guards
-- Resource ownership middleware
-- Login, signup, account, and forbidden interfaces
-- Authentication and permission tests
+- Session configuration uses a non-default cookie name, explicit cookie settings, session ID regeneration after login, and a PostgreSQL store when `DATABASE_URL` is configured
+- Startup rejects a missing `SESSION_SECRET`, and production startup also rejects a missing `DATABASE_URL`
+- Login uses a generic credential failure message and rejects inactive accounts
+- Every authenticated request reloads the active user and current role from PostgreSQL
+- Member, Staff, and Owner direct route access is enforced by server-side role guards
+- Logout requires CSRF validation, destroys the server-side session, and clears the cookie
+- Login, role landing, and forbidden interfaces are available
+- Automated tests cover unauthenticated access, role combinations, inactive sessions, generic login failure, CSRF rejection, and logout invalidation
 
-Verify:
+Remaining Step 4 slices:
 
-- Owner, Staff, and Member seed accounts can log in
-- Invalid credentials do not disclose whether an email exists
-- Protected routes reject unauthenticated direct access
-- Role guards reject unauthorized direct access
-- Users cannot access another user's owned resources
-- Logout invalidates the active session
-- Navigation destinations match the authenticated role
+- Add signup with server-side validation, duplicate-email conflict handling, and bcrypt password hashing
+- Add reusable resource ownership middleware and cross-account route tests
+- Verify real Owner, Staff, and Member seed logins and PostgreSQL session persistence
+- Run the required independent authentication and authorization review
 
 ## Following Stages
 
@@ -71,6 +68,7 @@ Verify:
 - Final poster and film image sources are not selected.
 - Course deadline should be added once confirmed.
 - Production session and PostgreSQL SSL behavior require deployment verification.
+- Local PostgreSQL was not running during the first Step 4 slice, so seed password compatibility and PostgreSQL session persistence still require direct verification.
 - This repository separation and documentation update is the ninth meaningful commit. At least six more substantial implementation commits are required.
 
 ## Working Checkpoints

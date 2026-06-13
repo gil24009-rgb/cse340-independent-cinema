@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { createSessionMiddleware } from "../src/config/session.js";
 import { buildNavigation } from "../src/middleware/viewContext.js";
 import {
   requiredText,
@@ -52,4 +53,11 @@ test("account navigation only marks exact routes and descendants active", () => 
   assert.equal(exact.account.active, true);
   assert.equal(descendant.account.active, true);
   assert.equal(falsePrefix.account.active, false);
+});
+
+test("session configuration rejects a missing secret", () => {
+  assert.throws(
+    () => createSessionMiddleware(),
+    /SESSION_SECRET is required/,
+  );
 });

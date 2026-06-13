@@ -106,6 +106,31 @@ a {
   justify-self: end;
 }
 
+.account-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-self: end;
+}
+
+.account-actions form {
+  margin: 0;
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+  text-transform: uppercase;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
@@ -399,6 +424,73 @@ h3 {
   margin-top: 1rem;
 }
 
+.auth-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr);
+  gap: 4rem;
+  width: min(960px, calc(100% - 3rem));
+  min-height: calc(100vh - 11rem);
+  align-items: center;
+  margin: 0 auto;
+}
+
+.auth-introduction h1 {
+  max-width: 620px;
+  margin-bottom: 1rem;
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 0.94;
+}
+
+.auth-introduction > p:last-child {
+  max-width: 500px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.75rem;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 2rem 0;
+}
+
+.auth-form label {
+  margin-top: 0.5rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.7rem;
+  color: var(--ink);
+  font: inherit;
+}
+
+.auth-form .button {
+  margin-top: 0.75rem;
+}
+
+.error-summary {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--accent-dark);
+}
+
+.error-summary p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--highlight);
+  outline-offset: 3px;
+}
+
 .site-footer {
   display: flex;
   gap: 2rem;
@@ -439,6 +531,12 @@ h3 {
   .hero {
     grid-template-columns: 1fr;
     min-height: auto;
+  }
+
+  .auth-page {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 4rem 0;
   }
 
   .hero-copy {

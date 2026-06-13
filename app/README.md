@@ -15,7 +15,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Configure `DATABASE_URL` in `.env`, then apply the database files from the repository root:
+Configure `DATABASE_URL` and a long random `SESSION_SECRET` in `.env`, then apply the database files from the repository root:
 
 ```bash
 psql "$DATABASE_URL" -f ../database/schema.sql
@@ -45,12 +45,15 @@ pnpm test
 
 ```text
 src/
-  config/        Environment and PostgreSQL pool
+  config/        Environment, PostgreSQL pool, and session configuration
   controllers/   Request handlers and view data
-  middleware/    Shared view context, validation, and errors
+  middleware/    Authentication, authorization, CSRF, validation, and errors
+  models/        PostgreSQL queries owned by each domain
   routes/        Route definitions
 views/
-  errors/        Stable error states
+  account/       Protected role landing pages
+  auth/          Authentication forms
+  errors/        Stable forbidden, not-found, and server-error states
   partials/      Shared document, header, and footer structure
 public/
   css/           Application styles
@@ -63,3 +66,7 @@ test/            Node test runner coverage
 - `/health/database`: Confirms the configured PostgreSQL database is reachable.
 
 The `/health/database` route intentionally reaches the global error handler when `DATABASE_URL` is missing or the database is unavailable.
+
+## Render Deployment
+
+The root `render.yaml` creates the web service and PostgreSQL database. Render runs `scripts/initialize-database.js` once after the first successful deploy to apply the schema and development seed accounts.

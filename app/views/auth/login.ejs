@@ -1,0 +1,42 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="auth-page">
+  <section class="auth-introduction">
+    <p class="eyebrow">Member access</p>
+    <h1>Keep your screenings close.</h1>
+    <p>Sign in to view bookings or continue to cinema operations.</p>
+  </section>
+
+  <form class="auth-form" action="/login" method="post">
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+    <% if (errors.form) { %>
+      <div class="error-summary" role="alert">
+        <p><%= errors.form[0] %></p>
+      </div>
+    <% } %>
+
+    <label for="email">Email</label>
+    <input
+      id="email"
+      name="email"
+      type="email"
+      value="<%= form.email %>"
+      autocomplete="email"
+      required
+    />
+
+    <label for="password">Password</label>
+    <input
+      id="password"
+      name="password"
+      type="password"
+      autocomplete="current-password"
+      required
+    />
+
+    <button class="button button-primary" type="submit">Sign In</button>
+  </form>
+</main>
+
+<%- include("../partials/document-end") %>

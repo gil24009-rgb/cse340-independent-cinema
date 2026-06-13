@@ -70,6 +70,10 @@
 - 실제 PostgreSQL 연결 health route 확인
 - Desktop 1280px와 mobile 390px horizontal overflow 없음
 - account navigation 경계, error fallback, validation edge case, no-op status history 보완
+- Step 4 첫 vertical slice automated tests 18개 통과
+- 비로그인, Member, Staff, Owner direct route access matrix 확인
+- inactive session, generic login failure, CSRF rejection, logout invalidation 확인
+- Login 화면을 desktop 1280px와 mobile 390px에서 확인하고 horizontal overflow 없음
 
 ## 새로 결정한 사항
 
@@ -85,10 +89,13 @@
 - 실제 수업 마감일이 현재 문서에 반영되지 않음
 - 최종 브랜드명 미정
 - 실제 poster asset 미정
-- Authentication and session 미구현
+- Signup과 resource ownership middleware 미구현
+- Local PostgreSQL이 실행 중이 아니어서 실제 seed login과 PostgreSQL session persistence 미검증
+- Production secure cookie와 PostgreSQL SSL 동작 미검증
 
 ## 다음 작업
 
-- express-session과 authentication 구현
-- role guard와 ownership middleware 구현
-- login, signup, account, forbidden UI 구현
+- Signup과 password hashing 구현
+- Resource ownership middleware와 cross-account test 구현
+- 실제 PostgreSQL seed account와 session store 검증
+- Step 4 independent authentication review 수행

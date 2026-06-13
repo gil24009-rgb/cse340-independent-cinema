@@ -12,7 +12,15 @@
     <% }) %>
   </nav>
 
-  <a class="account-link" href="<%= navigation.account.href %>" <%- navigation.account.active ? 'aria-current="page"' : "" %>>
-    <%= navigation.account.label %>
-  </a>
+  <div class="account-actions">
+    <a class="account-link" href="<%= navigation.account.href %>" <%- navigation.account.active ? 'aria-current="page"' : "" %>>
+      <%= navigation.account.label %>
+    </a>
+    <% if (currentUser) { %>
+      <form action="/logout" method="post">
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+        <button class="text-button" type="submit">Sign Out</button>
+      </form>
+    <% } %>
+  </div>
 </header>

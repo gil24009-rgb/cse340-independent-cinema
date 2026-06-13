@@ -14,4 +14,5 @@ export const env = Object.freeze({
   isProduction: nodeEnv === "production",
   nodeEnv,
   port: parsedPort,
+  sessionSecret: process.env.SESSION_SECRET || "",
 });

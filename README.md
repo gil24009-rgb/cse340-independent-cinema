@@ -81,4 +81,8 @@ pnpm test
 
 ## Current Stage
 
-Steps 1 through 3 are complete. The next implementation stage is authentication and authorization. See [Current Status](docs/current-status.md) for the exact next tasks and verification gates.
+Steps 1 through 3 are complete. Step 4 authentication and authorization is in progress. Login, logout, session identity, role guards, and protected role landing pages are implemented. Signup, resource ownership, and PostgreSQL session verification remain. See [Current Status](docs/current-status.md) for the exact next tasks and verification gates.
+
+## Deployment
+
+Render deployment is defined in `render.yaml`. The Blueprint creates the Node.js web service, PostgreSQL database, generated session secret, and initial schema and seed setup.

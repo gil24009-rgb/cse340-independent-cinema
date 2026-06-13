@@ -7,7 +7,7 @@ let server;
 let baseUrl;
 
 before(async () => {
-  const app = createApp();
+  const app = createApp({ session: { sessionSecret: "test-session-secret" } });
 
   await new Promise((resolve) => {
     server = app.listen(0, "127.0.0.1", () => {
@@ -27,6 +27,7 @@ test("renders the cinema foundation home page", async () => {
   const body = await response.text();
 
   assert.equal(response.status, 200);
+  assert.equal(response.headers.get("set-cookie"), null);
   assert.match(body, /Independent films, one focused screen/);
   assert.match(body, /aria-current="page"/);
 });
@@ -56,7 +57,7 @@ test("renders a stable not found page", async () => {
 });
 
 test("falls back to plain text when an error template cannot render", async () => {
-  const brokenApp = createApp();
+  const brokenApp = createApp({ session: { sessionSecret: "test-session-secret" } });
   brokenApp.set("views", "/path/that/does/not/exist");
   const originalConsoleError = console.error;
   console.error = () => {};

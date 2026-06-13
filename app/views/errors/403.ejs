@@ -1,0 +1,12 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="error-page">
+  <p class="error-code">403</p>
+  <h1>This screening is not on your pass.</h1>
+  <p>Your current account does not have permission to access this page.</p>
+  <a class="button button-primary" href="<%= currentUser ? navigation.account.href : '/login' %>">
+    <%= currentUser ? "Return to account" : "Sign in" %>
+  </a>
+</main>
+
+<%- include("../partials/document-end") %>

@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/", showHome);
 router.get("/visit", showVisit);
-router.get(["/films", "/screenings", "/login"], showPlaceholder);
+router.get(["/films", "/screenings"], showPlaceholder);
 router.get("/health", showHealth);
 router.get("/health/database", showDatabaseHealth);
 
