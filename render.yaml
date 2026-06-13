@@ -8,7 +8,6 @@ services:
     startCommand: cd app && pnpm start
     initialDeployHook: node app/scripts/initialize-database.js
     healthCheckPath: /health
-    maxShutdownDelaySeconds: 30
     envVars:
       - key: NODE_ENV
         value: production
