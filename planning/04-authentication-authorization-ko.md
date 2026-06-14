@@ -10,7 +10,7 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 
 ### Slice 1. Login, Session Identity, and Role Access
 
-상태: Implemented, database verification pending
+상태: Implemented and production behavior verified
 
 구현 범위:
 
@@ -33,11 +33,16 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 - invalid CSRF 차단
 - logout 후 기존 session 접근 차단
 
+프로덕션 검증:
+
+- 실제 Owner, Staff, Member seed account 로그인
+- `pgcrypto`로 생성된 seed password hash의 Node bcrypt 검증
+- PostgreSQL-backed production session과 secure cookie 동작
+- 비로그인, role denial, logout 이후 기존 session 무효화
+
 남은 직접 검증:
 
-- PostgreSQL session row 생성과 삭제
-- `pgcrypto`로 생성된 seed password hash의 Node bcrypt 검증
-- 실제 Owner, Staff, Member seed account 로그인
+- PostgreSQL session table에서 login row 생성과 logout row 삭제 직접 확인
 
 ### Slice 2. Signup and Password Creation
 

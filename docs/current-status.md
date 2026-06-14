@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: June 11, 2026
+Last updated: June 13, 2026
 
 ## Current Stage
 
@@ -33,6 +33,7 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Production health and PostgreSQL health routes return `200`
 - Owner, Staff, and Member seed logins work in production with secure session cookies
 - Production role guards and logout session invalidation verified
+- Git history has passed 15 total commits; the final substantial-commit review remains pending
 
 ## Current Implementation Stage
 
@@ -71,8 +72,9 @@ Remaining Step 4 slices:
 - Final poster and film image sources are not selected.
 - Course deadline should be added once confirmed.
 - Full production workflows beyond authentication remain unimplemented and unverified.
+- The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
-- This repository separation and documentation update is the ninth meaningful commit. At least six more substantial implementation commits are required.
+- Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
 
 ## Working Checkpoints
 
