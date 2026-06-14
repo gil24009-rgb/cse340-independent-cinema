@@ -1,0 +1,105 @@
+<%- include("../partials/document-head") %>
+
+<% const firstNameErrorId = errors.firstName ? "first-name-error" : ""; %>
+<% const lastNameErrorId = errors.lastName ? "last-name-error" : ""; %>
+<% const emailErrorId = errors.email ? "email-error" : ""; %>
+<% const passwordErrorId = errors.password ? "password-error" : ""; %>
+<% const confirmPasswordErrorId = errors.confirmPassword ? "confirm-password-error" : ""; %>
+<% const passwordDescribedBy = [passwordErrorId, "password-hint"].filter(Boolean).join(" "); %>
+
+<main id="main-content" class="auth-page">
+  <section class="auth-introduction">
+    <p class="eyebrow">Member signup</p>
+    <h1>Start your next screening with one account.</h1>
+    <p>Create a Member account to book screenings, track booking status, and return later to leave reviews.</p>
+    <p class="auth-switch">Already have an account? <a href="/login">Sign in.</a></p>
+  </section>
+
+  <form class="auth-form" action="/signup" method="post" novalidate>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+    <% if (errorSummary.length) { %>
+      <div class="error-summary" role="alert" aria-labelledby="signup-errors-title" tabindex="-1">
+        <h2 id="signup-errors-title">Please correct the following:</h2>
+        <ul>
+          <% errorSummary.forEach((message) => { %>
+            <li><%= message %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <label for="firstName">First name</label>
+    <input
+      id="firstName"
+      name="firstName"
+      type="text"
+      value="<%= form.firstName %>"
+      autocomplete="given-name"
+      aria-invalid="<%= errors.firstName ? 'true' : 'false' %>"
+      <%- firstNameErrorId ? `aria-describedby="${firstNameErrorId}"` : "" %>
+    />
+    <% if (errors.firstName) { %>
+      <p class="field-error" id="<%= firstNameErrorId %>"><%= errors.firstName[0] %></p>
+    <% } %>
+
+    <label for="lastName">Last name</label>
+    <input
+      id="lastName"
+      name="lastName"
+      type="text"
+      value="<%= form.lastName %>"
+      autocomplete="family-name"
+      aria-invalid="<%= errors.lastName ? 'true' : 'false' %>"
+      <%- lastNameErrorId ? `aria-describedby="${lastNameErrorId}"` : "" %>
+    />
+    <% if (errors.lastName) { %>
+      <p class="field-error" id="<%= lastNameErrorId %>"><%= errors.lastName[0] %></p>
+    <% } %>
+
+    <label for="email">Email</label>
+    <input
+      id="email"
+      name="email"
+      type="email"
+      value="<%= form.email %>"
+      autocomplete="email"
+      aria-invalid="<%= errors.email ? 'true' : 'false' %>"
+      <%- emailErrorId ? `aria-describedby="${emailErrorId}"` : "" %>
+    />
+    <% if (errors.email) { %>
+      <p class="field-error" id="<%= emailErrorId %>"><%= errors.email[0] %></p>
+    <% } %>
+
+    <label for="password">Password</label>
+    <input
+      id="password"
+      name="password"
+      type="password"
+      autocomplete="new-password"
+      aria-invalid="<%= errors.password ? 'true' : 'false' %>"
+      aria-describedby="<%= passwordDescribedBy %>"
+    />
+    <p class="field-hint" id="password-hint">Use 8 to 72 characters.</p>
+    <% if (errors.password) { %>
+      <p class="field-error" id="<%= passwordErrorId %>"><%= errors.password[0] %></p>
+    <% } %>
+
+    <label for="confirmPassword">Confirm password</label>
+    <input
+      id="confirmPassword"
+      name="confirmPassword"
+      type="password"
+      autocomplete="new-password"
+      aria-invalid="<%= errors.confirmPassword ? 'true' : 'false' %>"
+      <%- confirmPasswordErrorId ? `aria-describedby="${confirmPasswordErrorId}"` : "" %>
+    />
+    <% if (errors.confirmPassword) { %>
+      <p class="field-error" id="<%= confirmPasswordErrorId %>"><%= errors.confirmPassword[0] %></p>
+    <% } %>
+
+    <button class="button button-primary" type="submit">Create Account</button>
+  </form>
+</main>
+
+<%- include("../partials/document-end") %>

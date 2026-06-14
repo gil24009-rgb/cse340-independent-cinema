@@ -35,6 +35,7 @@ const users = [
 
 let server;
 let baseUrl;
+let nextUserId = 4;
 
 function findUserByEmail(email) {
   return users.find((user) => user.email === email) || null;
@@ -42,6 +43,29 @@ function findUserByEmail(email) {
 
 function findActiveUserById(userId) {
   return users.find((user) => user.user_id === userId && user.is_active) || null;
+}
+
+async function createMemberUser({ email, firstName, lastName, passwordHash }) {
+  if (findUserByEmail(email)) {
+    const error = new Error("duplicate email");
+    error.code = "23505";
+    error.constraint = "users_email_key";
+    throw error;
+  }
+
+  const user = {
+    email,
+    first_name: firstName,
+    is_active: true,
+    last_name: lastName,
+    password_hash: passwordHash,
+    role: "member",
+    user_id: nextUserId,
+  };
+
+  nextUserId += 1;
+  users.push(user);
+  return user;
 }
 
 function cookieFrom(response) {
@@ -82,10 +106,35 @@ async function login(email, password = "correct-password") {
   };
 }
 
+async function signup(fields) {
+  const signupPage = await request("/signup");
+  const signupBody = await signupPage.text();
+  const initialSetCookie = signupPage.headers.get("set-cookie") || "";
+  const initialCookie = cookieFrom(signupPage);
+  const csrfToken = csrfFrom(signupBody);
+  const response = await request("/signup", {
+    body: new URLSearchParams({ csrfToken, ...fields }),
+    headers: {
+      cookie: initialCookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  return {
+    cookie: cookieFrom(response),
+    initialCookie,
+    initialSetCookie,
+    response,
+  };
+}
+
 before(async () => {
   const app = createApp({
     auth: {
+      createMemberUser,
       findUserByEmail,
+      hashPassword: async (password, rounds) => `hashed:${rounds}:${password}`,
       verifyPassword: async (password, hash) => password === "correct-password" && hash === "valid-password",
     },
     session: {
@@ -118,6 +167,17 @@ test("protected routes redirect unauthenticated direct access", async () => {
   }
 });
 
+test("signup page is public and redirects authenticated users to their account destination", async () => {
+  const publicPage = await request("/signup");
+  assert.equal(publicPage.status, 200);
+
+  const { cookie } = await login("member@cinema.test");
+  const authenticatedPage = await request("/signup", { headers: { cookie } });
+
+  assert.equal(authenticatedPage.status, 303);
+  assert.equal(authenticatedPage.headers.get("location"), "/account");
+});
+
 test("login uses one generic message for unknown email and wrong password", async () => {
   for (const credentials of [
     ["unknown@cinema.test", "correct-password"],
@@ -139,6 +199,69 @@ test("login session uses the configured cookie and regenerates its identifier", 
   assert.match(initialSetCookie, /SameSite=Lax/);
   assert.match(cookie, /^cinema_session=/);
   assert.notEqual(cookie, initialCookie);
+});
+
+test("signup validates required fields and preserves non-secret values", async () => {
+  const { response } = await signup({
+    confirmPassword: "different-password",
+    email: "BadEmail",
+    firstName: "  Sora  ",
+    lastName: "",
+    password: "short",
+  });
+  const body = await response.text();
+
+  assert.equal(response.status, 422);
+  assert.match(body, /Please correct the following/);
+  assert.match(body, /Email must be a valid email address/);
+  assert.match(body, /Last name is required/);
+  assert.match(body, /Password must be at least 8 characters/);
+  assert.match(body, /Password confirmation must match Password/);
+  assert.match(body, /value="bademail"/);
+  assert.match(body, /value="Sora"/);
+  assert.doesNotMatch(body, /short/);
+});
+
+test("signup creates a Member account with a normalized email and hashed password", async () => {
+  const { cookie, initialCookie, initialSetCookie, response } = await signup({
+    confirmPassword: "P@ssword123",
+    email: "NEWMEMBER@Cinema.Test ",
+    firstName: " New ",
+    lastName: " Member ",
+    password: "P@ssword123",
+  });
+
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get("location"), "/account");
+  assert.match(initialCookie, /^cinema_session=/);
+  assert.match(initialSetCookie, /HttpOnly/);
+  assert.match(cookie, /^cinema_session=/);
+  assert.notEqual(cookie, initialCookie);
+
+  const createdUser = findUserByEmail("newmember@cinema.test");
+  assert.equal(createdUser.role, "member");
+  assert.equal(createdUser.password_hash, "hashed:12:P@ssword123");
+  assert.equal(createdUser.first_name, "New");
+  assert.equal(createdUser.last_name, "Member");
+
+  const accountResponse = await request("/account", { headers: { cookie } });
+  const accountBody = await accountResponse.text();
+  assert.equal(accountResponse.status, 200);
+  assert.match(accountBody, /Welcome, New/);
+});
+
+test("signup returns a conflict for duplicate emails", async () => {
+  const { response } = await signup({
+    confirmPassword: "P@ssword123",
+    email: "MEMBER@cinema.test",
+    firstName: "Sora",
+    lastName: "Kim",
+    password: "P@ssword123",
+  });
+  const body = await response.text();
+
+  assert.equal(response.status, 409);
+  assert.match(body, /An account with that email already exists/);
 });
 
 test("role guards enforce Member, Staff, and Owner direct URL access", async () => {

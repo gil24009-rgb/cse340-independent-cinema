@@ -21,10 +21,11 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Verified the app with automated tests, PostgreSQL integration, and desktop and mobile browser checks
 - Preserved the meaningful project history from the original course repository
 - Added the first Step 4 vertical slice: PostgreSQL-backed production session configuration, login, logout, current-user loading, role guards, CSRF protection, and protected role landing pages
+- Added the second Step 4 vertical slice: Member signup, accessible validation feedback, lower-case email normalization, bcrypt password hashing, duplicate-email conflict handling, and safe signup session regeneration
 
 ## Verified Baseline
 
-- Automated tests: 18 passing
+- Automated tests: 23 passing
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
 - Database constraints: role, duplicate booking, delete policy, and no-op status transition checks verified
 - Browser widths: 1280px desktop and 390px mobile checked without horizontal overflow
@@ -50,9 +51,18 @@ Completed first vertical slice:
 - Login, role landing, and forbidden interfaces are available
 - Automated tests cover unauthenticated access, role combinations, inactive sessions, generic login failure, CSRF rejection, and logout invalidation
 
+Completed second vertical slice:
+
+- Signup uses a public Member-only form and redirects authenticated users away from `/signup`
+- Signup validation preserves non-secret form values, renders an error summary, marks invalid fields, and associates field-level errors with their inputs
+- Email is normalized to lower-case before persistence and new passwords are hashed with bcrypt
+- Duplicate email conflicts return a stable signup error instead of surfacing a server failure
+- Signup regenerates the session ID before setting the new authenticated user
+- Automated tests cover signup validation, duplicate-email conflict handling, normalized account creation, hashing input flow, and signup session redirect
+- Browser checks confirmed desktop and mobile signup rendering plus validation, conflict, and post-signup account states through the rendered interface
+
 Remaining Step 4 slices:
 
-- Add signup with server-side validation, duplicate-email conflict handling, and bcrypt password hashing
 - Add reusable resource ownership middleware and cross-account route tests
 - Run the required independent authentication and authorization review
 
@@ -75,6 +85,7 @@ Remaining Step 4 slices:
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
+- Local PostgreSQL is currently unavailable in this workspace, so direct `user_sessions` table verification remains pending even though session behavior is covered by automated tests and browser checks.
 
 ## Working Checkpoints
 

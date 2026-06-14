@@ -4,7 +4,10 @@ import { test } from "node:test";
 import { createSessionMiddleware } from "../src/config/session.js";
 import { buildNavigation } from "../src/middleware/viewContext.js";
 import {
+  matchesField,
+  passwordLength,
   requiredText,
+  requiredValue,
   validEmail,
   validateRequest,
 } from "../src/middleware/validation.js";
@@ -43,6 +46,30 @@ test("validation middleware handles a missing request body", () => {
   middleware(request, {}, () => {});
 
   assert.match(request.validationErrors.name[0], /required/);
+});
+
+test("validation helpers support password and confirmation rules", () => {
+  const middleware = validateRequest({
+    confirmPassword: [
+      requiredValue("Password confirmation", { maxLength: 72 }),
+      matchesField("Password confirmation", "password", "Password"),
+    ],
+    password: [
+      requiredValue("Password", { maxLength: 72 }),
+      passwordLength("Password"),
+    ],
+  });
+  const request = {
+    body: {
+      confirmPassword: "different-password",
+      password: "short",
+    },
+  };
+
+  middleware(request, {}, () => {});
+
+  assert.match(request.validationErrors.password[0], /at least 8 characters/);
+  assert.match(request.validationErrors.confirmPassword[0], /must match Password/);
 });
 
 test("account navigation only marks exact routes and descendants active", () => {

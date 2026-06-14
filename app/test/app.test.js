@@ -33,7 +33,7 @@ test("renders the cinema foundation home page", async () => {
 });
 
 test("renders stable empty states for planned primary routes", async () => {
-  for (const route of ["/films", "/screenings", "/login"]) {
+  for (const route of ["/films", "/screenings", "/login", "/signup"]) {
     const response = await fetch(`${baseUrl}${route}`);
     assert.equal(response.status, 200);
   }

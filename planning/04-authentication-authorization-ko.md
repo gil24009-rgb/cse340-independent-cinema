@@ -46,6 +46,8 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 
 ### Slice 2. Signup and Password Creation
 
+상태: Implemented and browser behavior verified
+
 구현 범위:
 
 - signup form과 field-level error
@@ -54,6 +56,19 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 - duplicate email conflict 처리
 - Member role만 생성 가능
 - signup 성공 후 안전한 session 시작
+
+자동 검증:
+
+- signup public route와 authenticated redirect
+- invalid input의 error summary, field-level error, non-secret value 보존
+- normalized email과 hashed password 입력 경로
+- duplicate email conflict 화면
+- signup 성공 후 `/account` redirect와 session 유지
+
+브라우저 검증:
+
+- Desktop 1280px에서 signup form, validation summary, duplicate email conflict, post-signup account state 확인
+- Mobile 390px에서 signup page one-column layout과 horizontal overflow 없음 확인
 
 ### Slice 3. Resource Ownership
 

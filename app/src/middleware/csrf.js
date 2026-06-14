@@ -13,7 +13,7 @@ function tokensMatch(expected, received) {
 }
 
 export function addCsrfToken(req, res, next) {
-  if (!req.currentUser && req.path !== "/login") {
+  if (!req.currentUser && !["/login", "/signup"].includes(req.path)) {
     res.locals.csrfToken = "";
     return next();
   }

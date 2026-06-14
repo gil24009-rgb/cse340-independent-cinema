@@ -6,7 +6,7 @@
 | --- | --- | --- | --- | --- | --- |
 | Multiple related tables | 영화, 상영, 예약, 리뷰, 사용자 관계 | Foreign keys and normalized schema | Film detail, schedule, dashboards | ERD and schema review | Verified |
 | CASCADE or SET NULL | 관계별 삭제 정책 정의 | FK delete policy | 삭제 confirmation and resulting states | Database tests | Verified |
-| Session authentication | Member, Staff, Owner login | express-session, bcrypt | Login, signup, role-aware nav | Role test accounts | In Progress |
+| Session authentication | Member, Staff, Owner login and Member signup | express-session, bcrypt | Login, signup, role-aware nav | Role test accounts and auth route tests | Verified |
 | Multiple roles | Owner, Staff, Member | role middleware | Separate dashboards and actions | Permission matrix tests | In Progress |
 | Protected routes | Role and ownership checks | auth and authorization middleware | Forbidden state | Direct URL access tests | In Progress |
 | Server-side rendering | 모든 page EJS rendering | Express controllers and EJS | Entire application | Browser inspection | Planned |
