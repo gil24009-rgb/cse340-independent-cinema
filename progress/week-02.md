@@ -49,12 +49,12 @@
 - `pnpm test`에서 ownership slice 포함 automated tests 28개 통과
 - Browser에서 owned booking detail, review detail, 404 state 확인
 - Browser에서 owned detail page mobile 390px no overflow 확인
+- Render live에서 owned booking detail `200`, review detail `200`, cross-account `404`, invalid-id `404`, Staff `403` 확인
 
 ## 남은 위험 또는 Blocker
 
 - 로컬 PostgreSQL이 현재 실행 중이 아니어서 `user_sessions` table 직접 검증은 아직 못함
 - Independent authentication review 미수행
-- Render ownership route verification은 현재 commit 배포 후 확인 필요
 
 ## 다음 작업
 

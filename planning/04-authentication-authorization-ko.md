@@ -111,9 +111,13 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 - ownership-related 404 page 확인
 - Mobile 390px에서 owned detail page horizontal overflow 없음 확인
 
-남은 프로덕션 검증:
+프로덕션 검증:
 
-- Render redeploy 후 owned booking과 review detail route live 확인
+- Member login 후 owned booking detail route `200`
+- Member login 후 owned review detail route `200`
+- 다른 account의 booking direct URL `404`
+- invalid booking ID direct URL `404`
+- Staff account의 Member owned route direct URL `403`
 
 ## Security Rules
 

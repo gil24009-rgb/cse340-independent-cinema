@@ -36,6 +36,7 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Owner, Staff, and Member seed logins work in production with secure session cookies
 - Production role guards and logout session invalidation verified
 - Production signup creates a Member account, redirects to `/account`, and returns a duplicate-email conflict on repeat submission
+- Production owned booking and review routes enforce Member access, cross-account `404`, invalid-id `404`, and Staff `403`
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 
 ## Current Implementation Stage
@@ -73,6 +74,7 @@ Completed third vertical slice:
 - Staff and Owner are still blocked from Member-owned account routes by role guards
 - Automated tests cover unauthenticated redirects, owner-member access, different-member denial, invalid IDs, missing resources, and rendered detail pages
 - Browser checks confirmed booking detail, review detail, and ownership-related 404 rendering plus mobile 390px no-overflow behavior on local verification routes
+- Render verification confirmed live Member booking detail, review detail, cross-account `404`, invalid-id `404`, and Staff `403`
 
 Remaining Step 4 slices:
 
@@ -98,7 +100,6 @@ Remaining Step 4 slices:
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
 - Local PostgreSQL is currently unavailable in this workspace, so direct `user_sessions` table verification remains pending even though session behavior is covered by automated tests and browser checks.
-- Render ownership-route verification is pending until the new routes finish deploying from the current commit.
 
 ## Working Checkpoints
 
