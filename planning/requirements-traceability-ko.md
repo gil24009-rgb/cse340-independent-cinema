@@ -4,7 +4,7 @@
 
 | 수업 요건 | 프로젝트 구현 | 주요 데이터 또는 backend | 연결되는 frontend | 검증 방식 | 상태 |
 | --- | --- | --- | --- | --- | --- |
-| Multiple related tables | 영화, 상영, 예약, 리뷰, 사용자 관계 | Foreign keys and normalized schema | Film detail, schedule, dashboards | ERD and schema review | Verified |
+| Multiple related tables | 영화, 상영, 예약, 리뷰, 사용자 관계 | Foreign keys and normalized schema | Film detail, schedule, dashboards | ERD, schema review, PostgreSQL CI | Verified |
 | CASCADE or SET NULL | 관계별 삭제 정책 정의 | FK delete policy | 삭제 confirmation and resulting states | Database tests | Verified |
 | Session authentication | Member, Staff, Owner login and Member signup | express-session, bcrypt | Login, signup, role-aware nav | Role test accounts and auth route tests | Verified |
 | Multiple roles | Owner, Staff, Member | role middleware | Separate dashboards and actions | Permission matrix tests | In Progress |
@@ -27,7 +27,7 @@
 | Parameterized queries | All SQL inputs parameterized | PostgreSQL query layer | No direct UI difference | Query review | Planned |
 | Input validation | All forms validated server-side | Validation middleware | Inline errors and summaries | Invalid form tests | In Progress |
 | Sanitization | Review and message inputs sanitized | Input processing | Safe content output | Injection tests | Planned |
-| Secure sessions | Production session settings | Session configuration | Stable login state | Production review and direct session-table checks | Verified |
+| Secure sessions | Production session settings | Session configuration and PostgreSQL store | Stable login state | Production review, direct session-table checks, integration test | Verified |
 | Render deployment | Live server and DB | Environment variables | Production application | Private browser test | In Progress |
 | README | Required project documentation | README and ERD image | Repository review | Requirement checklist | Planned |
 | 15 substantial commits | Meaningful progress history | Git history | Repository review | `git log` review | In Progress |

@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: independent_cinema_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres -d independent_cinema_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/independent_cinema_test
+      SESSION_SECRET: ci-session-secret
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply database schema and seed
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/schema.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/seed.sql
+          node app/scripts/run-migrations.js
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/verify.sql
+
+      - name: Run automated tests
+        working-directory: app
+        run: pnpm test
+
+      - name: Check tracked files
+        run: |
+          git diff --check
+          if git grep -inE 'chatgpt|claude|codex|artificial intelligence|language model|(^|[^[:alnum:]_])llm([^[:alnum:]_]|$)' -- . ':(exclude).github/workflows/ci.yml'; then
+            echo "Tracked files contain private AI-process terms."
+            exit 1
+          fi

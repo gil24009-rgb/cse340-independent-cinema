@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import pg from "pg";
 
+import { runMigrations } from "./run-migrations.js";
+
 const { Client } = pg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,6 +35,8 @@ try {
       console.log(`Applied database/${filename}`);
     }
   }
+
+  await runMigrations({ client });
 } finally {
   await client.end();
 }

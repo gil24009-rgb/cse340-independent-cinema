@@ -23,10 +23,15 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Added the first Step 4 vertical slice: PostgreSQL-backed production session configuration, login, logout, current-user loading, role guards, CSRF protection, and protected role landing pages
 - Added the second Step 4 vertical slice: Member signup, accessible validation feedback, lower-case email normalization, bcrypt password hashing, duplicate-email conflict handling, and safe signup session regeneration
 - Added the third Step 4 vertical slice: ownership-protected Member booking and review detail routes with strict ID parsing, not-found handling, and cross-account denial
+- Added PostgreSQL-backed GitHub Actions CI, database integration tests, and ordered migration infrastructure
+- Added the Step 5 public cinema direction review packet before public feature implementation
 
 ## Verified Baseline
 
-- Automated tests: 28 passing
+- Automated tests with local PostgreSQL: 30 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 28 passing and 3 database integration skips
+- Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
+- Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
 - Database constraints: role, duplicate booking, delete policy, and no-op status transition checks verified
 - Browser widths: 1280px desktop and 390px mobile checked without horizontal overflow
@@ -39,6 +44,7 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Production owned booking and review routes enforce Member access, cross-account `404`, invalid-id `404`, and Staff `403`
 - Local PostgreSQL is now running, and `user_sessions` direct verification confirmed CSRF session creation, login session ID regeneration, and logout row deletion
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
+- GitHub Actions CI is configured to apply schema, seed, migrations, verification queries, and the full test suite; the first remote run remains pending
 
 ## Current Implementation Stage
 
@@ -81,6 +87,14 @@ Remaining Step 4 slices:
 
 - Run the required independent authentication and authorization review
 
+Cross-stage delivery infrastructure now available:
+
+- Ordered SQL migrations apply through `app/scripts/run-migrations.js`
+- Migration filenames are recorded in `schema_migrations`
+- PostgreSQL integration tests cover migration idempotency, database constraints, and session-store lifecycle
+- GitHub Actions CI provisions PostgreSQL 17 and runs database and application verification on pushes and pull requests
+- A Step 5 frontend direction review packet records the approved reference and review criteria before implementation
+
 ## Following Stages
 
 | Step | Focus | Main Outcome |
@@ -100,6 +114,7 @@ Remaining Step 4 slices:
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
+- The first GitHub Actions CI run must pass before the new database integration and migration pipeline can be recorded as remotely verified.
 
 ## Working Checkpoints
 

@@ -46,3 +46,9 @@ JOIN films f ON f.film_id = s.film_id
 LEFT JOIN bookings b ON b.screening_id = s.screening_id
 GROUP BY f.title, s.screening_id
 ORDER BY s.starts_at;
+
+SELECT
+  filename,
+  applied_at
+FROM schema_migrations
+ORDER BY filename;

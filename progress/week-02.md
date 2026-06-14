@@ -24,6 +24,10 @@
 - cross-account direct URL denial tests 추가
 - owned detail route local browser verification 추가
 - Step 4 상태 문서, traceability, 운영 메모리 갱신
+- PostgreSQL 17 GitHub Actions CI 구성
+- ordered database migration runner와 baseline migration 추가
+- migration, database constraint, PostgreSQL session store integration test 추가
+- Step 5 public frontend direction review packet 추가
 
 ## 관련 문서
 
@@ -31,11 +35,14 @@
 - `docs/current-status.md`
 - `planning/04-authentication-authorization-ko.md`
 - `planning/requirements-traceability-ko.md`
+- `quality-reviews/step-05-direction-review-packet-ko.md`
+- `database/README.md`
 - `.local/collaboration/OPERATING_MEMORY.md`
 
 ## 관련 Commit
 
 - Current slice: Add Member signup flow and validation
+- Current slice: Add project delivery infrastructure
 
 ## 검증 결과
 
@@ -51,11 +58,17 @@
 - Browser에서 owned detail page mobile 390px no overflow 확인
 - Render live에서 owned booking detail `200`, review detail `200`, cross-account `404`, invalid-id `404`, Staff `403` 확인
 - 로컬 PostgreSQL `user_sessions`에서 CSRF session row 생성, login session ID regeneration, logout row deletion 직접 확인
+- PostgreSQL 사용 시 `pnpm test`에서 30 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 28 passed, 3 database integration skips
+- migration을 연속 두 번 실행해 idempotency 확인
+- 임시 빈 PostgreSQL database에서 CI와 같은 schema, seed, migration, verify, full test 순서 통과
 
 ## 남은 위험 또는 Blocker
 
 - Independent authentication review 미수행
+- 첫 GitHub Actions PostgreSQL CI 실행 결과 확인 필요
 
 ## 다음 작업
 
 - Step 4 independent authentication and authorization review packet 준비
+- 첫 GitHub Actions CI 통과 확인

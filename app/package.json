@@ -6,6 +6,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
+    "db:migrate": "node scripts/run-migrations.js",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test"

@@ -62,6 +62,7 @@ Configure `DATABASE_URL`, then run:
 ```bash
 psql "$DATABASE_URL" -f ../database/schema.sql
 psql "$DATABASE_URL" -f ../database/seed.sql
+pnpm db:migrate
 psql "$DATABASE_URL" -f ../database/verify.sql
 pnpm dev
 ```

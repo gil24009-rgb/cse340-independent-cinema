@@ -20,6 +20,7 @@ Configure `DATABASE_URL` and a long random `SESSION_SECRET` in `.env`, then appl
 ```bash
 psql "$DATABASE_URL" -f ../database/schema.sql
 psql "$DATABASE_URL" -f ../database/seed.sql
+pnpm db:migrate
 psql "$DATABASE_URL" -f ../database/verify.sql
 ```
 
@@ -40,6 +41,8 @@ http://localhost:3400
 ```bash
 pnpm test
 ```
+
+Database integration tests run when `DATABASE_URL` is configured. Without it, the database-only tests are reported as skipped.
 
 ## Current Structure
 
@@ -69,4 +72,4 @@ The `/health/database` route intentionally reaches the global error handler when
 
 ## Render Deployment
 
-The root `render.yaml` creates the web service and PostgreSQL database. During each free-tier build, Render runs `scripts/initialize-database.js`. The script applies the schema and development seed accounts only when the application tables do not exist.
+The root `render.yaml` creates the web service and PostgreSQL database. During each free-tier build, Render runs `scripts/initialize-database.js`. The script applies the schema and development seed accounts only when the application tables do not exist, then applies pending ordered migrations.

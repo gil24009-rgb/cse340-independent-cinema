@@ -16,6 +16,9 @@
 - 기능을 추가할 때 정상 상태뿐 아니라 empty, invalid, forbidden, error 상태도 설계한다.
 - 매주 Git 기록에서 완료한 기능, 검증 결과, 다음 위험 요소를 확인할 수 있어야 한다.
 - 실제 결제, 좌석 선택, 외부 예매 API는 범위에서 제외한다.
+- 각 Step 종료 검수는 전체 방향과 frontend 결과를 중심으로 진행하며, 범위 변경 결정이 없으면 다음 Step 작업을 막지 않는다.
+- Step 5 구현 전 public frontend 방향 검수 패킷을 확인한다.
+- Step 6 구현 전 PostgreSQL integration test와 migration 경로가 실제로 작동해야 한다.
 
 ## 단계별 로드맵
 
@@ -147,6 +150,7 @@ Frontend 연결:
 - Admin 변경사항이 public page에 즉시 반영된다.
 - 사용자가 영화에서 상영 일정까지 자연스럽게 이동한다.
 - 날짜별 schedule이 정확하게 표시된다.
+- 첫 실제 데이터 화면 연결 후 사용자가 public 정보 구조와 frontend 방향을 검수할 수 있는 화면 패킷이 있다.
 
 ### Step 6. Booking Workflow and Member Experience
 
@@ -170,6 +174,7 @@ Frontend 연결:
 - 사용자가 screening을 예약하고 상태를 확인할 수 있다.
 - 모든 상태 변경이 history에 기록된다.
 - 잘못된 예약과 권한 없는 변경이 차단된다.
+- PostgreSQL integration test가 constraint, session, migration baseline을 검증하며 booking transaction과 concurrency 검증을 포함한다.
 
 ### Step 7. Reviews, Staff Operations, and Admin Dashboard
 
