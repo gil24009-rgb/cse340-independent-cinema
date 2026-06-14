@@ -62,13 +62,12 @@
 - `DATABASE_URL` 없이 `pnpm test`에서 28 passed, 3 database integration skips
 - migration을 연속 두 번 실행해 idempotency 확인
 - 임시 빈 PostgreSQL database에서 CI와 같은 schema, seed, migration, verify, full test 순서 통과
+- 첫 GitHub Actions PostgreSQL CI run에서 database pipeline, full tests, tracked-file checks 통과
 
 ## 남은 위험 또는 Blocker
 
 - Independent authentication review 미수행
-- 첫 GitHub Actions PostgreSQL CI 실행 결과 확인 필요
 
 ## 다음 작업
 
 - Step 4 independent authentication and authorization review packet 준비
-- 첫 GitHub Actions CI 통과 확인

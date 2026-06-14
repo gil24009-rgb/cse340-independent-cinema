@@ -23,6 +23,7 @@ jobs:
           - 5432:5432
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/independent_cinema_test
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       SESSION_SECRET: ci-session-secret
 
     steps:

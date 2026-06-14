@@ -44,7 +44,7 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Production owned booking and review routes enforce Member access, cross-account `404`, invalid-id `404`, and Staff `403`
 - Local PostgreSQL is now running, and `user_sessions` direct verification confirmed CSRF session creation, login session ID regeneration, and logout row deletion
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
-- GitHub Actions CI is configured to apply schema, seed, migrations, verification queries, and the full test suite; the first remote run remains pending
+- GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
 
 ## Current Implementation Stage
 
@@ -114,7 +114,6 @@ Cross-stage delivery infrastructure now available:
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
-- The first GitHub Actions CI run must pass before the new database integration and migration pipeline can be recorded as remotely verified.
 
 ## Working Checkpoints
 
