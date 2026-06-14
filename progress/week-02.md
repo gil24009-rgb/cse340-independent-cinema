@@ -19,6 +19,10 @@
 - signup 성공 후 session regeneration과 authenticated redirect 추가
 - login 화면에서 signup 진입 링크 추가
 - signup 관련 automated tests와 browser verification 추가
+- owned booking과 review detail route 추가
+- strict resource ID parsing, not-found handling, ownership middleware 추가
+- cross-account direct URL denial tests 추가
+- owned detail route local browser verification 추가
 - Step 4 상태 문서, traceability, 운영 메모리 갱신
 
 ## 관련 문서
@@ -42,15 +46,16 @@
 - Browser에서 signup 성공 후 `/account` redirect와 authenticated `/signup` redirect 확인
 - Browser에서 mobile 390px signup layout과 no horizontal overflow 확인
 - Render live `/signup`에서 실제 Member signup, logout, duplicate email conflict 확인
+- `pnpm test`에서 ownership slice 포함 automated tests 28개 통과
+- Browser에서 owned booking detail, review detail, 404 state 확인
+- Browser에서 owned detail page mobile 390px no overflow 확인
 
 ## 남은 위험 또는 Blocker
 
 - 로컬 PostgreSQL이 현재 실행 중이 아니어서 `user_sessions` table 직접 검증은 아직 못함
-- Resource ownership middleware와 cross-account route tests 미구현
 - Independent authentication review 미수행
+- Render ownership route verification은 현재 commit 배포 후 확인 필요
 
 ## 다음 작업
 
-- Resource ownership middleware와 strict resource loading 추가
-- Booking과 review의 cross-account access tests 추가
 - Step 4 independent authentication and authorization review packet 준비

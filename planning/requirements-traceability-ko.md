@@ -8,9 +8,9 @@
 | CASCADE or SET NULL | 관계별 삭제 정책 정의 | FK delete policy | 삭제 confirmation and resulting states | Database tests | Verified |
 | Session authentication | Member, Staff, Owner login and Member signup | express-session, bcrypt | Login, signup, role-aware nav | Role test accounts and auth route tests | Verified |
 | Multiple roles | Owner, Staff, Member | role middleware | Separate dashboards and actions | Permission matrix tests | In Progress |
-| Protected routes | Role and ownership checks | auth and authorization middleware | Forbidden state | Direct URL access tests | In Progress |
+| Protected routes | Role and ownership checks | auth and authorization middleware | Forbidden and not-found ownership states | Direct URL access tests | Verified |
 | Server-side rendering | 모든 page EJS rendering | Express controllers and EJS | Entire application | Browser inspection | Planned |
-| Dynamic routes | Film, screening, booking detail | Resource lookup by id | Detail pages | Valid/invalid id tests | Defined |
+| Dynamic routes | Film, screening, booking detail | Resource lookup by id | Detail pages | Valid/invalid id tests | In Progress |
 | Layouts and partials | Shared navigation and components | EJS partial structure | Consistent global UI | Template review | Verified |
 | MVC organization | Models, controllers, routes, views | Folder structure | Predictable data presentation | Code review | Verified |
 | Middleware | Auth, roles, validation, errors | Shared middleware | Form and error feedback | Failure-path tests | In Progress |

@@ -32,10 +32,64 @@ const users = [
     user_id: 3,
   },
 ];
+const bookings = [
+  {
+    booked_at: "2026-06-10T18:30:00.000Z",
+    booking_id: 1,
+    cancelled_at: null,
+    film_title: "House of Hummingbird",
+    screening_id: 10,
+    starts_at: "2026-06-15T01:00:00.000Z",
+    status: "confirmed",
+    user_id: 1,
+  },
+  {
+    booked_at: "2026-06-02T18:30:00.000Z",
+    booking_id: 2,
+    cancelled_at: null,
+    film_title: "Microhabitat",
+    screening_id: 11,
+    starts_at: "2026-06-08T01:00:00.000Z",
+    status: "completed",
+    user_id: 1,
+  },
+  {
+    booked_at: "2026-06-09T18:30:00.000Z",
+    booking_id: 3,
+    cancelled_at: "2026-06-10T18:30:00.000Z",
+    film_title: "Little Forest",
+    screening_id: 12,
+    starts_at: "2026-06-16T01:00:00.000Z",
+    status: "cancelled",
+    user_id: 4,
+  },
+];
+const reviews = [
+  {
+    body: "A precise and quietly moving film that stayed with me after the screening.",
+    created_at: "2026-06-09T18:30:00.000Z",
+    film_title: "Microhabitat",
+    is_visible: true,
+    rating: 5,
+    review_id: 1,
+    updated_at: "2026-06-09T18:30:00.000Z",
+    user_id: 1,
+  },
+  {
+    body: "Another member review.",
+    created_at: "2026-06-11T18:30:00.000Z",
+    film_title: "Little Forest",
+    is_visible: true,
+    rating: 4,
+    review_id: 2,
+    updated_at: "2026-06-11T18:30:00.000Z",
+    user_id: 4,
+  },
+];
 
 let server;
 let baseUrl;
-let nextUserId = 4;
+let nextUserId = 5;
 
 function findUserByEmail(email) {
   return users.find((user) => user.email === email) || null;
@@ -66,6 +120,14 @@ async function createMemberUser({ email, firstName, lastName, passwordHash }) {
   nextUserId += 1;
   users.push(user);
   return user;
+}
+
+async function findBookingById(bookingId) {
+  return bookings.find((booking) => booking.booking_id === bookingId) || null;
+}
+
+async function findReviewById(reviewId) {
+  return reviews.find((review) => review.review_id === reviewId) || null;
 }
 
 function cookieFrom(response) {
@@ -131,6 +193,10 @@ async function signup(fields) {
 
 before(async () => {
   const app = createApp({
+    account: {
+      findBookingById,
+      findReviewById,
+    },
     auth: {
       createMemberUser,
       findUserByEmail,
@@ -159,7 +225,7 @@ after(async () => {
 });
 
 test("protected routes redirect unauthenticated direct access", async () => {
-  for (const route of ["/account", "/staff", "/admin"]) {
+  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin"]) {
     const response = await request(route);
 
     assert.equal(response.status, 303);
@@ -267,12 +333,16 @@ test("signup returns a conflict for duplicate emails", async () => {
 test("role guards enforce Member, Staff, and Owner direct URL access", async () => {
   const cases = [
     ["member@cinema.test", "/account", 200],
+    ["member@cinema.test", "/account/bookings/1", 200],
+    ["member@cinema.test", "/account/reviews/1", 200],
     ["member@cinema.test", "/staff", 403],
     ["member@cinema.test", "/admin", 403],
     ["staff@cinema.test", "/account", 403],
+    ["staff@cinema.test", "/account/bookings/1", 403],
     ["staff@cinema.test", "/staff", 200],
     ["staff@cinema.test", "/admin", 403],
     ["owner@cinema.test", "/account", 403],
+    ["owner@cinema.test", "/account/reviews/1", 403],
     ["owner@cinema.test", "/staff", 200],
     ["owner@cinema.test", "/admin", 200],
   ];
@@ -307,6 +377,66 @@ test("current role is reloaded so stale privileges are rejected", async () => {
   staff.role = "staff";
 
   assert.equal(response.status, 403);
+});
+
+test("member-owned booking and review routes reject invalid, missing, and cross-account access", async () => {
+  const otherMember = await createMemberUser({
+    email: "othermember@cinema.test",
+    firstName: "Other",
+    lastName: "Member",
+    passwordHash: "valid-password",
+  });
+  bookings.push({
+    booked_at: "2026-06-11T18:30:00.000Z",
+    booking_id: 4,
+    cancelled_at: null,
+    film_title: "Little Forest",
+    screening_id: 13,
+    starts_at: "2026-06-17T01:00:00.000Z",
+    status: "confirmed",
+    user_id: otherMember.user_id,
+  });
+  reviews.push({
+    body: "Other member private review.",
+    created_at: "2026-06-12T18:30:00.000Z",
+    film_title: "House of Hummingbird",
+    is_visible: true,
+    rating: 4,
+    review_id: 3,
+    updated_at: "2026-06-12T18:30:00.000Z",
+    user_id: otherMember.user_id,
+  });
+
+  const { cookie } = await login("member@cinema.test");
+  const cases = [
+    ["/account/bookings/not-a-number", 404],
+    ["/account/bookings/999", 404],
+    ["/account/bookings/4", 404],
+    ["/account/reviews/not-a-number", 404],
+    ["/account/reviews/999", 404],
+    ["/account/reviews/3", 404],
+  ];
+
+  for (const [route, expectedStatus] of cases) {
+    const response = await request(route, { headers: { cookie } });
+    assert.equal(response.status, expectedStatus, route);
+  }
+});
+
+test("owned booking and review pages render resource details for the signed-in member", async () => {
+  const { cookie } = await login("member@cinema.test");
+
+  const bookingResponse = await request("/account/bookings/1", { headers: { cookie } });
+  const bookingBody = await bookingResponse.text();
+  assert.equal(bookingResponse.status, 200);
+  assert.match(bookingBody, /House of Hummingbird/);
+  assert.match(bookingBody, /Booking ID/);
+
+  const reviewResponse = await request("/account/reviews/1", { headers: { cookie } });
+  const reviewBody = await reviewResponse.text();
+  assert.equal(reviewResponse.status, 200);
+  assert.match(reviewBody, /Microhabitat/);
+  assert.match(reviewBody, /A precise and quietly moving film/);
 });
 
 test("logout requires CSRF and invalidates the active session", async () => {

@@ -79,6 +79,8 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 
 ### Slice 3. Resource Ownership
 
+상태: Implemented and local browser behavior verified
+
 구현 범위:
 
 - resource ID strict parsing
@@ -86,6 +88,32 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 - Member ownership middleware
 - Staff와 Owner의 문서화된 운영 권한 분리
 - 다른 Member의 booking과 review 접근 차단 테스트
+
+구현 결과:
+
+- `/account/bookings/:bookingId`
+- `/account/reviews/:reviewId`
+- Member-owned detail placeholder page rendering
+- strict invalid ID rejection과 missing resource 404
+- ownership mismatch 404
+
+자동 검증:
+
+- 비로그인 detail route redirect
+- Member own booking과 review detail 접근
+- 다른 Member booking과 review direct URL 차단
+- invalid ID와 nonexistent resource 404
+- Staff와 Owner의 Member route 차단
+
+브라우저 검증:
+
+- Booking detail과 review detail page rendering 확인
+- ownership-related 404 page 확인
+- Mobile 390px에서 owned detail page horizontal overflow 없음 확인
+
+남은 프로덕션 검증:
+
+- Render redeploy 후 owned booking과 review detail route live 확인
 
 ## Security Rules
 

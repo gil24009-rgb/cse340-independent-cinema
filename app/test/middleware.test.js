@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { createSessionMiddleware } from "../src/config/session.js";
+import { createOwnedResourceLoader } from "../src/middleware/ownership.js";
 import { buildNavigation } from "../src/middleware/viewContext.js";
 import {
   matchesField,
@@ -87,4 +88,49 @@ test("session configuration rejects a missing secret", () => {
     () => createSessionMiddleware(),
     /SESSION_SECRET is required/,
   );
+});
+
+test("owned resource loader rejects invalid ids and cross-account access", async () => {
+  const loadOwnedBooking = createOwnedResourceLoader({
+    findResourceById: async (bookingId) => (bookingId === 1 ? { booking_id: 1, user_id: 9 } : null),
+    paramName: "bookingId",
+    requestKey: "booking",
+    resourceLabel: "Booking",
+  });
+
+  for (const request of [
+    { currentUser: { user_id: 9 }, params: { bookingId: "bad" } },
+    { currentUser: { user_id: 9 }, params: { bookingId: "99" } },
+    { currentUser: { user_id: 7 }, params: { bookingId: "1" } },
+  ]) {
+    let forwardedError;
+    await loadOwnedBooking(request, {}, (error) => {
+      forwardedError = error;
+    });
+
+    assert.equal(forwardedError.status, 404);
+    assert.match(forwardedError.message, /Booking not found/);
+  }
+});
+
+test("owned resource loader attaches the owned resource to the request", async () => {
+  const loadOwnedBooking = createOwnedResourceLoader({
+    findResourceById: async () => ({ booking_id: 1, user_id: 9 }),
+    paramName: "bookingId",
+    requestKey: "booking",
+    resourceLabel: "Booking",
+  });
+  const request = {
+    currentUser: { user_id: 9 },
+    params: { bookingId: "1" },
+  };
+  let nextCalled = false;
+
+  await loadOwnedBooking(request, {}, (error) => {
+    assert.equal(error, undefined);
+    nextCalled = true;
+  });
+
+  assert.equal(nextCalled, true);
+  assert.deepEqual(request.booking, { booking_id: 1, user_id: 9 });
 });

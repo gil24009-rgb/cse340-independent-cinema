@@ -39,6 +39,14 @@ test("renders stable empty states for planned primary routes", async () => {
   }
 });
 
+test("owned member detail routes fail safely without database access", async () => {
+  for (const route of ["/account/bookings/1", "/account/reviews/1"]) {
+    const response = await fetch(`${baseUrl}${route}`, { redirect: "manual" });
+    assert.equal(response.status, 303);
+    assert.equal(response.headers.get("location"), "/login");
+  }
+});
+
 test("reports application health without requiring a database", async () => {
   const response = await fetch(`${baseUrl}/health`);
   const body = await response.json();

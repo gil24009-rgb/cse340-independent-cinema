@@ -22,10 +22,11 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Preserved the meaningful project history from the original course repository
 - Added the first Step 4 vertical slice: PostgreSQL-backed production session configuration, login, logout, current-user loading, role guards, CSRF protection, and protected role landing pages
 - Added the second Step 4 vertical slice: Member signup, accessible validation feedback, lower-case email normalization, bcrypt password hashing, duplicate-email conflict handling, and safe signup session regeneration
+- Added the third Step 4 vertical slice: ownership-protected Member booking and review detail routes with strict ID parsing, not-found handling, and cross-account denial
 
 ## Verified Baseline
 
-- Automated tests: 23 passing
+- Automated tests: 28 passing
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
 - Database constraints: role, duplicate booking, delete policy, and no-op status transition checks verified
 - Browser widths: 1280px desktop and 390px mobile checked without horizontal overflow
@@ -63,9 +64,18 @@ Completed second vertical slice:
 - Browser checks confirmed desktop and mobile signup rendering plus validation, conflict, and post-signup account states through the rendered interface
 - Render verification confirmed live `/signup`, successful Member creation, logout, and duplicate-email conflict handling
 
+Completed third vertical slice:
+
+- `/account/bookings/:bookingId` and `/account/reviews/:reviewId` now render Member-owned placeholder detail pages through server-side routes
+- Resource IDs are parsed strictly, and invalid or missing IDs return a stable not-found response
+- Ownership is enforced on the server before rendering a booking or review detail
+- Different Member access is denied without exposing the resource through the route response
+- Staff and Owner are still blocked from Member-owned account routes by role guards
+- Automated tests cover unauthenticated redirects, owner-member access, different-member denial, invalid IDs, missing resources, and rendered detail pages
+- Browser checks confirmed booking detail, review detail, and ownership-related 404 rendering plus mobile 390px no-overflow behavior on local verification routes
+
 Remaining Step 4 slices:
 
-- Add reusable resource ownership middleware and cross-account route tests
 - Run the required independent authentication and authorization review
 
 ## Following Stages
@@ -88,6 +98,7 @@ Remaining Step 4 slices:
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
 - Local PostgreSQL is currently unavailable in this workspace, so direct `user_sessions` table verification remains pending even though session behavior is covered by automated tests and browser checks.
+- Render ownership-route verification is pending until the new routes finish deploying from the current commit.
 
 ## Working Checkpoints
 

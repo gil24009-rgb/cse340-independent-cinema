@@ -9,7 +9,7 @@ import { createCurrentUserLoader } from "./middleware/authentication.js";
 import { addCsrfToken } from "./middleware/csrf.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandlers.js";
 import { addViewContext } from "./middleware/viewContext.js";
-import accountRoutes from "./routes/accountRoutes.js";
+import { createAccountRoutes } from "./routes/accountRoutes.js";
 import { createAuthRoutes } from "./routes/authRoutes.js";
 import siteRoutes from "./routes/siteRoutes.js";
 
@@ -36,7 +36,7 @@ export function createApp(options = {}) {
   app.use(addViewContext);
 
   app.use(createAuthRoutes(options.auth));
-  app.use(accountRoutes);
+  app.use(createAccountRoutes(options.account));
   app.use(siteRoutes);
   app.use(notFoundHandler);
   app.use(errorHandler);

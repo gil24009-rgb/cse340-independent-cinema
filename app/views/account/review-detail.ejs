@@ -1,0 +1,35 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="empty-state">
+  <p class="eyebrow">Member review</p>
+  <h1><%= review.film_title %></h1>
+  <p>Your review detail is available only to the signed-in Member who owns it.</p>
+
+  <dl class="detail-list">
+    <div>
+      <dt>Rating</dt>
+      <dd><%= review.ratingDisplay %></dd>
+    </div>
+    <div>
+      <dt>Visibility</dt>
+      <dd><%= review.visibilityDisplay %></dd>
+    </div>
+    <div>
+      <dt>Created at</dt>
+      <dd><%= review.createdAtDisplay %></dd>
+    </div>
+    <div>
+      <dt>Review ID</dt>
+      <dd><%= review.review_id %></dd>
+    </div>
+  </dl>
+
+  <section class="detail-copy" aria-labelledby="review-body-title">
+    <h2 id="review-body-title">Review</h2>
+    <p><%= review.body %></p>
+  </section>
+
+  <a class="button button-primary" href="/account">Return to account</a>
+</main>
+
+<%- include("../partials/document-end") %>
