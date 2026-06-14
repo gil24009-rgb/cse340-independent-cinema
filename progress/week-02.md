@@ -50,10 +50,10 @@
 - Browser에서 owned booking detail, review detail, 404 state 확인
 - Browser에서 owned detail page mobile 390px no overflow 확인
 - Render live에서 owned booking detail `200`, review detail `200`, cross-account `404`, invalid-id `404`, Staff `403` 확인
+- 로컬 PostgreSQL `user_sessions`에서 CSRF session row 생성, login session ID regeneration, logout row deletion 직접 확인
 
 ## 남은 위험 또는 Blocker
 
-- 로컬 PostgreSQL이 현재 실행 중이 아니어서 `user_sessions` table 직접 검증은 아직 못함
 - Independent authentication review 미수행
 
 ## 다음 작업

@@ -81,7 +81,7 @@ pnpm test
 
 ## Current Stage
 
-Steps 1 through 3 are complete. Step 4 authentication and authorization is in progress. Login, logout, session identity, role guards, Member signup, duplicate-email handling, bcrypt password hashing, and ownership-protected Member booking and review detail routes are implemented and verified. Direct PostgreSQL session-table verification and the independent authentication review remain. See [Current Status](docs/current-status.md) for the exact next tasks and verification gates.
+Steps 1 through 3 are complete. Step 4 authentication and authorization is in progress. Login, logout, session identity, role guards, Member signup, duplicate-email handling, bcrypt password hashing, and ownership-protected Member booking and review detail routes are implemented and verified. Direct PostgreSQL session-table verification is complete. The independent authentication review remains. See [Current Status](docs/current-status.md) for the exact next tasks and verification gates.
 
 ## Deployment
 

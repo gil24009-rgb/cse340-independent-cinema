@@ -42,7 +42,7 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 
 남은 직접 검증:
 
-- PostgreSQL session table에서 login row 생성과 logout row 삭제 직접 확인
+- 없음
 
 ### Slice 2. Signup and Password Creation
 
@@ -76,6 +76,12 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 - 새 Member account signup 후 `/account` redirect 확인
 - signup으로 생성된 session의 logout 동작 확인
 - 같은 email 재제출 시 duplicate email conflict 확인
+
+로컬 PostgreSQL 검증:
+
+- `user_sessions` table truncate 후 `GET /login`에서 CSRF session row 생성 확인
+- login 후 session ID regeneration과 새 `sid` row 확인
+- logout 후 `user_sessions` row 삭제 확인
 
 ### Slice 3. Resource Ownership
 

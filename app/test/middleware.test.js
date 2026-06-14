@@ -85,7 +85,7 @@ test("account navigation only marks exact routes and descendants active", () => 
 
 test("session configuration rejects a missing secret", () => {
   assert.throws(
-    () => createSessionMiddleware(),
+    () => createSessionMiddleware({ sessionSecret: "" }),
     /SESSION_SECRET is required/,
   );
 });

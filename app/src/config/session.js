@@ -7,7 +7,9 @@ import { getPool, isDatabaseConfigured } from "./database.js";
 export const sessionCookieName = "cinema_session";
 
 export function createSessionMiddleware(options = {}) {
-  const sessionSecret = options.sessionSecret || env.sessionSecret;
+  const sessionSecret = Object.hasOwn(options, "sessionSecret")
+    ? options.sessionSecret
+    : env.sessionSecret;
 
   if (!sessionSecret) {
     throw new Error("SESSION_SECRET is required.");

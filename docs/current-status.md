@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: June 13, 2026
+Last updated: June 14, 2026
 
 ## Current Stage
 
@@ -37,6 +37,7 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Production role guards and logout session invalidation verified
 - Production signup creates a Member account, redirects to `/account`, and returns a duplicate-email conflict on repeat submission
 - Production owned booking and review routes enforce Member access, cross-account `404`, invalid-id `404`, and Staff `403`
+- Local PostgreSQL is now running, and `user_sessions` direct verification confirmed CSRF session creation, login session ID regeneration, and logout row deletion
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 
 ## Current Implementation Stage
@@ -99,7 +100,6 @@ Remaining Step 4 slices:
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
-- Local PostgreSQL is currently unavailable in this workspace, so direct `user_sessions` table verification remains pending even though session behavior is covered by automated tests and browser checks.
 
 ## Working Checkpoints
 
