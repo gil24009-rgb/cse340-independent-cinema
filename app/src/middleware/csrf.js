@@ -18,6 +18,7 @@ export function addCsrfToken(req, res, next) {
     return next();
   }
 
+  // Anonymous auth forms intentionally bind CSRF to a pre-auth session row.
   if (!req.session.csrfToken) {
     req.session.csrfToken = randomBytes(32).toString("hex");
   }

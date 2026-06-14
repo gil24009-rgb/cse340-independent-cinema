@@ -14,6 +14,10 @@ export function createOwnedResourceLoader(options) {
   } = options;
 
   return async function loadOwnedResource(req, res, next) {
+    if (!req.currentUser) {
+      return next(createNotFoundError(`${resourceLabel} not found.`));
+    }
+
     const rawId = req.params?.[paramName];
     const resourceId = Number(rawId);
 

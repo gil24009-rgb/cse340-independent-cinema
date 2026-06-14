@@ -162,6 +162,7 @@ async function login(email, password = "correct-password") {
 
   return {
     cookie: cookieFrom(response),
+    initialCsrfToken: csrfToken,
     initialCookie,
     initialSetCookie,
     response,
@@ -265,6 +266,28 @@ test("login session uses the configured cookie and regenerates its identifier", 
   assert.match(initialSetCookie, /SameSite=Lax/);
   assert.match(cookie, /^cinema_session=/);
   assert.notEqual(cookie, initialCookie);
+});
+
+test("pre-auth CSRF token is rejected after login session regeneration", async () => {
+  const { cookie, initialCsrfToken } = await login("member@cinema.test");
+
+  const staleLogout = await request("/logout", {
+    body: new URLSearchParams({ csrfToken: initialCsrfToken }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(staleLogout.status, 403);
+
+  const accountPage = await request("/account", { headers: { cookie } });
+  const accountBody = await accountPage.text();
+  const currentCsrfToken = csrfFrom(accountBody);
+
+  assert.equal(accountPage.status, 200);
+  assert.ok(currentCsrfToken);
+  assert.notEqual(currentCsrfToken, initialCsrfToken);
 });
 
 test("signup validates required fields and preserves non-secret values", async () => {

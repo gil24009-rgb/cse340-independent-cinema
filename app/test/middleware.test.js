@@ -113,6 +113,23 @@ test("owned resource loader rejects invalid ids and cross-account access", async
   }
 });
 
+test("owned resource loader fails safely without an authenticated user", async () => {
+  const loadOwnedBooking = createOwnedResourceLoader({
+    findResourceById: async () => ({ booking_id: 1, user_id: 9 }),
+    paramName: "bookingId",
+    requestKey: "booking",
+    resourceLabel: "Booking",
+  });
+  let forwardedError;
+
+  await loadOwnedBooking({ params: { bookingId: "1" } }, {}, (error) => {
+    forwardedError = error;
+  });
+
+  assert.equal(forwardedError.status, 404);
+  assert.match(forwardedError.message, /Booking not found/);
+});
+
 test("owned resource loader attaches the owned resource to the request", async () => {
   const loadOwnedBooking = createOwnedResourceLoader({
     findResourceById: async () => ({ booking_id: 1, user_id: 9 }),

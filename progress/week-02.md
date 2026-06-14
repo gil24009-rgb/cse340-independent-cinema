@@ -28,6 +28,7 @@
 - ordered database migration runner와 baseline migration 추가
 - migration, database constraint, PostgreSQL session store integration test 추가
 - Step 5 public frontend direction review packet 추가
+- Step 4 independent authentication review findings 분류와 hardening 반영
 
 ## 관련 문서
 
@@ -43,6 +44,7 @@
 
 - Current slice: Add Member signup flow and validation
 - Current slice: Add project delivery infrastructure
+- Current slice: Classify Step 4 review findings
 
 ## 검증 결과
 
@@ -63,11 +65,13 @@
 - migration을 연속 두 번 실행해 idempotency 확인
 - 임시 빈 PostgreSQL database에서 CI와 같은 schema, seed, migration, verify, full test 순서 통과
 - 첫 GitHub Actions PostgreSQL CI run에서 database pipeline, full tests, tracked-file checks 통과
+- PostgreSQL 사용 시 `pnpm test`에서 32 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 30 passed, 3 database integration skips
+- anonymous login CSRF token이 login 이후 session에서 재사용되지 않음을 test로 확인
+- independent authentication review 결과에서 critical finding 없음 확인
 
 ## 남은 위험 또는 Blocker
 
-- Independent authentication review 미수행
-
 ## 다음 작업
 
-- Step 4 independent authentication and authorization review packet 준비
+- Step 5 첫 data-backed public film and screening slice 구현

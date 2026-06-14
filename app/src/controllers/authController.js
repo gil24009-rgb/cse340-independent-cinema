@@ -10,6 +10,7 @@ import {
 
 const genericLoginError = "Email or password is incorrect.";
 const duplicateEmailError = "An account with that email already exists. Sign in instead or use a different email.";
+// Static dummy hash for constant-time comparison on unknown-email logins.
 const dummyPasswordHash = "$2b$12$QyDNF1fFW3lZ5RDSfVZgNuNA2HtQm40QBR7c8VuCc/qcGqAnopJka";
 
 function normalizeEmail(value) {

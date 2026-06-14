@@ -4,7 +4,7 @@ Last updated: June 14, 2026
 
 ## Current Stage
 
-Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authentication and Authorization, is in progress.
+Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is the next implementation stage.
 
 ## Completed Work
 
@@ -23,13 +23,14 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Added the first Step 4 vertical slice: PostgreSQL-backed production session configuration, login, logout, current-user loading, role guards, CSRF protection, and protected role landing pages
 - Added the second Step 4 vertical slice: Member signup, accessible validation feedback, lower-case email normalization, bcrypt password hashing, duplicate-email conflict handling, and safe signup session regeneration
 - Added the third Step 4 vertical slice: ownership-protected Member booking and review detail routes with strict ID parsing, not-found handling, and cross-account denial
+- Completed the required independent Step 4 authentication review, disproved the reported CSRF-rotation concern with a new regression test, documented the anonymous auth-form session tradeoff, and hardened owned-resource loading against future route-order mistakes
 - Added PostgreSQL-backed GitHub Actions CI, database integration tests, and ordered migration infrastructure
 - Added the Step 5 public cinema direction review packet before public feature implementation
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 30 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 28 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 32 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 30 passing and 3 database integration skips
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -43,6 +44,7 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Production signup creates a Member account, redirects to `/account`, and returns a duplicate-email conflict on repeat submission
 - Production owned booking and review routes enforce Member access, cross-account `404`, invalid-id `404`, and Staff `403`
 - Local PostgreSQL is now running, and `user_sessions` direct verification confirmed CSRF session creation, login session ID regeneration, and logout row deletion
+- A pre-auth CSRF token is rejected after login session regeneration, and the post-login token differs from the anonymous login token
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
 
@@ -83,9 +85,16 @@ Completed third vertical slice:
 - Browser checks confirmed booking detail, review detail, and ownership-related 404 rendering plus mobile 390px no-overflow behavior on local verification routes
 - Render verification confirmed live Member booking detail, review detail, cross-account `404`, invalid-id `404`, and Staff `403`
 
-Remaining Step 4 slices:
+Independent review result:
 
-- Run the required independent authentication and authorization review
+- No critical findings were confirmed
+- The reported CSRF-rotation gap did not reproduce because the pre-auth token is rejected after login session regeneration
+- Anonymous `GET /login` and `GET /signup` creating a pre-auth session row is now documented as an accepted CSRF tradeoff for Step 4
+- Owned-resource loading now fails safely if a future route wires it without an authenticated user
+
+Next implementation slice:
+
+- Connect PostgreSQL film and screening data to the public `/films` and `/screenings` routes with stable normal, empty, and error states
 
 Cross-stage delivery infrastructure now available:
 

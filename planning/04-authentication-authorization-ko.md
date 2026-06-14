@@ -125,10 +125,23 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 - invalid booking ID direct URL `404`
 - Staff account의 Member owned route direct URL `403`
 
+### Independent Review Disposition
+
+상태: Completed and classified
+
+결과:
+
+- Critical finding 없음
+- anonymous login page의 pre-auth CSRF token은 login 이후 새 session에서 재사용되지 않음
+- post-login CSRF token이 anonymous login token과 다르다는 regression test 추가
+- anonymous `GET /login`과 `GET /signup`이 CSRF-bound pre-auth session row를 만드는 동작은 Step 4의 accepted tradeoff로 문서화
+- owned resource loader는 future route ordering mistake에서도 raw `TypeError` 대신 stable not-found로 실패하게 보강
+
 ## Security Rules
 
 - Session에는 `userId`만 저장한다.
 - 모든 환경에서 `SESSION_SECRET`을 명시적으로 설정한다.
+- anonymous login과 signup form은 CSRF token을 session에 묶기 위해 pre-auth session row를 만들 수 있다. Step 4에서는 이를 accepted tradeoff로 유지한다.
 - role과 active 상태는 매 요청에서 database를 다시 조회한다.
 - Login 실패는 account 존재 여부를 공개하지 않는다.
 - 모든 state-changing form은 CSRF token을 검사한다.
