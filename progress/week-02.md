@@ -41,6 +41,7 @@
 - Browser에서 duplicate email conflict 화면 확인
 - Browser에서 signup 성공 후 `/account` redirect와 authenticated `/signup` redirect 확인
 - Browser에서 mobile 390px signup layout과 no horizontal overflow 확인
+- Render live `/signup`에서 실제 Member signup, logout, duplicate email conflict 확인
 
 ## 남은 위험 또는 Blocker
 

@@ -34,6 +34,7 @@ Step 3, Application Architecture and Shared Backend, is complete. Step 4, Authen
 - Production health and PostgreSQL health routes return `200`
 - Owner, Staff, and Member seed logins work in production with secure session cookies
 - Production role guards and logout session invalidation verified
+- Production signup creates a Member account, redirects to `/account`, and returns a duplicate-email conflict on repeat submission
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 
 ## Current Implementation Stage
@@ -60,6 +61,7 @@ Completed second vertical slice:
 - Signup regenerates the session ID before setting the new authenticated user
 - Automated tests cover signup validation, duplicate-email conflict handling, normalized account creation, hashing input flow, and signup session redirect
 - Browser checks confirmed desktop and mobile signup rendering plus validation, conflict, and post-signup account states through the rendered interface
+- Render verification confirmed live `/signup`, successful Member creation, logout, and duplicate-email conflict handling
 
 Remaining Step 4 slices:
 

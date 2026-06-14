@@ -70,6 +70,13 @@ Navigation 노출은 presentation으로만 사용한다. 모든 보호 route는 
 - Desktop 1280px에서 signup form, validation summary, duplicate email conflict, post-signup account state 확인
 - Mobile 390px에서 signup page one-column layout과 horizontal overflow 없음 확인
 
+프로덕션 검증:
+
+- Render live `/signup` page 응답 확인
+- 새 Member account signup 후 `/account` redirect 확인
+- signup으로 생성된 session의 logout 동작 확인
+- 같은 email 재제출 시 duplicate email conflict 확인
+
 ### Slice 3. Resource Ownership
 
 구현 범위:
