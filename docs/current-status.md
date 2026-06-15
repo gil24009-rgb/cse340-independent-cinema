@@ -54,6 +54,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Public list routes render stable empty and database-error states
 - Public list and detail routes verified at 1280px and 390px without horizontal overflow
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
+- Production detail routes return `200` for `/films/house-of-hummingbird` and the current live future screening route `/screenings/3`, while invalid public identifiers return `404`
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
 

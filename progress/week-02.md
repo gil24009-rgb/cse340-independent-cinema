@@ -83,6 +83,7 @@
 - `DATABASE_URL` 없이 `pnpm test`에서 33 passed, 3 database integration skips
 - Browser에서 film archive에서 film detail 이동과 film detail에서 screening detail 이동 확인
 - Browser에서 public detail routes 1280px와 390px no overflow 확인
+- Render live에서 `/films/house-of-hummingbird` `200`, current future screening detail `/screenings/3` `200`, `/films/BadSlug` `404`, `/screenings/not-a-number` `404` 확인
 
 ## 남은 위험 또는 Blocker
 
