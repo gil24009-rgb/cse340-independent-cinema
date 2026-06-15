@@ -7,7 +7,13 @@ let server;
 let baseUrl;
 
 before(async () => {
-  const app = createApp({ session: { sessionSecret: "test-session-secret" } });
+  const app = createApp({
+    session: { sessionSecret: "test-session-secret" },
+    site: {
+      findPublicFilms: async () => [],
+      findPublicUpcomingScreenings: async () => [],
+    },
+  });
 
   await new Promise((resolve) => {
     server = app.listen(0, "127.0.0.1", () => {
@@ -32,10 +38,17 @@ test("renders the cinema foundation home page", async () => {
   assert.match(body, /aria-current="page"/);
 });
 
-test("renders stable empty states for planned primary routes", async () => {
+test("renders stable empty states for public and authentication routes", async () => {
   for (const route of ["/films", "/screenings", "/login", "/signup"]) {
     const response = await fetch(`${baseUrl}${route}`);
+    const body = await response.text();
+
     assert.equal(response.status, 200);
+    assert.match(body, route === "/films"
+      ? /next film program is taking shape/
+      : route === "/screenings"
+        ? /next screening schedule is almost ready/
+        : /form/);
   }
 });
 

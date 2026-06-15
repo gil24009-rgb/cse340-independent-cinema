@@ -1,10 +1,10 @@
 # Current Status
 
-Last updated: June 14, 2026
+Last updated: June 15, 2026
 
 ## Current Stage
 
-Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is the next implementation stage.
+Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is in progress.
 
 ## Completed Work
 
@@ -26,11 +26,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Completed the required independent Step 4 authentication review, disproved the reported CSRF-rotation concern with a new regression test, documented the anonymous auth-form session tradeoff, and hardened owned-resource loading against future route-order mistakes
 - Added PostgreSQL-backed GitHub Actions CI, database integration tests, and ordered migration infrastructure
 - Added the Step 5 public cinema direction review packet before public feature implementation
+- Connected PostgreSQL film and screening data to the public `/films` and `/screenings` routes with stable normal, empty, and error states
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 32 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 30 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 34 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 32 passing and 3 database integration skips
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -45,6 +46,10 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Production owned booking and review routes enforce Member access, cross-account `404`, invalid-id `404`, and Staff `403`
 - Local PostgreSQL is now running, and `user_sessions` direct verification confirmed CSRF session creation, login session ID regeneration, and logout row deletion
 - A pre-auth CSRF token is rejected after login session regeneration, and the post-login token differs from the anonymous login token
+- Public `/films` renders four non-archived seed films and upcoming screening summaries
+- Public `/screenings` renders three future scheduled seed screenings with remaining capacity
+- Public list routes render stable empty and database-error states
+- Public list routes verified at 1280px and 390px without horizontal overflow
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
 
@@ -92,9 +97,21 @@ Independent review result:
 - Anonymous `GET /login` and `GET /signup` creating a pre-auth session row is now documented as an accepted CSRF tradeoff for Step 4
 - Owned-resource loading now fails safely if a future route wires it without an authenticated user
 
+### Step 5: Public Cinema Experience
+
+Completed first vertical slice:
+
+- `/films` renders non-archived public films ordered by featured state, next screening, and title
+- Film rows show metadata, synopsis, upcoming screening count, and next screening time
+- `/screenings` renders future scheduled screenings for non-archived films
+- Screening rows show date, time, program label, film metadata, capacity, and remaining availability
+- Both routes provide stable empty states and pass database failures to the global server-error state
+- Automated tests cover normal, empty, and database-error route behavior
+- PostgreSQL queries and desktop and mobile browser layouts are verified
+
 Next implementation slice:
 
-- Connect PostgreSQL film and screening data to the public `/films` and `/screenings` routes with stable normal, empty, and error states
+- Add public film detail and screening detail routes with strict identifiers, not-found states, and direct navigation between film and schedule
 
 Cross-stage delivery infrastructure now available:
 
@@ -119,7 +136,7 @@ Cross-stage delivery infrastructure now available:
 - Final cinema brand name is not selected.
 - Final poster and film image sources are not selected.
 - Course deadline should be added once confirmed.
-- Full production workflows beyond authentication remain unimplemented and unverified.
+- Full production workflows beyond authentication and public list routes remain unimplemented and unverified.
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.

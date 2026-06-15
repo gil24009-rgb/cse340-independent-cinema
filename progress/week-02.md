@@ -29,6 +29,8 @@
 - migration, database constraint, PostgreSQL session store integration test 추가
 - Step 5 public frontend direction review packet 추가
 - Step 4 independent authentication review findings 분류와 hardening 반영
+- PostgreSQL-backed public film archive와 screening schedule 구현
+- public list normal, empty, database-error states와 responsive layout 추가
 
 ## 관련 문서
 
@@ -36,6 +38,7 @@
 - `docs/current-status.md`
 - `planning/04-authentication-authorization-ko.md`
 - `planning/requirements-traceability-ko.md`
+- `planning/05-public-cinema-experience-ko.md`
 - `quality-reviews/step-05-direction-review-packet-ko.md`
 - `database/README.md`
 - `.local/collaboration/OPERATING_MEMORY.md`
@@ -69,9 +72,13 @@
 - `DATABASE_URL` 없이 `pnpm test`에서 30 passed, 3 database integration skips
 - anonymous login CSRF token이 login 이후 session에서 재사용되지 않음을 test로 확인
 - independent authentication review 결과에서 critical finding 없음 확인
+- PostgreSQL 사용 시 `pnpm test`에서 34 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 32 passed, 3 database integration skips
+- 실제 PostgreSQL seed에서 public film 4개와 future scheduled screening 3개 조회 확인
+- `/films`와 `/screenings` 1280px 및 390px no-overflow browser verification
 
 ## 남은 위험 또는 Blocker
 
 ## 다음 작업
 
-- Step 5 첫 data-backed public film and screening slice 구현
+- Step 5 public film detail과 screening detail slice 구현

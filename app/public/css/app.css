@@ -351,6 +351,104 @@ h3 {
   border-left: 1px solid var(--line);
 }
 
+.film-list,
+.screening-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.film-row,
+.screening-row {
+  display: grid;
+  gap: 2rem;
+  border-bottom: 1px solid var(--ink);
+  padding: 2.5rem 0;
+}
+
+.film-row {
+  grid-template-columns: 3rem minmax(0, 1.6fr) minmax(220px, 0.7fr);
+}
+
+.film-number {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.film-title-line {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.film-copy h2,
+.screening-film h2,
+.inline-empty-state h2 {
+  margin-bottom: 0.65rem;
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  line-height: 1;
+}
+
+.film-copy > p:last-child,
+.film-meta,
+.film-program span,
+.screening-film > p:last-child,
+.screening-availability span,
+.inline-empty-state > p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.film-program,
+.screening-availability {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: flex-start;
+}
+
+.film-program strong,
+.screening-availability strong {
+  font-size: 0.9rem;
+}
+
+.screening-row {
+  grid-template-columns: minmax(150px, 0.45fr) minmax(0, 1.4fr) minmax(190px, 0.55fr);
+  align-items: center;
+}
+
+.screening-date {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.screening-date span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.screening-date strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.3rem, 5vw, 4rem);
+  font-weight: 500;
+}
+
+.screening-film .eyebrow {
+  margin-bottom: 0.65rem;
+}
+
+.inline-empty-state {
+  min-height: 360px;
+  padding: 4rem 0;
+}
+
+.inline-empty-state > p:not(.eyebrow) {
+  max-width: 560px;
+}
+
 .status-table {
   margin-top: 3rem;
   border-top: 1px solid var(--ink);
@@ -628,6 +726,22 @@ h3 {
   .foundation-grid,
   .information-list {
     grid-template-columns: 1fr;
+  }
+
+  .film-row,
+  .screening-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .film-number {
+    display: none;
+  }
+
+  .film-program,
+  .screening-availability {
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
   }
 
   .foundation-grid article,

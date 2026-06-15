@@ -41,3 +41,11 @@
 ## 사용자 검수 요청 시점
 
 Step 5 첫 번째 실제 데이터 화면이 연결되면 Home, Film Archive, Film Detail, Screening Schedule의 화면 결과를 묶어 사용자에게 frontend 검수를 요청한다. 검수 전에도 확정된 범위 안의 backend와 화면 연결 작업은 계속 진행한다.
+
+## 현재 구현 근거
+
+- Film Archive와 Screening Schedule은 실제 PostgreSQL seed 데이터에 연결되었다.
+- Film Archive는 metadata, synopsis, upcoming count, next screening을 표시한다.
+- Screening Schedule은 날짜, 시간, program label, film metadata, capacity, remaining availability를 표시한다.
+- 두 목록 화면은 1280px와 390px에서 horizontal overflow 없이 확인되었다.
+- Home과 Film Detail이 아직 실제 데이터에 연결되지 않았으므로 사용자 frontend 검수 요청은 다음 detail slice 이후 진행한다.

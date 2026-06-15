@@ -82,7 +82,7 @@ pnpm test
 
 ## Current Stage
 
-Steps 1 through 4 are complete. Authentication and authorization now include login, logout, session identity, role guards, Member signup, duplicate-email handling, bcrypt password hashing, ownership-protected Member booking and review detail routes, direct PostgreSQL session-table verification, and an independent review pass with follow-up hardening. Step 5 public cinema experience is the next implementation stage. See [Current Status](docs/current-status.md) for the exact next slice and verification baseline.
+Steps 1 through 4 are complete. Step 5 public cinema experience is in progress. The public film archive and upcoming screening schedule now render PostgreSQL data with stable empty and error states. See [Current Status](docs/current-status.md) for the exact next slice and verification baseline.
 
 ## Deployment
 

@@ -1,0 +1,44 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading">
+    <p class="eyebrow">Screening schedule</p>
+    <h1>Choose the time, then stay for the film.</h1>
+    <p>Upcoming screenings are ordered by date with availability visible before booking.</p>
+  </header>
+
+  <% if (screenings.length === 0) { %>
+    <section class="inline-empty-state" aria-labelledby="screenings-empty-title">
+      <p class="eyebrow">Schedule update</p>
+      <h2 id="screenings-empty-title">The next screening schedule is almost ready.</h2>
+      <p>Published dates and availability will appear here.</p>
+      <a class="text-link" href="/films">Browse the film archive</a>
+    </section>
+  <% } else { %>
+    <ol class="screening-list">
+      <% screenings.forEach((screening) => { %>
+        <li class="screening-row">
+          <time datetime="<%= new Date(screening.starts_at).toISOString() %>" class="screening-date">
+            <span><%= screening.dateLabel %></span>
+            <strong><%= screening.timeLabel %></strong>
+          </time>
+          <div class="screening-film">
+            <p class="eyebrow"><%= screening.program_label || "Regular screening" %></p>
+            <h2><%= screening.film_title %></h2>
+            <p><%= screening.director %> · <%= screening.runtime_minutes %> min · <%= screening.age_rating %></p>
+          </div>
+          <div class="screening-availability">
+            <% if (screening.has_guest_talk) { %>
+              <span class="status-badge">Guest talk</span>
+            <% } %>
+            <strong><%= screening.availabilityLabel %></strong>
+            <span>Capacity <%= screening.capacity %></span>
+            <a class="text-link" href="/films">Film archive</a>
+          </div>
+        </li>
+      <% }) %>
+    </ol>
+  <% } %>
+</main>
+
+<%- include("../partials/document-end") %>

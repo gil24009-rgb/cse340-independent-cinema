@@ -1,19 +1,25 @@
 import express from "express";
 
 import {
+  createPublicSiteController,
   showDatabaseHealth,
   showHealth,
   showHome,
-  showPlaceholder,
   showVisit,
 } from "../controllers/siteController.js";
 
-const router = express.Router();
+export function createSiteRoutes(options = {}) {
+  const router = express.Router();
+  const publicController = createPublicSiteController(options);
 
-router.get("/", showHome);
-router.get("/visit", showVisit);
-router.get(["/films", "/screenings"], showPlaceholder);
-router.get("/health", showHealth);
-router.get("/health/database", showDatabaseHealth);
+  router.get("/", showHome);
+  router.get("/visit", showVisit);
+  router.get("/films", publicController.showFilms);
+  router.get("/screenings", publicController.showScreenings);
+  router.get("/health", showHealth);
+  router.get("/health/database", showDatabaseHealth);
 
-export default router;
+  return router;
+}
+
+export default createSiteRoutes();

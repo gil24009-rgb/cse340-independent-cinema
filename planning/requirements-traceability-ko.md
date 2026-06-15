@@ -9,7 +9,7 @@
 | Session authentication | Member, Staff, Owner login and Member signup | express-session, bcrypt | Login, signup, role-aware nav | Role test accounts and auth route tests | Verified |
 | Multiple roles | Owner, Staff, Member | role middleware | Separate dashboards and actions | Permission matrix tests | In Progress |
 | Protected routes | Role and ownership checks | auth and authorization middleware | Forbidden and not-found ownership states | Direct URL access tests | Verified |
-| Server-side rendering | 모든 page EJS rendering | Express controllers and EJS | Entire application | Browser inspection | Planned |
+| Server-side rendering | 모든 page EJS rendering | Express controllers and EJS | Entire application | Browser inspection | In Progress |
 | Dynamic routes | Film, screening, booking detail | Resource lookup by id | Detail pages | Valid/invalid id tests | In Progress |
 | Layouts and partials | Shared navigation and components | EJS partial structure | Consistent global UI | Template review | Verified |
 | MVC organization | Models, controllers, routes, views | Folder structure | Predictable data presentation | Code review | Verified |
@@ -24,7 +24,7 @@
 | Manage users and roles | Owner changes roles | users role update | User management table | Owner-only tests | Defined |
 | Respond to submissions | Contact message status | contact_messages | Staff message queue | Status workflow test | Defined |
 | Moderate content | Hide reviews | review visibility state | Moderation controls | Staff/Owner tests | Defined |
-| Parameterized queries | All SQL inputs parameterized | PostgreSQL query layer | No direct UI difference | Query review | Planned |
+| Parameterized queries | All SQL inputs parameterized | PostgreSQL query layer | No direct UI difference | Query review | In Progress |
 | Input validation | All forms validated server-side | Validation middleware | Inline errors and summaries | Invalid form tests | In Progress |
 | Sanitization | Review and message inputs sanitized | Input processing | Safe content output | Injection tests | Planned |
 | Secure sessions | Production session settings | Session configuration and PostgreSQL store | Stable login state | Production review, direct session-table checks, integration test | Verified |

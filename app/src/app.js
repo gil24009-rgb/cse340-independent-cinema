@@ -11,7 +11,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandlers.js";
 import { addViewContext } from "./middleware/viewContext.js";
 import { createAccountRoutes } from "./routes/accountRoutes.js";
 import { createAuthRoutes } from "./routes/authRoutes.js";
-import siteRoutes from "./routes/siteRoutes.js";
+import { createSiteRoutes } from "./routes/siteRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,7 +37,7 @@ export function createApp(options = {}) {
 
   app.use(createAuthRoutes(options.auth));
   app.use(createAccountRoutes(options.account));
-  app.use(siteRoutes);
+  app.use(createSiteRoutes(options.site));
   app.use(notFoundHandler);
   app.use(errorHandler);
 

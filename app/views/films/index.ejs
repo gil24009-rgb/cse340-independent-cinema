@@ -1,0 +1,51 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading">
+    <p class="eyebrow">Film archive</p>
+    <h1>Films selected for the room.</h1>
+    <p>Browse the current program, then move directly into an available screening.</p>
+  </header>
+
+  <% if (films.length === 0) { %>
+    <section class="inline-empty-state" aria-labelledby="films-empty-title">
+      <p class="eyebrow">Program update</p>
+      <h2 id="films-empty-title">The next film program is taking shape.</h2>
+      <p>Published films will appear here when the cinema program is ready.</p>
+      <a class="text-link" href="/screenings">Check the screening schedule</a>
+    </section>
+  <% } else { %>
+    <ol class="film-list">
+      <% films.forEach((film, index) => { %>
+        <li class="film-row">
+          <div class="film-number"><%= String(index + 1).padStart(2, "0") %></div>
+          <div class="film-copy">
+            <div class="film-title-line">
+              <h2><%= film.title %></h2>
+              <% if (film.is_featured) { %>
+                <span class="status-badge">Featured</span>
+              <% } %>
+            </div>
+            <p class="film-meta">
+              <%= film.director %> · <%= film.country %> · <%= film.release_year %> · <%= film.runtime_minutes %> min
+            </p>
+            <p><%= film.synopsis %></p>
+          </div>
+          <div class="film-program">
+            <span><%= film.genre %> · <%= film.age_rating %></span>
+            <% if (film.nextScreeningLabel) { %>
+              <strong><%= film.upcoming_screening_count %> upcoming</strong>
+              <span>Next: <%= film.nextScreeningLabel %></span>
+              <a class="text-link" href="/screenings">View screenings</a>
+            <% } else { %>
+              <strong>No upcoming screening</strong>
+              <span>This film remains in the public archive.</span>
+            <% } %>
+          </div>
+        </li>
+      <% }) %>
+    </ol>
+  <% } %>
+</main>
+
+<%- include("../partials/document-end") %>

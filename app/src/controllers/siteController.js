@@ -2,6 +2,40 @@ import {
   checkDatabaseConnection,
   isDatabaseConfigured,
 } from "../config/database.js";
+import { findPublicFilms } from "../models/filmModel.js";
+import { findPublicUpcomingScreenings } from "../models/screeningModel.js";
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+  timeZone: "America/Boise",
+  weekday: "short",
+});
+const timeFormatter = new Intl.DateTimeFormat("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "America/Boise",
+});
+
+function presentFilm(film) {
+  return {
+    ...film,
+    nextScreeningLabel: film.next_screening_at
+      ? `${dateFormatter.format(film.next_screening_at)} · ${timeFormatter.format(film.next_screening_at)}`
+      : null,
+  };
+}
+
+function presentScreening(screening) {
+  return {
+    ...screening,
+    availabilityLabel: screening.remaining_capacity > 0
+      ? `${screening.remaining_capacity} seats available`
+      : "Sold out",
+    dateLabel: dateFormatter.format(screening.starts_at),
+    timeLabel: timeFormatter.format(screening.starts_at),
+  };
+}
 
 export function showHome(req, res) {
   res.render("home", {
@@ -17,40 +51,39 @@ export function showVisit(req, res) {
   });
 }
 
-const placeholderPages = {
-  films: {
-    eyebrow: "Film archive",
-    heading: "The program is taking shape.",
-    message: "Films will appear here as soon as the first program is published.",
-    pageDescription: "Browse films in the independent cinema program.",
-    pageTitle: "Films",
-  },
-  login: {
-    eyebrow: "Member access",
-    heading: "Keep your screenings close.",
-    message: "Member access will connect bookings, screening history, and reviews in one place.",
-    pageDescription: "Sign in to manage independent cinema bookings.",
-    pageTitle: "Sign In",
-  },
-  screenings: {
-    eyebrow: "Screening schedule",
-    heading: "The next schedule is almost ready.",
-    message: "Published screening dates and availability will appear here.",
-    pageDescription: "View the independent cinema screening schedule.",
-    pageTitle: "Screenings",
-  },
-};
+export function createPublicSiteController(options = {}) {
+  const loadFilms = options.findPublicFilms || findPublicFilms;
+  const loadScreenings = options.findPublicUpcomingScreenings || findPublicUpcomingScreenings;
 
-export function showPlaceholder(req, res, next) {
-  const page = placeholderPages[req.path.slice(1)];
+  return {
+    async showFilms(req, res, next) {
+      try {
+        const films = (await loadFilms()).map(presentFilm);
 
-  if (!page) {
-    return next();
-  }
+        res.render("films/index", {
+          films,
+          pageDescription: "Browse films in the independent cinema program.",
+          pageTitle: "Films",
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
 
-  res.render("placeholder", {
-    ...page,
-  });
+    async showScreenings(req, res, next) {
+      try {
+        const screenings = (await loadScreenings()).map(presentScreening);
+
+        res.render("screenings/index", {
+          pageDescription: "View upcoming independent cinema screenings and availability.",
+          pageTitle: "Screenings",
+          screenings,
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+  };
 }
 
 export function showHealth(req, res) {
