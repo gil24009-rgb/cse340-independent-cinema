@@ -76,6 +76,7 @@
 - `DATABASE_URL` 없이 `pnpm test`에서 32 passed, 3 database integration skips
 - 실제 PostgreSQL seed에서 public film 4개와 future scheduled screening 3개 조회 확인
 - `/films`와 `/screenings` 1280px 및 390px no-overflow browser verification
+- Render production `/films` film rows 4개와 현재 future `/screenings` row 1개 `200` 확인
 
 ## 남은 위험 또는 Blocker
 
