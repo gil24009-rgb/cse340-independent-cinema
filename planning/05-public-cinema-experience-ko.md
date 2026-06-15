@@ -29,7 +29,7 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 
 ### Slice 2. Film and Screening Detail
 
-상태: Next
+상태: Implemented and locally verified
 
 구현 범위:
 
@@ -39,7 +39,25 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 - film detail에서 upcoming screenings 연결
 - screening detail에서 film metadata와 booking 진입 상태 연결
 
-### Slice 3. Visit and Contact
+검증:
+
+- valid, invalid, missing identifier automated tests
+- local PostgreSQL full test suite
+- film archive에서 film detail, film detail에서 screening detail route navigation 확인
+- 1280px desktop와 390px mobile no-overflow browser checks
+
+### Slice 3. Public Home Highlights
+
+상태: Next
+
+구현 범위:
+
+- `/` home route를 PostgreSQL data에 연결
+- featured film과 nearest screening summary 표시
+- archive와 screening schedule로 이어지는 CTA 정리
+- stable empty and database-error fallback
+
+### Slice 4. Visit and Contact
 
 상태: Planned
 
@@ -49,7 +67,7 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 - public contact form
 - validation, success, conflict or failure feedback
 
-### Slice 4. Owner Film and Screening Management
+### Slice 5. Owner Film and Screening Management
 
 상태: Planned
 

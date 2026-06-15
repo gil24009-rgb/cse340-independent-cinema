@@ -1,0 +1,82 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading detail-heading">
+    <p class="eyebrow"><%= film.is_featured ? "Featured film" : "Film detail" %></p>
+    <h1><%= film.title %></h1>
+    <p><%= film.director %> · <%= film.country %> · <%= film.release_year %> · <%= film.runtime_minutes %> min · <%= film.age_rating %></p>
+    <p><%= film.synopsis %></p>
+  </header>
+
+  <section class="detail-grid">
+    <div class="detail-copy">
+      <h2>About the film</h2>
+      <p><%= film.genre %> with a public archive route that stays connected to live screening availability.</p>
+      <% if (film.nextScreeningLabel) { %>
+        <p>Next screening: <strong><%= film.nextScreeningLabel %></strong></p>
+      <% } else { %>
+        <p>No future screening is currently published for this title.</p>
+      <% } %>
+    </div>
+
+    <dl class="detail-list public-detail-list">
+      <div>
+        <dt>Genre</dt>
+        <dd><%= film.genre %></dd>
+      </div>
+      <div>
+        <dt>Upcoming screenings</dt>
+        <dd><%= film.upcoming_screening_count %></dd>
+      </div>
+      <div>
+        <dt>Archive route</dt>
+        <dd>/films/<%= film.slug %></dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="page-section" aria-labelledby="film-screenings-title">
+    <div class="section-heading section-heading-stack">
+      <div>
+        <p class="eyebrow">Upcoming schedule</p>
+        <h2 id="film-screenings-title">Screenings for this film</h2>
+      </div>
+      <a class="text-link" href="/screenings">Full schedule</a>
+    </div>
+
+    <% if (screenings.length === 0) { %>
+      <section class="inline-empty-state" aria-labelledby="film-screenings-empty-title">
+        <p class="eyebrow">Schedule update</p>
+        <h3 id="film-screenings-empty-title">A new date has not been published yet.</h3>
+        <p>This film remains visible in the archive while the next screening is still being planned.</p>
+        <a class="text-link" href="/screenings">Check the screening schedule</a>
+      </section>
+    <% } else { %>
+      <ol class="screening-list">
+        <% screenings.forEach((screening) => { %>
+          <li class="screening-row">
+            <time datetime="<%= new Date(screening.starts_at).toISOString() %>" class="screening-date">
+              <span><%= screening.dateLabel %></span>
+              <strong><%= screening.timeLabel %></strong>
+            </time>
+            <div class="screening-film">
+              <p class="eyebrow"><%= screening.program_label || "Regular screening" %></p>
+              <h3><%= film.title %></h3>
+              <p><%= screening.availabilityLabel %> · <%= screening.priceLabel %></p>
+            </div>
+            <div class="screening-availability">
+              <% if (screening.has_guest_talk) { %>
+                <span class="status-badge">Guest talk</span>
+              <% } %>
+              <strong>Capacity <%= screening.capacity %></strong>
+              <span><%= screening.remaining_capacity %> seats remain</span>
+              <a class="text-link" href="/screenings/<%= screening.screening_id %>">Go to screening</a>
+            </div>
+          </li>
+        <% }) %>
+      </ol>
+    <% } %>
+  </section>
+</main>
+
+<%- include("../partials/document-end") %>

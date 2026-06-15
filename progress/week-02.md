@@ -31,6 +31,8 @@
 - Step 4 independent authentication review findings 분류와 hardening 반영
 - PostgreSQL-backed public film archive와 screening schedule 구현
 - public list normal, empty, database-error states와 responsive layout 추가
+- Step 5 public film detail과 screening detail slice 구현
+- public detail route valid, invalid, missing state tests와 browser verification 추가
 
 ## 관련 문서
 
@@ -77,9 +79,13 @@
 - 실제 PostgreSQL seed에서 public film 4개와 future scheduled screening 3개 조회 확인
 - `/films`와 `/screenings` 1280px 및 390px no-overflow browser verification
 - Render production `/films` film rows 4개와 현재 future `/screenings` row 1개 `200` 확인
+- PostgreSQL 사용 시 `pnpm test`에서 35 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 33 passed, 3 database integration skips
+- Browser에서 film archive에서 film detail 이동과 film detail에서 screening detail 이동 확인
+- Browser에서 public detail routes 1280px와 390px no overflow 확인
 
 ## 남은 위험 또는 Blocker
 
 ## 다음 작업
 
-- Step 5 public film detail과 screening detail slice 구현
+- Step 5 public home data connection slice 구현

@@ -15,7 +15,9 @@ export function createSiteRoutes(options = {}) {
   router.get("/", showHome);
   router.get("/visit", showVisit);
   router.get("/films", publicController.showFilms);
+  router.get("/films/:filmSlug", publicController.showFilmDetail);
   router.get("/screenings", publicController.showScreenings);
+  router.get("/screenings/:screeningId", publicController.showScreeningDetail);
   router.get("/health", showHealth);
   router.get("/health/database", showDatabaseHealth);
 

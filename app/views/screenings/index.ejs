@@ -24,7 +24,7 @@
           </time>
           <div class="screening-film">
             <p class="eyebrow"><%= screening.program_label || "Regular screening" %></p>
-            <h2><%= screening.film_title %></h2>
+            <h2><a class="title-link" href="/films/<%= screening.film_slug %>"><%= screening.film_title %></a></h2>
             <p><%= screening.director %> · <%= screening.runtime_minutes %> min · <%= screening.age_rating %></p>
           </div>
           <div class="screening-availability">
@@ -33,7 +33,7 @@
             <% } %>
             <strong><%= screening.availabilityLabel %></strong>
             <span>Capacity <%= screening.capacity %></span>
-            <a class="text-link" href="/films">Film archive</a>
+            <a class="text-link" href="/screenings/<%= screening.screening_id %>">Screening detail</a>
           </div>
         </li>
       <% }) %>

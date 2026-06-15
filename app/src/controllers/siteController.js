@@ -2,8 +2,12 @@ import {
   checkDatabaseConnection,
   isDatabaseConfigured,
 } from "../config/database.js";
-import { findPublicFilms } from "../models/filmModel.js";
-import { findPublicUpcomingScreenings } from "../models/screeningModel.js";
+import { findPublicFilmBySlug, findPublicFilms } from "../models/filmModel.js";
+import {
+  findPublicScreeningById,
+  findPublicScreeningsByFilmId,
+  findPublicUpcomingScreenings,
+} from "../models/screeningModel.js";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
@@ -16,10 +20,22 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
   timeZone: "America/Boise",
 });
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  currency: "USD",
+  style: "currency",
+});
+const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function createNotFoundError(message = "Page not found.") {
+  const error = new Error(message);
+  error.status = 404;
+  return error;
+}
 
 function presentFilm(film) {
   return {
     ...film,
+    nextScreeningHref: film.next_screening_id ? `/screenings/${film.next_screening_id}` : null,
     nextScreeningLabel: film.next_screening_at
       ? `${dateFormatter.format(film.next_screening_at)} · ${timeFormatter.format(film.next_screening_at)}`
       : null,
@@ -33,6 +49,7 @@ function presentScreening(screening) {
       ? `${screening.remaining_capacity} seats available`
       : "Sold out",
     dateLabel: dateFormatter.format(screening.starts_at),
+    priceLabel: currencyFormatter.format(screening.ticket_price_cents / 100),
     timeLabel: timeFormatter.format(screening.starts_at),
   };
 }
@@ -52,7 +69,10 @@ export function showVisit(req, res) {
 }
 
 export function createPublicSiteController(options = {}) {
+  const loadFilmBySlug = options.findPublicFilmBySlug || findPublicFilmBySlug;
   const loadFilms = options.findPublicFilms || findPublicFilms;
+  const loadScreeningById = options.findPublicScreeningById || findPublicScreeningById;
+  const loadScreeningsByFilmId = options.findPublicScreeningsByFilmId || findPublicScreeningsByFilmId;
   const loadScreenings = options.findPublicUpcomingScreenings || findPublicUpcomingScreenings;
 
   return {
@@ -81,6 +101,57 @@ export function createPublicSiteController(options = {}) {
         });
       } catch (error) {
         next(error);
+      }
+    },
+
+    async showFilmDetail(req, res, next) {
+      const filmSlug = req.params?.filmSlug;
+
+      if (!slugPattern.test(filmSlug || "")) {
+        return next(createNotFoundError("Film not found."));
+      }
+
+      try {
+        const film = await loadFilmBySlug(filmSlug);
+
+        if (!film) {
+          return next(createNotFoundError("Film not found."));
+        }
+
+        const screenings = (await loadScreeningsByFilmId(film.film_id)).map(presentScreening);
+
+        return res.render("films/detail", {
+          film: presentFilm(film),
+          pageDescription: `View ${film.title} and its upcoming screenings.`,
+          pageTitle: film.title,
+          screenings,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async showScreeningDetail(req, res, next) {
+      const screeningId = Number(req.params?.screeningId);
+
+      if (!Number.isInteger(screeningId) || screeningId < 1) {
+        return next(createNotFoundError("Screening not found."));
+      }
+
+      try {
+        const screening = await loadScreeningById(screeningId);
+
+        if (!screening) {
+          return next(createNotFoundError("Screening not found."));
+        }
+
+        return res.render("screenings/detail", {
+          pageDescription: `View the ${screening.film_title} screening and current availability.`,
+          pageTitle: screening.film_title,
+          screening: presentScreening(screening),
+        });
+      } catch (error) {
+        return next(error);
       }
     },
   };

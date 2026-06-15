@@ -10,7 +10,7 @@
 | Multiple roles | Owner, Staff, Member | role middleware | Separate dashboards and actions | Permission matrix tests | In Progress |
 | Protected routes | Role and ownership checks | auth and authorization middleware | Forbidden and not-found ownership states | Direct URL access tests | Verified |
 | Server-side rendering | 모든 page EJS rendering | Express controllers and EJS | Entire application | Browser inspection | In Progress |
-| Dynamic routes | Film, screening, booking detail | Resource lookup by id | Detail pages | Valid/invalid id tests | In Progress |
+| Dynamic routes | Film, screening, booking, review detail | Resource lookup by id | Detail pages | Valid/invalid id tests and ownership route tests | Verified |
 | Layouts and partials | Shared navigation and components | EJS partial structure | Consistent global UI | Template review | Verified |
 | MVC organization | Models, controllers, routes, views | Folder structure | Predictable data presentation | Code review | Verified |
 | Middleware | Auth, roles, validation, errors | Shared middleware | Form and error feedback | Failure-path tests | In Progress |

@@ -27,11 +27,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added PostgreSQL-backed GitHub Actions CI, database integration tests, and ordered migration infrastructure
 - Added the Step 5 public cinema direction review packet before public feature implementation
 - Connected PostgreSQL film and screening data to the public `/films` and `/screenings` routes with stable normal, empty, and error states
+- Added public film detail and screening detail routes with strict identifiers, stable not-found states, and direct navigation between films and screenings
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 34 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 32 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 35 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 33 passing and 3 database integration skips
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -48,8 +49,10 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - A pre-auth CSRF token is rejected after login session regeneration, and the post-login token differs from the anonymous login token
 - Public `/films` renders four non-archived seed films and upcoming screening summaries
 - Public `/screenings` renders three future scheduled seed screenings with remaining capacity
+- Public `/films/:filmSlug` renders film metadata and upcoming screenings for valid slugs and returns `404` for invalid or missing slugs
+- Public `/screenings/:screeningId` renders screening availability for valid IDs and returns `404` for invalid or missing IDs
 - Public list routes render stable empty and database-error states
-- Public list routes verified at 1280px and 390px without horizontal overflow
+- Public list and detail routes verified at 1280px and 390px without horizontal overflow
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
@@ -111,9 +114,17 @@ Completed first vertical slice:
 - PostgreSQL queries and desktop and mobile browser layouts are verified
 - Render production list routes are verified after deployment
 
+Completed second vertical slice:
+
+- `/films/:filmSlug` renders public film metadata and upcoming screenings with stable `404` handling for invalid or missing slugs
+- `/screenings/:screeningId` renders screening detail and current availability with stable `404` handling for invalid or missing IDs
+- Film archive, film detail, screening schedule, and screening detail now link directly between related public routes
+- Automated tests cover valid detail rendering plus invalid and missing identifier handling
+- Local browser checks confirmed detail-route navigation and mobile 390px no-overflow behavior
+
 Next implementation slice:
 
-- Add public film detail and screening detail routes with strict identifiers, not-found states, and direct navigation between film and schedule
+- Connect PostgreSQL data to the public home route so the first Step 5 frontend review packet can include Home, Film Archive, Film Detail, and Screening Schedule together
 
 Cross-stage delivery infrastructure now available:
 

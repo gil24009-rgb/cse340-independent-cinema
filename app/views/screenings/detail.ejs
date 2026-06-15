@@ -1,0 +1,42 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading detail-heading">
+    <p class="eyebrow"><%= screening.program_label || "Screening detail" %></p>
+    <h1><%= screening.film_title %></h1>
+    <p><%= screening.dateLabel %> · <%= screening.timeLabel %> · <%= screening.priceLabel %></p>
+    <p><%= screening.director %> · <%= screening.country %> · <%= screening.release_year %> · <%= screening.runtime_minutes %> min · <%= screening.age_rating %></p>
+  </header>
+
+  <section class="detail-grid">
+    <div class="detail-copy">
+      <h2>Before the screening</h2>
+      <p><%= screening.synopsis %></p>
+      <div class="detail-actions">
+        <a class="button button-primary" href="/films/<%= screening.film_slug %>">View film detail</a>
+        <a class="text-link" href="/screenings">Back to schedule</a>
+      </div>
+    </div>
+
+    <dl class="detail-list public-detail-list">
+      <div>
+        <dt>Availability</dt>
+        <dd><%= screening.availabilityLabel %></dd>
+      </div>
+      <div>
+        <dt>Capacity</dt>
+        <dd><%= screening.capacity %></dd>
+      </div>
+      <div>
+        <dt>Route</dt>
+        <dd>/screenings/<%= screening.screening_id %></dd>
+      </div>
+      <div>
+        <dt>Film archive</dt>
+        <dd>/films/<%= screening.film_slug %></dd>
+      </div>
+    </dl>
+  </section>
+</main>
+
+<%- include("../partials/document-end") %>

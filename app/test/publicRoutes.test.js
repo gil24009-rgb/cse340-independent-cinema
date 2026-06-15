@@ -27,6 +27,7 @@ const film = {
   film_id: 1,
   genre: "Drama",
   is_featured: true,
+  next_screening_id: 1,
   next_screening_at: new Date("2026-06-20T01:00:00.000Z"),
   poster_url: "/images/films/house-of-hummingbird.jpg",
   release_year: 2018,
@@ -56,7 +57,10 @@ const screening = {
 
 test("public film and screening routes render data-backed normal states", async () => {
   await withServer({
+    findPublicFilmBySlug: async () => film,
     findPublicFilms: async () => [film],
+    findPublicScreeningById: async () => screening,
+    findPublicScreeningsByFilmId: async () => [screening],
     findPublicUpcomingScreenings: async () => [screening],
   }, async (baseUrl) => {
     const filmsResponse = await fetch(`${baseUrl}/films`);
@@ -65,6 +69,7 @@ test("public film and screening routes render data-backed normal states", async 
     assert.match(filmsBody, /House of Hummingbird/);
     assert.match(filmsBody, /2 upcoming/);
     assert.match(filmsBody, /Featured/);
+    assert.match(filmsBody, /Film detail/);
 
     const screeningsResponse = await fetch(`${baseUrl}/screenings`);
     const screeningsBody = await screeningsResponse.text();
@@ -72,6 +77,21 @@ test("public film and screening routes render data-backed normal states", async 
     assert.match(screeningsBody, /House of Hummingbird/);
     assert.match(screeningsBody, /57 seats available/);
     assert.match(screeningsBody, /Guest talk/);
+    assert.match(screeningsBody, /Screening detail/);
+
+    const filmDetailResponse = await fetch(`${baseUrl}/films/house-of-hummingbird`);
+    const filmDetailBody = await filmDetailResponse.text();
+    assert.equal(filmDetailResponse.status, 200);
+    assert.match(filmDetailBody, /Screenings for this film/);
+    assert.match(filmDetailBody, /Director Focus/);
+    assert.match(filmDetailBody, /Go to screening/);
+
+    const screeningDetailResponse = await fetch(`${baseUrl}/screenings/1`);
+    const screeningDetailBody = await screeningDetailResponse.text();
+    assert.equal(screeningDetailResponse.status, 200);
+    assert.match(screeningDetailBody, /House of Hummingbird/);
+    assert.match(screeningDetailBody, /\$12\.00/);
+    assert.match(screeningDetailBody, /View film detail/);
   });
 });
 
@@ -81,14 +101,23 @@ test("public film and screening database failures use the global error state", a
 
   try {
     await withServer({
+      findPublicFilmBySlug: async () => {
+        throw new Error("film detail query failed");
+      },
       findPublicFilms: async () => {
         throw new Error("film query failed");
+      },
+      findPublicScreeningById: async () => {
+        throw new Error("screening detail query failed");
+      },
+      findPublicScreeningsByFilmId: async () => {
+        throw new Error("film screenings query failed");
       },
       findPublicUpcomingScreenings: async () => {
         throw new Error("screening query failed");
       },
     }, async (baseUrl) => {
-      for (const route of ["/films", "/screenings"]) {
+      for (const route of ["/films", "/films/house-of-hummingbird", "/screenings", "/screenings/1"]) {
         const response = await fetch(`${baseUrl}${route}`);
         const body = await response.text();
 
@@ -99,4 +128,27 @@ test("public film and screening database failures use the global error state", a
   } finally {
     console.error = originalConsoleError;
   }
+});
+
+test("public detail routes reject invalid and missing identifiers with stable not found states", async () => {
+  await withServer({
+    findPublicFilmBySlug: async () => null,
+    findPublicFilms: async () => [],
+    findPublicScreeningById: async () => null,
+    findPublicScreeningsByFilmId: async () => [],
+    findPublicUpcomingScreenings: async () => [],
+  }, async (baseUrl) => {
+    for (const route of [
+      "/films/BadSlug",
+      "/films/missing-film",
+      "/screenings/not-a-number",
+      "/screenings/999",
+    ]) {
+      const response = await fetch(`${baseUrl}${route}`);
+      const body = await response.text();
+
+      assert.equal(response.status, 404, route);
+      assert.match(body, /The screening has moved on/);
+    }
+  });
 });
