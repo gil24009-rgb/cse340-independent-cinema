@@ -91,6 +91,7 @@
 - 실제 PostgreSQL seed에서 current future screening 2개 조회 확인
 - Browser에서 public home 1280px와 390px no overflow 확인
 - Browser에서 home nearest screening link와 program film detail links 확인
+- Render production `/`에서 public home program section과 film detail links 확인
 
 ## 남은 위험 또는 Blocker
 
