@@ -63,6 +63,13 @@ test("public film and screening routes render data-backed normal states", async 
     findPublicScreeningsByFilmId: async () => [screening],
     findPublicUpcomingScreenings: async () => [screening],
   }, async (baseUrl) => {
+    const homeResponse = await fetch(baseUrl);
+    const homeBody = await homeResponse.text();
+    assert.equal(homeResponse.status, 200);
+    assert.match(homeBody, /Next screening/);
+    assert.match(homeBody, /House of Hummingbird/);
+    assert.match(homeBody, /57 seats available/);
+
     const filmsResponse = await fetch(`${baseUrl}/films`);
     const filmsBody = await filmsResponse.text();
     assert.equal(filmsResponse.status, 200);
@@ -95,7 +102,7 @@ test("public film and screening routes render data-backed normal states", async 
   });
 });
 
-test("public film and screening database failures use the global error state", async () => {
+test("public home, film, and screening database failures use the global error state", async () => {
   const originalConsoleError = console.error;
   console.error = () => {};
 
@@ -117,7 +124,7 @@ test("public film and screening database failures use the global error state", a
         throw new Error("screening query failed");
       },
     }, async (baseUrl) => {
-      for (const route of ["/films", "/films/house-of-hummingbird", "/screenings", "/screenings/1"]) {
+      for (const route of ["/", "/films", "/films/house-of-hummingbird", "/screenings", "/screenings/1"]) {
         const response = await fetch(`${baseUrl}${route}`);
         const body = await response.text();
 

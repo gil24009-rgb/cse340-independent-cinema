@@ -48,7 +48,7 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 
 ### Slice 3. Public Home Highlights
 
-상태: Next
+상태: Implemented and locally verified
 
 구현 범위:
 
@@ -57,9 +57,16 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 - archive와 screening schedule로 이어지는 CTA 정리
 - stable empty and database-error fallback
 
+검증:
+
+- public home normal and database-error automated tests
+- local PostgreSQL full test suite
+- 실제 PostgreSQL seed data에서 nearest screening과 program film card 렌더링 확인
+- 1280px desktop와 390px mobile no-overflow browser checks
+
 ### Slice 4. Visit and Contact
 
-상태: Planned
+상태: Next
 
 구현 범위:
 

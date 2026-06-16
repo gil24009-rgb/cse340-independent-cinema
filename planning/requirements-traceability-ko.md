@@ -9,7 +9,7 @@
 | Session authentication | Member, Staff, Owner login and Member signup | express-session, bcrypt | Login, signup, role-aware nav | Role test accounts and auth route tests | Verified |
 | Multiple roles | Owner, Staff, Member | role middleware | Separate dashboards and actions | Permission matrix tests | In Progress |
 | Protected routes | Role and ownership checks | auth and authorization middleware | Forbidden and not-found ownership states | Direct URL access tests | Verified |
-| Server-side rendering | 모든 page EJS rendering | Express controllers and EJS | Entire application | Browser inspection | In Progress |
+| Server-side rendering | Home, film, screening, account, auth page EJS rendering | Express controllers and EJS | Public home, film archive, screening schedule, detail pages, auth and account pages | Automated route tests and browser inspection | In Progress |
 | Dynamic routes | Film, screening, booking, review detail | Resource lookup by id | Detail pages | Valid/invalid id tests and ownership route tests | Verified |
 | Layouts and partials | Shared navigation and components | EJS partial structure | Consistent global UI | Template review | Verified |
 | MVC organization | Models, controllers, routes, views | Folder structure | Predictable data presentation | Code review | Verified |

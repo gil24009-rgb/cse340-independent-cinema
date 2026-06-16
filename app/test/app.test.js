@@ -11,6 +11,8 @@ before(async () => {
     session: { sessionSecret: "test-session-secret" },
     site: {
       findPublicFilms: async () => [],
+      findPublicScreeningById: async () => null,
+      findPublicScreeningsByFilmId: async () => [],
       findPublicUpcomingScreenings: async () => [],
     },
   });

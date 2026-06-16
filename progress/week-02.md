@@ -33,6 +33,8 @@
 - public list normal, empty, database-error states와 responsive layout 추가
 - Step 5 public film detail과 screening detail slice 구현
 - public detail route valid, invalid, missing state tests와 browser verification 추가
+- PostgreSQL-backed public home highlights 구현
+- public home nearest screening, schedule links, program film cards, empty states, database-error handling 추가
 
 ## 관련 문서
 
@@ -84,9 +86,14 @@
 - Browser에서 film archive에서 film detail 이동과 film detail에서 screening detail 이동 확인
 - Browser에서 public detail routes 1280px와 390px no overflow 확인
 - Render live에서 `/films/house-of-hummingbird` `200`, current future screening detail `/screenings/3` `200`, `/films/BadSlug` `404`, `/screenings/not-a-number` `404` 확인
+- PostgreSQL 사용 시 `pnpm test`에서 35 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 33 passed, 3 database integration skips
+- 실제 PostgreSQL seed에서 current future screening 2개 조회 확인
+- Browser에서 public home 1280px와 390px no overflow 확인
+- Browser에서 home nearest screening link와 program film detail links 확인
 
 ## 남은 위험 또는 Blocker
 
 ## 다음 작업
 
-- Step 5 public home data connection slice 구현
+- Step 5 public Visit and Contact slice 구현

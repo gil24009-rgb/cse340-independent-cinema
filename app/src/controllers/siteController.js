@@ -54,13 +54,6 @@ function presentScreening(screening) {
   };
 }
 
-export function showHome(req, res) {
-  res.render("home", {
-    pageDescription: "Independent films, clear schedules, and a direct booking path.",
-    pageTitle: "Now Showing",
-  });
-}
-
 export function showVisit(req, res) {
   res.render("visit", {
     pageDescription: "Plan your visit and understand how screenings operate.",
@@ -76,6 +69,28 @@ export function createPublicSiteController(options = {}) {
   const loadScreenings = options.findPublicUpcomingScreenings || findPublicUpcomingScreenings;
 
   return {
+    async showHome(req, res, next) {
+      try {
+        const [films, screenings] = await Promise.all([
+          loadFilms(),
+          loadScreenings(),
+        ]);
+        const presentedFilms = films.map(presentFilm);
+        const presentedScreenings = screenings.map(presentScreening);
+
+        res.render("home", {
+          featuredFilm: presentedFilms.find((film) => film.is_featured) || presentedFilms[0] || null,
+          nextScreening: presentedScreenings[0] || null,
+          pageDescription: "Independent films, clear schedules, and a direct booking path.",
+          pageTitle: "Now Showing",
+          programFilms: presentedFilms.slice(0, 3),
+          upcomingScreenings: presentedScreenings.slice(0, 3),
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+
     async showFilms(req, res, next) {
       try {
         const films = (await loadFilms()).map(presentFilm);

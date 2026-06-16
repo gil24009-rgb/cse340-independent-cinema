@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: June 15, 2026
+Last updated: June 16, 2026
 
 ## Current Stage
 
@@ -28,6 +28,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the Step 5 public cinema direction review packet before public feature implementation
 - Connected PostgreSQL film and screening data to the public `/films` and `/screenings` routes with stable normal, empty, and error states
 - Added public film detail and screening detail routes with strict identifiers, stable not-found states, and direct navigation between films and screenings
+- Connected the public home route to PostgreSQL film and screening data with nearest-screening and program highlights
 
 ## Verified Baseline
 
@@ -48,11 +49,11 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Local PostgreSQL is now running, and `user_sessions` direct verification confirmed CSRF session creation, login session ID regeneration, and logout row deletion
 - A pre-auth CSRF token is rejected after login session regeneration, and the post-login token differs from the anonymous login token
 - Public `/films` renders four non-archived seed films and upcoming screening summaries
-- Public `/screenings` renders three future scheduled seed screenings with remaining capacity
+- Public `/screenings` renders future scheduled seed screenings with remaining capacity. The current local seed query returned two future screenings on June 16, 2026 because same-day screening rows age out after their start time.
 - Public `/films/:filmSlug` renders film metadata and upcoming screenings for valid slugs and returns `404` for invalid or missing slugs
 - Public `/screenings/:screeningId` renders screening availability for valid IDs and returns `404` for invalid or missing IDs
-- Public list routes render stable empty and database-error states
-- Public list and detail routes verified at 1280px and 390px without horizontal overflow
+- Public `/` renders PostgreSQL-backed next-screening and program highlights with stable database-error handling
+- Public home, list, and detail routes verified at 1280px and 390px without horizontal overflow
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production detail routes return `200` for `/films/house-of-hummingbird` and the current live future screening route `/screenings/3`, while invalid public identifiers return `404`
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
@@ -123,9 +124,18 @@ Completed second vertical slice:
 - Automated tests cover valid detail rendering plus invalid and missing identifier handling
 - Local browser checks confirmed detail-route navigation and mobile 390px no-overflow behavior
 
+Completed third vertical slice:
+
+- `/` renders the nearest upcoming screening and direct schedule links from PostgreSQL data
+- `/` renders program film cards that link to public film detail routes
+- Empty schedule and empty program states remain available for public home content
+- Database failures from home data loading pass to the global server-error state
+- Automated tests cover home normal and database-error behavior
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior
+
 Next implementation slice:
 
-- Connect PostgreSQL data to the public home route so the first Step 5 frontend review packet can include Home, Film Archive, Film Detail, and Screening Schedule together
+- Build the public Visit and Contact slice with validated contact submission feedback
 
 Cross-stage delivery infrastructure now available:
 
@@ -150,7 +160,7 @@ Cross-stage delivery infrastructure now available:
 - Final cinema brand name is not selected.
 - Final poster and film image sources are not selected.
 - Course deadline should be added once confirmed.
-- Full production workflows beyond authentication and public list routes remain unimplemented and unverified.
+- Full production workflows beyond authentication and public read routes remain unimplemented and unverified.
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
