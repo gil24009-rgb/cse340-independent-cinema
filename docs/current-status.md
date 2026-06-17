@@ -68,6 +68,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Owner film catalog verified at 1280px and 390px without horizontal overflow
 - Owner screening schedule verified at 1280px and 390px without horizontal overflow
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
+- Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
 - Production `/visit` renders the updated contact form, CSRF token, and success state after deployment
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production `/` renders the PostgreSQL-backed program section and film detail links after the latest deploy
@@ -76,6 +77,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
 - Latest GitHub Actions CI run passed for the Visit and Contact slice
 - Latest GitHub Actions CI run passed for the Owner film visibility slice
+- Latest GitHub Actions CI run passed for the Owner screening cancellation slice
 
 ## Current Implementation Stage
 

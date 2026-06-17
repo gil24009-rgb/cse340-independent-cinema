@@ -120,6 +120,8 @@
 - Local route에서 Owner cancel 후 future screening이 public `/screenings`에서 숨겨지고 restore 후 다시 표시되는 것 확인
 - Browser에서 `/admin/screenings` 1280px와 390px no overflow 확인
 - Browser에서 Owner screening table role, CSRF forms, active-booking disabled action, completed-screening no-action state 확인
+- Render production Owner login 후 `/admin/screenings` heading, CSRF forms, disabled action, completed-screening no-action state 확인
+- GitHub Actions CI latest run success 확인
 
 ## 남은 위험 또는 Blocker
 
