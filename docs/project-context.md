@@ -40,10 +40,11 @@ References guide specific aspects of the product rather than being copied direct
 | --- | --- |
 | Indiespace | Public information architecture and film-centered structure |
 | Cinecube | Public interface hierarchy, restraint, and cinema presentation |
+| Apple-like product aesthetic | Premium restraint, large-scale typography, and calm surface treatment for the global visual direction |
 | Tabler | Dense operational tables, filters, and status controls |
 | Cinema+ | Functional completeness and workflow comparison |
 
-Public pages should feel editorial and cinema-specific. Staff and Owner pages should feel compact, predictable, and work-focused.
+Public pages should feel editorial, cinema-specific, and premium in a restrained way, as if a polished consumer-tech product team built a cinema experience instead of a marketplace. Staff and Owner pages should feel compact, predictable, and work-focused while still matching the same high-end visual system.
 
 ## Users and Permissions
 
@@ -131,6 +132,8 @@ Booking history must remain available even when operational records are archived
 
 - Let films and screenings dominate public pages.
 - Keep navigation and page hierarchy restrained.
+- Use a dark, premium visual language with large headlines, precise spacing, and only one strong primary action per screen.
+- Preserve the Apple-built-cinema mood without drifting into unsupported product features such as seat maps, trailers, watchlists, or heavy commerce patterns.
 - Use ticket-like presentation for Member booking details.
 - Use compact tables and clear status controls for Staff and Owner work.
 - Design mobile and desktop workflows together.

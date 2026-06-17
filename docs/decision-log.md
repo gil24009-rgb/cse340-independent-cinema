@@ -48,5 +48,6 @@ This file records decisions that should remain stable unless new evidence or a c
 | Keep global navigation to five destinations | A small navigation model supports film discovery without crowding the header. |
 | Use different public and operational interface densities | Visitors need editorial clarity, while Staff and Owners need efficient repeated actions. |
 | Use Cinecube mainly for public UI direction | Its restrained hierarchy fits the intended cinema presentation. |
+| Use an Apple-built-cinema mood for the global frontend tone | The project needs a premium, calm, and highly controlled interface language, but the actual feature set still has to stay inside the course scope and existing workflow decisions. |
 | Use Indiespace mainly for public structure | Its film-centered information architecture fits the product scope. |
 | Use Tabler and Cinema+ as operational comparison points | They provide practical references for tables, filters, status controls, and workflow completeness. |
