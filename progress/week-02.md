@@ -110,6 +110,8 @@
 - Local route에서 Owner archive 후 `Little Forest`가 public `/films`에서 숨겨지고 restore 후 다시 표시되는 것 확인
 - Browser에서 `/admin/films` 1280px와 390px no overflow 확인
 - Browser에서 Owner catalog table role, CSRF forms, archive buttons, account active state 확인
+- Render production Owner login 후 `/admin/films` film rows와 CSRF archive forms 확인
+- GitHub Actions CI latest run success 확인
 
 ## 남은 위험 또는 Blocker
 
