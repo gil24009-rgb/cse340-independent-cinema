@@ -57,11 +57,13 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Public `/visit` renders visit information and a CSRF-protected contact form with validation, success, and database-error states
 - Public `/visit` contact submission inserts into `contact_messages` locally through the rendered route and redirects to `/visit?sent=1`
 - Public home, list, and detail routes verified at 1280px and 390px without horizontal overflow
+- Production `/visit` renders the updated contact form, CSRF token, and success state after deployment
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production `/` renders the PostgreSQL-backed program section and film detail links after the latest deploy
 - Production detail routes return `200` for `/films/house-of-hummingbird` and the current live future screening route `/screenings/3`, while invalid public identifiers return `404`
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
+- Latest GitHub Actions CI run passed for the Visit and Contact slice
 
 ## Current Implementation Stage
 

@@ -100,6 +100,8 @@
 - Local route에서 `/visit` contact submission이 `contact_messages`에 `new` status로 insert되는 것 확인 후 검증 row 삭제
 - Browser에서 `/visit` 1280px와 390px no overflow 확인
 - Browser에서 contact form labels, CSRF token, success state, one primary action 확인
+- Render production `/visit`와 `/visit?sent=1`에서 contact form, CSRF token, success state 확인
+- GitHub Actions CI latest run success 확인
 
 ## 남은 위험 또는 Blocker
 
