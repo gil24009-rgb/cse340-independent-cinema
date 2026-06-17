@@ -580,6 +580,17 @@ h3 {
   justify-self: end;
 }
 
+.owner-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.owner-row-note {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .status-header {
   min-height: 2.8rem;
   color: var(--muted);

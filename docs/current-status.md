@@ -31,11 +31,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Connected the public home route to PostgreSQL film and screening data with nearest-screening and program highlights
 - Added the public Visit and Contact slice with visit information, CSRF-protected contact submission, validation feedback, success state, and PostgreSQL message storage
 - Added the first Owner film management slice with Owner-only film visibility controls and public archive reflection
+- Added Owner screening cancellation controls with active-booking conflict protection and public schedule reflection
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 38 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 36 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 39 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 37 passing and 3 database integration skips
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -59,8 +60,13 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Public `/visit` contact submission inserts into `contact_messages` locally through the rendered route and redirects to `/visit?sent=1`
 - Owner `/admin/films` renders the film catalog with CSRF-protected archive and restore actions
 - Owner archive action hides a film from public `/films`, and restore makes it visible again through local PostgreSQL route verification
+- Owner `/admin/screenings` renders the screening schedule with CSRF-protected cancel and restore actions for scheduled and cancelled screenings
+- Owner screening cancellation is blocked with a conflict response when active bookings exist
+- Completed screenings show no management action in the Owner schedule because they are preserved operational history
+- Owner screening cancellation hides the screening from public `/screenings`, and restore makes it visible again through local PostgreSQL route verification
 - Public home, list, and detail routes verified at 1280px and 390px without horizontal overflow
 - Owner film catalog verified at 1280px and 390px without horizontal overflow
+- Owner screening schedule verified at 1280px and 390px without horizontal overflow
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production `/visit` renders the updated contact form, CSRF token, and success state after deployment
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
@@ -165,10 +171,18 @@ Started fifth vertical slice:
 - Automated tests cover unauthenticated redirect, Member and Staff denial, Owner access, invalid identifiers, archive, and restore behavior
 - Local PostgreSQL route verification confirmed `Little Forest` disappears from public `/films` after archive and returns after restore
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Owner film catalog
+- `/admin/screenings` lists Owner-only screening rows with status, booking count, and cancel or restore actions where the status can be managed
+- Screening cancel and restore actions require Owner role and CSRF validation
+- Cancelling a screening with active bookings returns a conflict response and leaves the screening scheduled
+- Completed screenings remain visible to the Owner as preserved operational history but expose no status action
+- Cancelled screenings are excluded from public schedule queries, and restore makes them visible again when they are future scheduled screenings
+- Automated tests cover unauthenticated redirect, Member and Staff denial, Owner access, invalid identifiers, active-booking conflict, completed-screening denial, cancel, and restore behavior
+- Local PostgreSQL route verification confirmed a screening disappears from public `/screenings` after cancel and returns after restore
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Owner screening schedule
 
 Next implementation slice:
 
-- Continue Owner management with screening visibility and cancellation controls so schedule changes can feed the public pages
+- Continue Owner management with the minimum Owner film create and edit form so the public film archive can grow without database edits
 
 Cross-stage delivery infrastructure now available:
 

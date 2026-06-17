@@ -1,0 +1,56 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading">
+    <p class="eyebrow">Owner operations</p>
+    <h1>Manage the public screening schedule.</h1>
+    <p>Cancel a screening to remove it from public schedule views while preserving the operational record.</p>
+  </header>
+
+  <% if (screenings.length > 0) { %>
+    <div class="status-table owner-table" role="table" aria-label="Owner screening schedule">
+      <div class="status-row status-header owner-screening-row" role="row">
+        <span role="columnheader">Screening</span>
+        <span role="columnheader">Status</span>
+        <span role="columnheader">Bookings</span>
+        <span role="columnheader">Action</span>
+      </div>
+
+      <% screenings.forEach((screening) => { %>
+        <article class="status-row owner-row owner-screening-row" role="row">
+          <div role="cell">
+            <h2><%= screening.film_title %></h2>
+            <p><%= screening.startsAtDisplay %> · <%= screening.program_label || "Regular screening" %></p>
+          </div>
+          <div role="cell">
+            <span class="status-badge"><%= screening.statusDisplay %></span>
+          </div>
+          <p role="cell"><%= screening.activeBookingLabel %> bookings · Capacity <%= screening.capacity %></p>
+          <% if (screening.canManageStatus) { %>
+            <form role="cell" action="/admin/screenings/<%= screening.screening_id %>/status" method="post">
+              <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+              <input type="hidden" name="status" value="<%= screening.status === 'cancelled' ? 'scheduled' : 'cancelled' %>" />
+              <button
+                class="button"
+                type="submit"
+                <%- screening.active_booking_count > 0 && screening.status !== 'cancelled' ? "disabled" : "" %>
+              >
+                <%= screening.status === "cancelled" ? "Restore Screening" : "Cancel Screening" %>
+              </button>
+            </form>
+          <% } else { %>
+            <p class="owner-row-note" role="cell">No management action</p>
+          <% } %>
+        </article>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <section class="inline-empty-state" aria-labelledby="owner-screenings-empty-title">
+      <p class="eyebrow">No screenings</p>
+      <h2 id="owner-screenings-empty-title">The schedule is empty.</h2>
+      <p>Owner screening creation is planned for the next management slice.</p>
+    </section>
+  <% } %>
+</main>
+
+<%- include("../partials/document-end") %>

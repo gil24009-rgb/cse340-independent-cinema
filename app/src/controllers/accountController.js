@@ -1,4 +1,9 @@
 import { findOwnerFilms, setFilmArchived } from "../models/filmModel.js";
+import {
+  findOwnerScreenings,
+  ScreeningStatusConflictError,
+  setScreeningStatus,
+} from "../models/screeningModel.js";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "long",
@@ -30,11 +35,27 @@ function toBoolean(value) {
   return value === "true";
 }
 
+function isAllowedScreeningStatus(value) {
+  return value === "scheduled" || value === "cancelled";
+}
+
 function presentOwnerFilm(film) {
   return {
     ...film,
     nextScreeningDisplay: film.next_screening_at ? formatDateTime(film.next_screening_at) : "No upcoming screening",
     publicState: film.is_archived ? "Archived" : "Public",
+  };
+}
+
+function presentOwnerScreening(screening) {
+  const canManageStatus = screening.status === "scheduled" || screening.status === "cancelled";
+
+  return {
+    ...screening,
+    activeBookingLabel: `${screening.active_booking_count} active`,
+    canManageStatus,
+    startsAtDisplay: formatDateTime(screening.starts_at),
+    statusDisplay: formatStatus(screening.status),
   };
 }
 
@@ -103,6 +124,52 @@ export function createOwnerFilmController(options = {}) {
 
         return res.redirect(303, "/admin/films");
       } catch (error) {
+        return next(error);
+      }
+    },
+  };
+}
+
+export function createOwnerScreeningController(options = {}) {
+  const loadScreenings = options.findOwnerScreenings || findOwnerScreenings;
+  const updateStatus = options.setScreeningStatus || setScreeningStatus;
+
+  return {
+    async showScreenings(req, res, next) {
+      try {
+        const screenings = (await loadScreenings()).map(presentOwnerScreening);
+
+        return res.render("account/owner-screenings", {
+          pageDescription: "Manage screening visibility and cancellation status.",
+          pageTitle: "Owner Screenings",
+          screenings,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async updateScreeningStatus(req, res, next) {
+      const screeningId = parsePositiveInteger(req.params?.screeningId);
+      const status = req.body?.status;
+
+      if (!screeningId || !isAllowedScreeningStatus(status)) {
+        return next(createNotFoundError("Screening not found."));
+      }
+
+      try {
+        const screening = await updateStatus(screeningId, status);
+
+        if (!screening) {
+          return next(createNotFoundError("Screening not found."));
+        }
+
+        return res.redirect(303, "/admin/screenings");
+      } catch (error) {
+        if (error instanceof ScreeningStatusConflictError) {
+          return next(error);
+        }
+
         return next(error);
       }
     },

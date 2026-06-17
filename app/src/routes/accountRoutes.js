@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   createOwnerFilmController,
+  createOwnerScreeningController,
   showMemberBookingDetail,
   showMemberAccount,
   showMemberReviewDetail,
@@ -17,6 +18,7 @@ import { findReviewById } from "../models/reviewModel.js";
 export function createAccountRoutes(options = {}) {
   const router = express.Router();
   const ownerFilmController = createOwnerFilmController(options);
+  const ownerScreeningController = createOwnerScreeningController(options);
   const loadOwnedBooking = createOwnedResourceLoader({
     findResourceById: options.findBookingById || findBookingById,
     paramName: "bookingId",
@@ -37,6 +39,13 @@ export function createAccountRoutes(options = {}) {
   router.get("/admin", requireRole("owner"), showOwnerAccount);
   router.get("/admin/films", requireRole("owner"), ownerFilmController.showFilms);
   router.post("/admin/films/:filmId/archive", requireRole("owner"), verifyCsrfToken, ownerFilmController.updateFilmArchive);
+  router.get("/admin/screenings", requireRole("owner"), ownerScreeningController.showScreenings);
+  router.post(
+    "/admin/screenings/:screeningId/status",
+    requireRole("owner"),
+    verifyCsrfToken,
+    ownerScreeningController.updateScreeningStatus,
+  );
 
   return router;
 }

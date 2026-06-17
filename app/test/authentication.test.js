@@ -116,6 +116,44 @@ const films = [
     upcoming_screening_count: 0,
   },
 ];
+const screenings = [
+  {
+    active_booking_count: 1,
+    capacity: 60,
+    film_slug: "house-of-hummingbird",
+    film_title: "House of Hummingbird",
+    has_guest_talk: true,
+    program_label: "Director Focus",
+    screening_id: 1,
+    starts_at: "2026-06-20T01:00:00.000Z",
+    status: "scheduled",
+    ticket_price_cents: 1200,
+  },
+  {
+    active_booking_count: 0,
+    capacity: 60,
+    film_slug: "little-forest",
+    film_title: "Little Forest",
+    has_guest_talk: false,
+    program_label: "Regular screening",
+    screening_id: 2,
+    starts_at: "2026-06-21T01:00:00.000Z",
+    status: "scheduled",
+    ticket_price_cents: 1200,
+  },
+  {
+    active_booking_count: 0,
+    capacity: 60,
+    film_slug: "microhabitat",
+    film_title: "Microhabitat",
+    has_guest_talk: false,
+    program_label: "Regular screening",
+    screening_id: 3,
+    starts_at: "2026-06-11T01:00:00.000Z",
+    status: "completed",
+    ticket_price_cents: 1200,
+  },
+];
 
 let server;
 let baseUrl;
@@ -173,6 +211,31 @@ async function setFilmArchived(filmId, isArchived) {
 
   film.is_archived = isArchived;
   return film;
+}
+
+async function findOwnerScreenings() {
+  return screenings;
+}
+
+async function setScreeningStatus(screeningId, status) {
+  const screening = screenings.find((candidate) => candidate.screening_id === screeningId);
+
+  if (!screening) {
+    return null;
+  }
+
+  if (status === "cancelled" && screening.active_booking_count > 0) {
+    const error = new Error("Screenings with active bookings cannot be cancelled in this management slice.");
+    error.status = 409;
+    throw error;
+  }
+
+  if (screening.status !== "scheduled" && screening.status !== "cancelled") {
+    return null;
+  }
+
+  screening.status = status;
+  return screening;
 }
 
 function cookieFrom(response) {
@@ -242,8 +305,10 @@ before(async () => {
     account: {
       findBookingById,
       findOwnerFilms,
+      findOwnerScreenings,
       findReviewById,
       setFilmArchived,
+      setScreeningStatus,
     },
     auth: {
       createMemberUser,
@@ -273,7 +338,7 @@ after(async () => {
 });
 
 test("protected routes redirect unauthenticated direct access", async () => {
-  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin", "/admin/films"]) {
+  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin", "/admin/films", "/admin/screenings"]) {
     const response = await request(route);
 
     assert.equal(response.status, 303);
@@ -408,16 +473,19 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["member@cinema.test", "/staff", 403],
     ["member@cinema.test", "/admin", 403],
     ["member@cinema.test", "/admin/films", 403],
+    ["member@cinema.test", "/admin/screenings", 403],
     ["staff@cinema.test", "/account", 403],
     ["staff@cinema.test", "/account/bookings/1", 403],
     ["staff@cinema.test", "/staff", 200],
     ["staff@cinema.test", "/admin", 403],
     ["staff@cinema.test", "/admin/films", 403],
+    ["staff@cinema.test", "/admin/screenings", 403],
     ["owner@cinema.test", "/account", 403],
     ["owner@cinema.test", "/account/reviews/1", 403],
     ["owner@cinema.test", "/staff", 200],
     ["owner@cinema.test", "/admin", 200],
     ["owner@cinema.test", "/admin/films", 200],
+    ["owner@cinema.test", "/admin/screenings", 200],
   ];
 
   for (const [email, route, expectedStatus] of cases) {
@@ -427,6 +495,93 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     assert.equal(loginResponse.status, 303);
     assert.equal(response.status, expectedStatus, `${email} ${route}`);
   }
+});
+
+test("owner screening status actions are owner-only and protect active bookings", async () => {
+  const memberLogin = await login("member@cinema.test");
+  const memberCancel = await request("/admin/screenings/2/status", {
+    body: new URLSearchParams({ csrfToken: "invalid", status: "cancelled" }),
+    headers: {
+      cookie: memberLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(memberCancel.status, 403);
+
+  const ownerLogin = await login("owner@cinema.test");
+  const screeningsPage = await request("/admin/screenings", { headers: { cookie: ownerLogin.cookie } });
+  const screeningsBody = await screeningsPage.text();
+  const csrfToken = csrfFrom(screeningsBody);
+
+  assert.equal(screeningsPage.status, 200);
+  assert.match(screeningsBody, /Manage the public screening schedule/);
+  assert.match(screeningsBody, /House of Hummingbird/);
+  assert.match(screeningsBody, /Little Forest/);
+  assert.match(screeningsBody, /Microhabitat/);
+  assert.match(screeningsBody, /Cancel Screening/);
+  assert.match(screeningsBody, /No management action/);
+  assert.match(screeningsBody, /disabled/);
+  assert.ok(csrfToken);
+
+  const conflictResponse = await request("/admin/screenings/1/status", {
+    body: new URLSearchParams({ csrfToken, status: "cancelled" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(conflictResponse.status, 409);
+  assert.equal(screenings[0].status, "scheduled");
+
+  const cancelResponse = await request("/admin/screenings/2/status", {
+    body: new URLSearchParams({ csrfToken, status: "cancelled" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(cancelResponse.status, 303);
+  assert.equal(cancelResponse.headers.get("location"), "/admin/screenings");
+  assert.equal(screenings[1].status, "cancelled");
+
+  const invalidResponse = await request("/admin/screenings/not-a-number/status", {
+    body: new URLSearchParams({ csrfToken, status: "cancelled" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(invalidResponse.status, 404);
+
+  const completedResponse = await request("/admin/screenings/3/status", {
+    body: new URLSearchParams({ csrfToken, status: "cancelled" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(completedResponse.status, 404);
+  assert.equal(screenings[2].status, "completed");
+
+  const restoreResponse = await request("/admin/screenings/2/status", {
+    body: new URLSearchParams({ csrfToken, status: "scheduled" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(restoreResponse.status, 303);
+  assert.equal(screenings[1].status, "scheduled");
 });
 
 test("owner film catalog archive actions are owner-only and preserve history", async () => {

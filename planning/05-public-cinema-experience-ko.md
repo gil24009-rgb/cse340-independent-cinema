@@ -98,12 +98,18 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 - film archive and restore action
 - archived film의 public `/films` 제외 반영
 - unauthenticated, Member, Staff, Owner direct access tests
+- `/admin/screenings` Owner-only screening schedule
+- scheduled screening cancel and restore action
+- active booking이 있는 screening cancellation conflict 처리
+- completed screening은 preserved operational history로 표시하고 action 미노출
+- cancelled screening의 public `/screenings` 제외와 restore 반영
+- desktop 1280px와 mobile 390px no-overflow browser checks
 
 다음 하위 범위:
 
-- Owner screening list와 cancel policy
 - film create or edit form의 최소 검증 범위
-- public screening schedule 반영 검증
+- screening create or edit form의 최소 검증 범위
+- Owner 변경사항의 public page 반영 검증 확장
 
 ## Step 5 완료 조건
 
