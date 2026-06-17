@@ -1,0 +1,48 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading">
+    <p class="eyebrow">Owner operations</p>
+    <h1>Manage the public film catalog.</h1>
+    <p>Archive a film to remove it from public discovery without deleting its operational history.</p>
+  </header>
+
+  <% if (films.length > 0) { %>
+    <div class="status-table owner-table" role="table" aria-label="Owner film catalog">
+      <div class="status-row status-header" role="row">
+        <span role="columnheader">Film</span>
+        <span role="columnheader">Public state</span>
+        <span role="columnheader">Schedule</span>
+        <span role="columnheader">Action</span>
+      </div>
+
+      <% films.forEach((film) => { %>
+        <article class="status-row owner-row" role="row">
+          <div role="cell">
+            <h2><%= film.title %></h2>
+            <p><%= film.director %> · <%= film.release_year %> · <%= film.runtime_minutes %> min</p>
+          </div>
+          <div role="cell">
+            <span class="status-badge"><%= film.publicState %></span>
+          </div>
+          <p role="cell"><%= film.upcoming_screening_count %> upcoming · <%= film.nextScreeningDisplay %></p>
+          <form role="cell" action="/admin/films/<%= film.film_id %>/archive" method="post">
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+            <input type="hidden" name="isArchived" value="<%= film.is_archived ? 'false' : 'true' %>" />
+            <button class="button" type="submit">
+              <%= film.is_archived ? "Restore to Public" : "Archive Film" %>
+            </button>
+          </form>
+        </article>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <section class="inline-empty-state" aria-labelledby="owner-films-empty-title">
+      <p class="eyebrow">No films</p>
+      <h2 id="owner-films-empty-title">The catalog is empty.</h2>
+      <p>Owner film creation is planned for the next management slice.</p>
+    </section>
+  <% } %>
+</main>
+
+<%- include("../partials/document-end") %>

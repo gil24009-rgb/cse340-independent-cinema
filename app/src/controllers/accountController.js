@@ -1,3 +1,5 @@
+import { findOwnerFilms, setFilmArchived } from "../models/filmModel.js";
+
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "long",
   timeStyle: "short",
@@ -11,6 +13,29 @@ function formatStatus(status) {
   return typeof status === "string"
     ? status.split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ")
     : "Unknown";
+}
+
+function createNotFoundError(message = "Page not found.") {
+  const error = new Error(message);
+  error.status = 404;
+  return error;
+}
+
+function parsePositiveInteger(value) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function toBoolean(value) {
+  return value === "true";
+}
+
+function presentOwnerFilm(film) {
+  return {
+    ...film,
+    nextScreeningDisplay: film.next_screening_at ? formatDateTime(film.next_screening_at) : "No upcoming screening",
+    publicState: film.is_archived ? "Archived" : "Public",
+  };
 }
 
 export function showMemberAccount(req, res) {
@@ -41,6 +66,47 @@ export function showOwnerAccount(req, res) {
     pageDescription: "Access cinema owner operations.",
     pageTitle: "Owner",
   });
+}
+
+export function createOwnerFilmController(options = {}) {
+  const loadFilms = options.findOwnerFilms || findOwnerFilms;
+  const archiveFilm = options.setFilmArchived || setFilmArchived;
+
+  return {
+    async showFilms(req, res, next) {
+      try {
+        const films = (await loadFilms()).map(presentOwnerFilm);
+
+        return res.render("account/owner-films", {
+          films,
+          pageDescription: "Manage public film catalog visibility.",
+          pageTitle: "Owner Films",
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async updateFilmArchive(req, res, next) {
+      const filmId = parsePositiveInteger(req.params?.filmId);
+
+      if (!filmId) {
+        return next(createNotFoundError("Film not found."));
+      }
+
+      try {
+        const film = await archiveFilm(filmId, toBoolean(req.body?.isArchived));
+
+        if (!film) {
+          return next(createNotFoundError("Film not found."));
+        }
+
+        return res.redirect(303, "/admin/films");
+      } catch (error) {
+        return next(error);
+      }
+    },
+  };
 }
 
 export function showMemberBookingDetail(req, res) {

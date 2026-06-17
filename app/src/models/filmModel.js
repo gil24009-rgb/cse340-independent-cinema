@@ -67,3 +67,45 @@ export async function findPublicFilmBySlug(slug) {
 
   return result.rows[0] || null;
 }
+
+export async function findOwnerFilms() {
+  const result = await query(
+    `SELECT
+      f.film_id,
+      f.title,
+      f.slug,
+      f.director,
+      f.release_year,
+      f.runtime_minutes,
+      f.age_rating,
+      f.genre,
+      f.is_featured,
+      f.is_archived,
+      COUNT(s.screening_id) FILTER (
+        WHERE s.status = 'scheduled'
+          AND s.starts_at > CURRENT_TIMESTAMP
+      )::INTEGER AS upcoming_screening_count,
+      MIN(s.starts_at) FILTER (
+        WHERE s.status = 'scheduled'
+          AND s.starts_at > CURRENT_TIMESTAMP
+      ) AS next_screening_at
+    FROM films f
+    LEFT JOIN screenings s ON s.film_id = f.film_id
+    GROUP BY f.film_id
+    ORDER BY f.is_archived ASC, f.title ASC`,
+  );
+
+  return result.rows;
+}
+
+export async function setFilmArchived(filmId, isArchived) {
+  const result = await query(
+    `UPDATE films
+     SET is_archived = $2
+     WHERE film_id = $1
+     RETURNING film_id, title, slug, is_archived`,
+    [filmId, isArchived],
+  );
+
+  return result.rows[0] || null;
+}

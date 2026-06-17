@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: June 16, 2026
+Last updated: June 17, 2026
 
 ## Current Stage
 
@@ -30,11 +30,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added public film detail and screening detail routes with strict identifiers, stable not-found states, and direct navigation between films and screenings
 - Connected the public home route to PostgreSQL film and screening data with nearest-screening and program highlights
 - Added the public Visit and Contact slice with visit information, CSRF-protected contact submission, validation feedback, success state, and PostgreSQL message storage
+- Added the first Owner film management slice with Owner-only film visibility controls and public archive reflection
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 37 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 35 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 38 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 36 passing and 3 database integration skips
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -56,7 +57,10 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Public `/` renders PostgreSQL-backed next-screening and program highlights with stable database-error handling
 - Public `/visit` renders visit information and a CSRF-protected contact form with validation, success, and database-error states
 - Public `/visit` contact submission inserts into `contact_messages` locally through the rendered route and redirects to `/visit?sent=1`
+- Owner `/admin/films` renders the film catalog with CSRF-protected archive and restore actions
+- Owner archive action hides a film from public `/films`, and restore makes it visible again through local PostgreSQL route verification
 - Public home, list, and detail routes verified at 1280px and 390px without horizontal overflow
+- Owner film catalog verified at 1280px and 390px without horizontal overflow
 - Production `/visit` renders the updated contact form, CSRF token, and success state after deployment
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production `/` renders the PostgreSQL-backed program section and film detail links after the latest deploy
@@ -150,9 +154,19 @@ Completed fourth vertical slice:
 - Local PostgreSQL route verification confirmed insert and cleanup through the rendered contact route
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior, labels, CSRF token, success state, and one primary action
 
+Started fifth vertical slice:
+
+- `/admin/films` lists Owner-only film catalog rows with public state, upcoming screening count, next screening time, and archive or restore actions
+- Film archive and restore actions require Owner role and CSRF validation
+- Invalid film identifiers return a stable not-found state
+- Archived films remain in the Owner catalog but are excluded from public film and screening queries
+- Automated tests cover unauthenticated redirect, Member and Staff denial, Owner access, invalid identifiers, archive, and restore behavior
+- Local PostgreSQL route verification confirmed `Little Forest` disappears from public `/films` after archive and returns after restore
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Owner film catalog
+
 Next implementation slice:
 
-- Build the Owner film and screening management slice so catalog and schedule changes can feed the public pages
+- Continue Owner management with screening visibility and cancellation controls so schedule changes can feed the public pages
 
 Cross-stage delivery infrastructure now available:
 

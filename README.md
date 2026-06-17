@@ -82,7 +82,7 @@ pnpm test
 
 ## Current Stage
 
-Steps 1 through 4 are complete. Step 5 public cinema experience is in progress. The public film archive, screening schedule, related detail routes, home highlights, and Visit contact form now render PostgreSQL-backed behavior with stable not-found, empty, validation, success, and error states. See [Current Status](docs/current-status.md) for the exact next slice and verification baseline.
+Steps 1 through 4 are complete. Step 5 public cinema experience is in progress. The public film archive, screening schedule, related detail routes, home highlights, Visit contact form, and initial Owner film visibility controls now render PostgreSQL-backed behavior with stable not-found, empty, validation, success, authorization, and error states. See [Current Status](docs/current-status.md) for the exact next slice and verification baseline.
 
 ## Deployment
 

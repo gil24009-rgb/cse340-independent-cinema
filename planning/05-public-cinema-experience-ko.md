@@ -84,13 +84,26 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 
 ### Slice 5. Owner Film and Screening Management
 
-상태: Next
+상태: In Progress
 
 구현 범위:
 
 - Owner-only film and screening CRUD
 - archive and cancel policy
 - public result 반영
+
+구현 완료된 하위 범위:
+
+- `/admin/films` Owner-only film catalog
+- film archive and restore action
+- archived film의 public `/films` 제외 반영
+- unauthenticated, Member, Staff, Owner direct access tests
+
+다음 하위 범위:
+
+- Owner screening list와 cancel policy
+- film create or edit form의 최소 검증 범위
+- public screening schedule 반영 검증
 
 ## Step 5 완료 조건
 

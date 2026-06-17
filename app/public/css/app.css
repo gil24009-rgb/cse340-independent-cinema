@@ -560,6 +560,26 @@ h3 {
   border-bottom: 1px solid var(--line);
 }
 
+.owner-row,
+.owner-table .status-header {
+  grid-template-columns: minmax(240px, 1.4fr) minmax(120px, 0.45fr) minmax(220px, 1fr) minmax(170px, 0.7fr);
+}
+
+.owner-row h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.35rem;
+}
+
+.owner-row p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.owner-row form {
+  justify-self: end;
+}
+
 .status-header {
   min-height: 2.8rem;
   color: var(--muted);
@@ -899,6 +919,15 @@ h3 {
   .status-row > :last-child {
     grid-column: 1 / -1;
     color: var(--muted);
+  }
+
+  .owner-row,
+  .owner-table .status-header {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-row form {
+    justify-self: start;
   }
 
   .status-header {

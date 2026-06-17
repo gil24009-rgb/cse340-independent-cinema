@@ -37,6 +37,8 @@
 - public home nearest screening, schedule links, program film cards, empty states, database-error handling 추가
 - Step 5 public Visit and Contact slice 구현
 - `/visit` information hierarchy, contact validation, success state, CSRF protection, and PostgreSQL message storage 추가
+- Step 5 initial Owner film management slice 구현
+- `/admin/films` Owner-only catalog, film archive/restore action, public visibility reflection 추가
 
 ## 관련 문서
 
@@ -102,9 +104,15 @@
 - Browser에서 contact form labels, CSRF token, success state, one primary action 확인
 - Render production `/visit`와 `/visit?sent=1`에서 contact form, CSRF token, success state 확인
 - GitHub Actions CI latest run success 확인
+- PostgreSQL 사용 시 `pnpm test`에서 38 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 36 passed, 3 database integration skips
+- `node --test test/authentication.test.js`에서 Owner film management 포함 15 passed
+- Local route에서 Owner archive 후 `Little Forest`가 public `/films`에서 숨겨지고 restore 후 다시 표시되는 것 확인
+- Browser에서 `/admin/films` 1280px와 390px no overflow 확인
+- Browser에서 Owner catalog table role, CSRF forms, archive buttons, account active state 확인
 
 ## 남은 위험 또는 Blocker
 
 ## 다음 작업
 
-- Step 5 Owner Film and Screening Management slice 구현
+- Step 5 Owner screening visibility and cancellation controls 구현

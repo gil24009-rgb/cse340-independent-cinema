@@ -86,6 +86,36 @@ const reviews = [
     user_id: 4,
   },
 ];
+const films = [
+  {
+    age_rating: "15+",
+    director: "Kim Bora",
+    film_id: 1,
+    genre: "Drama",
+    is_archived: false,
+    is_featured: true,
+    next_screening_at: "2026-06-20T01:00:00.000Z",
+    release_year: 2018,
+    runtime_minutes: 138,
+    slug: "house-of-hummingbird",
+    title: "House of Hummingbird",
+    upcoming_screening_count: 2,
+  },
+  {
+    age_rating: "12+",
+    director: "Yim Soon-rye",
+    film_id: 2,
+    genre: "Drama",
+    is_archived: true,
+    is_featured: false,
+    next_screening_at: null,
+    release_year: 2018,
+    runtime_minutes: 103,
+    slug: "little-forest",
+    title: "Little Forest",
+    upcoming_screening_count: 0,
+  },
+];
 
 let server;
 let baseUrl;
@@ -128,6 +158,21 @@ async function findBookingById(bookingId) {
 
 async function findReviewById(reviewId) {
   return reviews.find((review) => review.review_id === reviewId) || null;
+}
+
+async function findOwnerFilms() {
+  return films;
+}
+
+async function setFilmArchived(filmId, isArchived) {
+  const film = films.find((candidate) => candidate.film_id === filmId);
+
+  if (!film) {
+    return null;
+  }
+
+  film.is_archived = isArchived;
+  return film;
 }
 
 function cookieFrom(response) {
@@ -196,7 +241,9 @@ before(async () => {
   const app = createApp({
     account: {
       findBookingById,
+      findOwnerFilms,
       findReviewById,
+      setFilmArchived,
     },
     auth: {
       createMemberUser,
@@ -226,7 +273,7 @@ after(async () => {
 });
 
 test("protected routes redirect unauthenticated direct access", async () => {
-  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin"]) {
+  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin", "/admin/films"]) {
     const response = await request(route);
 
     assert.equal(response.status, 303);
@@ -360,14 +407,17 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["member@cinema.test", "/account/reviews/1", 200],
     ["member@cinema.test", "/staff", 403],
     ["member@cinema.test", "/admin", 403],
+    ["member@cinema.test", "/admin/films", 403],
     ["staff@cinema.test", "/account", 403],
     ["staff@cinema.test", "/account/bookings/1", 403],
     ["staff@cinema.test", "/staff", 200],
     ["staff@cinema.test", "/admin", 403],
+    ["staff@cinema.test", "/admin/films", 403],
     ["owner@cinema.test", "/account", 403],
     ["owner@cinema.test", "/account/reviews/1", 403],
     ["owner@cinema.test", "/staff", 200],
     ["owner@cinema.test", "/admin", 200],
+    ["owner@cinema.test", "/admin/films", 200],
   ];
 
   for (const [email, route, expectedStatus] of cases) {
@@ -377,6 +427,66 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     assert.equal(loginResponse.status, 303);
     assert.equal(response.status, expectedStatus, `${email} ${route}`);
   }
+});
+
+test("owner film catalog archive actions are owner-only and preserve history", async () => {
+  const memberLogin = await login("member@cinema.test");
+  const memberArchive = await request("/admin/films/1/archive", {
+    body: new URLSearchParams({ csrfToken: "invalid", isArchived: "true" }),
+    headers: {
+      cookie: memberLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(memberArchive.status, 403);
+
+  const ownerLogin = await login("owner@cinema.test");
+  const filmsPage = await request("/admin/films", { headers: { cookie: ownerLogin.cookie } });
+  const filmsBody = await filmsPage.text();
+  const csrfToken = csrfFrom(filmsBody);
+
+  assert.equal(filmsPage.status, 200);
+  assert.match(filmsBody, /Manage the public film catalog/);
+  assert.match(filmsBody, /House of Hummingbird/);
+  assert.match(filmsBody, /Archive Film/);
+  assert.ok(csrfToken);
+
+  const archiveResponse = await request("/admin/films/1/archive", {
+    body: new URLSearchParams({ csrfToken, isArchived: "true" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(archiveResponse.status, 303);
+  assert.equal(archiveResponse.headers.get("location"), "/admin/films");
+  assert.equal(films[0].is_archived, true);
+
+  const invalidResponse = await request("/admin/films/not-a-number/archive", {
+    body: new URLSearchParams({ csrfToken, isArchived: "true" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(invalidResponse.status, 404);
+
+  const restoreResponse = await request("/admin/films/1/archive", {
+    body: new URLSearchParams({ csrfToken, isArchived: "false" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(restoreResponse.status, 303);
+  assert.equal(films[0].is_archived, false);
 });
 
 test("current user is reloaded and inactive sessions lose access", async () => {
