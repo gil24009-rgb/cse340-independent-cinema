@@ -66,7 +66,7 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 
 ### Slice 4. Visit and Contact
 
-상태: Next
+상태: Implemented and locally verified
 
 구현 범위:
 
@@ -74,9 +74,17 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 - public contact form
 - validation, success, conflict or failure feedback
 
+검증:
+
+- public visit normal, invalid, success, database-error automated tests
+- local PostgreSQL route insert and cleanup through `contact_messages`
+- local PostgreSQL full test suite
+- 1280px desktop와 390px mobile no-overflow browser checks
+- label, CSRF token, success state, single primary action 확인
+
 ### Slice 5. Owner Film and Screening Management
 
-상태: Planned
+상태: Next
 
 구현 범위:
 

@@ -29,11 +29,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Connected PostgreSQL film and screening data to the public `/films` and `/screenings` routes with stable normal, empty, and error states
 - Added public film detail and screening detail routes with strict identifiers, stable not-found states, and direct navigation between films and screenings
 - Connected the public home route to PostgreSQL film and screening data with nearest-screening and program highlights
+- Added the public Visit and Contact slice with visit information, CSRF-protected contact submission, validation feedback, success state, and PostgreSQL message storage
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 35 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 33 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 37 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 35 passing and 3 database integration skips
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -53,6 +54,8 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Public `/films/:filmSlug` renders film metadata and upcoming screenings for valid slugs and returns `404` for invalid or missing slugs
 - Public `/screenings/:screeningId` renders screening availability for valid IDs and returns `404` for invalid or missing IDs
 - Public `/` renders PostgreSQL-backed next-screening and program highlights with stable database-error handling
+- Public `/visit` renders visit information and a CSRF-protected contact form with validation, success, and database-error states
+- Public `/visit` contact submission inserts into `contact_messages` locally through the rendered route and redirects to `/visit?sent=1`
 - Public home, list, and detail routes verified at 1280px and 390px without horizontal overflow
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production `/` renders the PostgreSQL-backed program section and film detail links after the latest deploy
@@ -134,9 +137,20 @@ Completed third vertical slice:
 - Automated tests cover home normal and database-error behavior
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior
 
+Completed fourth vertical slice:
+
+- `/visit` now presents arrival, ticket, and accessibility information in the confirmed restrained public visual direction
+- `/visit` includes a public contact form for visit planning, accessibility questions, and group screening requests
+- Contact submission is protected by CSRF, trims input, lower-cases email, validates required fields and email format, and preserves valid form values on error
+- Valid contact messages are stored in `contact_messages` with `new` status and an optional authenticated `user_id`
+- Success feedback is shown through `/visit?sent=1` after a `303` redirect
+- Automated tests cover normal rendering, invalid feedback, message creation, and database-error handling
+- Local PostgreSQL route verification confirmed insert and cleanup through the rendered contact route
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior, labels, CSRF token, success state, and one primary action
+
 Next implementation slice:
 
-- Build the public Visit and Contact slice with validated contact submission feedback
+- Build the Owner film and screening management slice so catalog and schedule changes can feed the public pages
 
 Cross-stage delivery infrastructure now available:
 

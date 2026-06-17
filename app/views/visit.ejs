@@ -1,29 +1,119 @@
 <%- include("partials/document-head") %>
 
+<% const nameErrorId = errors.name ? "contact-name-error" : ""; %>
+<% const emailErrorId = errors.email ? "contact-email-error" : ""; %>
+<% const subjectErrorId = errors.subject ? "contact-subject-error" : ""; %>
+<% const bodyErrorId = errors.body ? "contact-body-error" : ""; %>
+
 <main id="main-content" class="page-content">
   <header class="page-heading">
     <p class="eyebrow">Plan your visit</p>
-    <h1>One room. One focused program.</h1>
-    <p>Operational information will live here without interrupting film discovery or booking.</p>
+    <h1>One room. A clear arrival.</h1>
+    <p>Find the rhythm of the cinema before the lights go down, then send a focused message if you need help before a screening.</p>
   </header>
 
-  <div class="information-list">
+  <div class="information-list" aria-label="Visit information">
     <section>
       <span>Arrival</span>
-      <h2>Check in before the screening begins</h2>
-      <p>Member booking status will connect to a staff check-in roster in a later workflow step.</p>
+      <h2>Arrive ten minutes before the listed time</h2>
+      <p>Screenings start on schedule so the single room can stay focused and quiet.</p>
     </section>
     <section>
       <span>Tickets</span>
-      <h2>Simple reservation records</h2>
-      <p>The project excludes payment and seat selection so booking status remains clear and testable.</p>
+      <h2>Bookings stay simple until check-in</h2>
+      <p>Members reserve a place for an upcoming screening. Payment and seat selection are outside this project scope.</p>
     </section>
     <section>
       <span>Access</span>
-      <h2>Information before arrival</h2>
-      <p>Accessibility and cinema policies will be part of the final public information structure.</p>
+      <h2>Ask ahead for access details</h2>
+      <p>Use the contact form for arrival, accessibility, group, or schedule questions.</p>
     </section>
   </div>
+
+  <section class="contact-panel" aria-labelledby="contact-title">
+    <div class="contact-copy">
+      <p class="eyebrow">Contact</p>
+      <h2 id="contact-title">Send one clear message to the cinema team.</h2>
+      <p>Use this for visit planning, accessibility questions, and group screening requests. Staff message handling is connected in a later operations step.</p>
+      <% if (sent) { %>
+        <div class="success-message" role="status">
+          <strong>Message received.</strong>
+          <p>The cinema team can now review this request from the contact message queue.</p>
+        </div>
+      <% } %>
+    </div>
+
+    <form class="auth-form contact-form" action="/visit" method="post" novalidate>
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+      <% if (errorSummary.length) { %>
+        <div class="error-summary" role="alert" aria-labelledby="contact-errors-title" tabindex="-1">
+          <h2 id="contact-errors-title">Please correct the following:</h2>
+          <ul>
+            <% errorSummary.forEach((message) => { %>
+              <li><%= message %></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+
+      <label for="name">Name</label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        value="<%= form.name %>"
+        autocomplete="name"
+        aria-invalid="<%= errors.name ? 'true' : 'false' %>"
+        <%- nameErrorId ? `aria-describedby="${nameErrorId}"` : "" %>
+      />
+      <% if (errors.name) { %>
+        <p class="field-error" id="<%= nameErrorId %>"><%= errors.name[0] %></p>
+      <% } %>
+
+      <label for="email">Email</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        value="<%= form.email %>"
+        autocomplete="email"
+        aria-invalid="<%= errors.email ? 'true' : 'false' %>"
+        <%- emailErrorId ? `aria-describedby="${emailErrorId}"` : "" %>
+      />
+      <% if (errors.email) { %>
+        <p class="field-error" id="<%= emailErrorId %>"><%= errors.email[0] %></p>
+      <% } %>
+
+      <label for="subject">Subject</label>
+      <input
+        id="subject"
+        name="subject"
+        type="text"
+        value="<%= form.subject %>"
+        autocomplete="off"
+        aria-invalid="<%= errors.subject ? 'true' : 'false' %>"
+        <%- subjectErrorId ? `aria-describedby="${subjectErrorId}"` : "" %>
+      />
+      <% if (errors.subject) { %>
+        <p class="field-error" id="<%= subjectErrorId %>"><%= errors.subject[0] %></p>
+      <% } %>
+
+      <label for="body">Message</label>
+      <textarea
+        id="body"
+        name="body"
+        rows="7"
+        aria-invalid="<%= errors.body ? 'true' : 'false' %>"
+        <%- bodyErrorId ? `aria-describedby="${bodyErrorId}"` : "" %>
+      ><%= form.body %></textarea>
+      <% if (errors.body) { %>
+        <p class="field-error" id="<%= bodyErrorId %>"><%= errors.body[0] %></p>
+      <% } %>
+
+      <button class="button button-primary" type="submit">Send Message</button>
+    </form>
+  </section>
 </main>
 
 <%- include("partials/document-end") %>

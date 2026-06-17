@@ -20,6 +20,10 @@ async function withServer(site, callback) {
   }
 }
 
+function extractCsrfToken(body) {
+  return body.match(/name="csrfToken" value="([^"]+)"/)?.[1] || "";
+}
+
 const film = {
   age_rating: "15+",
   country: "South Korea",
@@ -131,6 +135,132 @@ test("public home, film, and screening database failures use the global error st
         assert.equal(response.status, 500);
         assert.match(body, /This request could not be completed/);
       }
+    });
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
+test("public visit contact form validates and stores messages", async () => {
+  const storedMessages = [];
+
+  await withServer({
+    createContactMessage: async (message) => {
+      storedMessages.push(message);
+      return { created_at: new Date(), message_id: 1, status: "new" };
+    },
+    findPublicFilmBySlug: async () => film,
+    findPublicFilms: async () => [film],
+    findPublicScreeningById: async () => screening,
+    findPublicScreeningsByFilmId: async () => [screening],
+    findPublicUpcomingScreenings: async () => [screening],
+  }, async (baseUrl) => {
+    const visitResponse = await fetch(`${baseUrl}/visit`);
+    const visitBody = await visitResponse.text();
+    const cookie = visitResponse.headers.get("set-cookie");
+    const csrfToken = extractCsrfToken(visitBody);
+
+    assert.equal(visitResponse.status, 200);
+    assert.match(visitBody, /One room\. A clear arrival/);
+    assert.match(visitBody, /Send Message/);
+    assert.ok(csrfToken);
+
+    const invalidResponse = await fetch(`${baseUrl}/visit`, {
+      body: new URLSearchParams({
+        body: "Too short",
+        csrfToken,
+        email: "not-an-email",
+        name: "",
+        subject: "",
+      }),
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        cookie,
+      },
+      method: "POST",
+    });
+    const invalidBody = await invalidResponse.text();
+
+    assert.equal(invalidResponse.status, 422);
+    assert.match(invalidBody, /Please correct the following/);
+    assert.match(invalidBody, /Name is required/);
+    assert.match(invalidBody, /Email must be a valid email address/);
+    assert.equal(storedMessages.length, 0);
+
+    const validResponse = await fetch(`${baseUrl}/visit`, {
+      body: new URLSearchParams({
+        body: "Could you share the best arrival time for an accessibility request?",
+        csrfToken,
+        email: "Guest@Example.com",
+        name: "Guest Viewer",
+        subject: "Accessibility arrival",
+      }),
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        cookie,
+      },
+      method: "POST",
+      redirect: "manual",
+    });
+
+    assert.equal(validResponse.status, 303);
+    assert.equal(validResponse.headers.get("location"), "/visit?sent=1");
+    assert.deepEqual(storedMessages, [{
+      body: "Could you share the best arrival time for an accessibility request?",
+      email: "guest@example.com",
+      name: "Guest Viewer",
+      subject: "Accessibility arrival",
+      userId: null,
+    }]);
+
+    const successResponse = await fetch(`${baseUrl}/visit?sent=1`, {
+      headers: { cookie },
+    });
+    const successBody = await successResponse.text();
+
+    assert.equal(successResponse.status, 200);
+    assert.match(successBody, /Message received/);
+  });
+});
+
+test("public visit contact database failures use the global error state", async () => {
+  const originalConsoleError = console.error;
+  console.error = () => {};
+
+  try {
+    await withServer({
+      createContactMessage: async () => {
+        throw new Error("contact insert failed");
+      },
+      findPublicFilmBySlug: async () => film,
+      findPublicFilms: async () => [film],
+      findPublicScreeningById: async () => screening,
+      findPublicScreeningsByFilmId: async () => [screening],
+      findPublicUpcomingScreenings: async () => [screening],
+    }, async (baseUrl) => {
+      const visitResponse = await fetch(`${baseUrl}/visit`);
+      const visitBody = await visitResponse.text();
+      const cookie = visitResponse.headers.get("set-cookie");
+      const csrfToken = extractCsrfToken(visitBody);
+
+      const response = await fetch(`${baseUrl}/visit`, {
+        body: new URLSearchParams({
+          body: "Please help me plan a group screening arrival time.",
+          csrfToken,
+          email: "guest@example.com",
+          name: "Guest Viewer",
+          subject: "Group screening",
+        }),
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          cookie,
+        },
+        method: "POST",
+      });
+      const body = await response.text();
+
+      assert.equal(response.status, 500);
+      assert.match(body, /This request could not be completed/);
     });
   } finally {
     console.error = originalConsoleError;

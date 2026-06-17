@@ -8,6 +8,7 @@ import {
   findPublicScreeningsByFilmId,
   findPublicUpcomingScreenings,
 } from "../models/screeningModel.js";
+import { createContactMessage } from "../models/contactMessageModel.js";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
@@ -32,6 +33,18 @@ function createNotFoundError(message = "Page not found.") {
   return error;
 }
 
+function flattenErrors(errors = {}) {
+  return Object.values(errors).flat();
+}
+
+function normalizeEmail(value) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function presentFilm(film) {
   return {
     ...film,
@@ -54,14 +67,30 @@ function presentScreening(screening) {
   };
 }
 
-export function showVisit(req, res) {
-  res.render("visit", {
+function renderVisit(req, res, options = {}) {
+  const errors = options.errors || {};
+
+  return res.status(options.status || 200).render("visit", {
+    errorSummary: options.errorSummary || flattenErrors(errors),
+    errors,
+    form: {
+      body: options.form?.body || "",
+      email: options.form?.email || req.currentUser?.email || "",
+      name: options.form?.name || (
+        req.currentUser
+          ? `${req.currentUser.first_name} ${req.currentUser.last_name}`.trim()
+          : ""
+      ),
+      subject: options.form?.subject || "",
+    },
     pageDescription: "Plan your visit and understand how screenings operate.",
     pageTitle: "Visit",
+    sent: options.sent || req.query?.sent === "1",
   });
 }
 
 export function createPublicSiteController(options = {}) {
+  const createMessage = options.createContactMessage || createContactMessage;
   const loadFilmBySlug = options.findPublicFilmBySlug || findPublicFilmBySlug;
   const loadFilms = options.findPublicFilms || findPublicFilms;
   const loadScreeningById = options.findPublicScreeningById || findPublicScreeningById;
@@ -69,6 +98,38 @@ export function createPublicSiteController(options = {}) {
   const loadScreenings = options.findPublicUpcomingScreenings || findPublicUpcomingScreenings;
 
   return {
+    showVisit(req, res) {
+      return renderVisit(req, res);
+    },
+
+    async submitContact(req, res, next) {
+      const form = {
+        body: normalizeText(req.body?.body),
+        email: normalizeEmail(req.body?.email),
+        name: normalizeText(req.body?.name),
+        subject: normalizeText(req.body?.subject),
+      };
+
+      if (Object.keys(req.validationErrors || {}).length > 0) {
+        return renderVisit(req, res, {
+          errors: req.validationErrors,
+          form,
+          status: 422,
+        });
+      }
+
+      try {
+        await createMessage({
+          ...form,
+          userId: req.currentUser?.user_id || null,
+        });
+
+        return res.redirect(303, "/visit?sent=1");
+      } catch (error) {
+        return next(error);
+      }
+    },
+
     async showHome(req, res, next) {
       try {
         const [films, screenings] = await Promise.all([

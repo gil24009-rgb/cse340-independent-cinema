@@ -41,7 +41,7 @@ test("renders the cinema foundation home page", async () => {
 });
 
 test("renders stable empty states for public and authentication routes", async () => {
-  for (const route of ["/films", "/screenings", "/login", "/signup"]) {
+  for (const route of ["/films", "/screenings", "/visit", "/login", "/signup"]) {
     const response = await fetch(`${baseUrl}${route}`);
     const body = await response.text();
 
@@ -50,7 +50,9 @@ test("renders stable empty states for public and authentication routes", async (
       ? /next film program is taking shape/
       : route === "/screenings"
         ? /next screening schedule is almost ready/
-        : /form/);
+        : route === "/visit"
+          ? /Send one clear message/
+          : /form/);
   }
 });
 

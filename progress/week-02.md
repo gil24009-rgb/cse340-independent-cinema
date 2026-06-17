@@ -35,6 +35,8 @@
 - public detail route valid, invalid, missing state tests와 browser verification 추가
 - PostgreSQL-backed public home highlights 구현
 - public home nearest screening, schedule links, program film cards, empty states, database-error handling 추가
+- Step 5 public Visit and Contact slice 구현
+- `/visit` information hierarchy, contact validation, success state, CSRF protection, and PostgreSQL message storage 추가
 
 ## 관련 문서
 
@@ -92,9 +94,15 @@
 - Browser에서 public home 1280px와 390px no overflow 확인
 - Browser에서 home nearest screening link와 program film detail links 확인
 - Render production `/`에서 public home program section과 film detail links 확인
+- PostgreSQL 사용 시 `pnpm test`에서 37 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 35 passed, 3 database integration skips
+- public contact targeted route tests 5 passed
+- Local route에서 `/visit` contact submission이 `contact_messages`에 `new` status로 insert되는 것 확인 후 검증 row 삭제
+- Browser에서 `/visit` 1280px와 390px no overflow 확인
+- Browser에서 contact form labels, CSRF token, success state, one primary action 확인
 
 ## 남은 위험 또는 Blocker
 
 ## 다음 작업
 
-- Step 5 public Visit and Contact slice 구현
+- Step 5 Owner Film and Screening Management slice 구현
