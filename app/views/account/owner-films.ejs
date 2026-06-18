@@ -5,6 +5,7 @@
     <p class="eyebrow">Owner operations</p>
     <h1>Manage the public film catalog.</h1>
     <p>Archive a film to remove it from public discovery without deleting its operational history.</p>
+    <p><a class="button button-primary" href="/admin/films/new">Add Film</a></p>
   </header>
 
   <% if (films.length > 0) { %>
@@ -26,13 +27,16 @@
             <span class="status-badge"><%= film.publicState %></span>
           </div>
           <p role="cell"><%= film.upcoming_screening_count %> upcoming · <%= film.nextScreeningDisplay %></p>
-          <form role="cell" action="/admin/films/<%= film.film_id %>/archive" method="post">
-            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-            <input type="hidden" name="isArchived" value="<%= film.is_archived ? 'false' : 'true' %>" />
-            <button class="button" type="submit">
-              <%= film.is_archived ? "Restore to Public" : "Archive Film" %>
-            </button>
-          </form>
+          <div role="cell" class="owner-actions">
+            <a class="button button-secondary" href="/admin/films/<%= film.film_id %>/edit">Edit Film</a>
+            <form action="/admin/films/<%= film.film_id %>/archive" method="post">
+              <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+              <input type="hidden" name="isArchived" value="<%= film.is_archived ? 'false' : 'true' %>" />
+              <button class="button" type="submit">
+                <%= film.is_archived ? "Restore to Public" : "Archive Film" %>
+              </button>
+            </form>
+          </div>
         </article>
       <% }) %>
     </div>

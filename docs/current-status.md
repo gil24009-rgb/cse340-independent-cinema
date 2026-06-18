@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: June 17, 2026
+Last updated: June 18, 2026
 
 ## Current Stage
 
@@ -32,11 +32,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the public Visit and Contact slice with visit information, CSRF-protected contact submission, validation feedback, success state, and PostgreSQL message storage
 - Added the first Owner film management slice with Owner-only film visibility controls and public archive reflection
 - Added Owner screening cancellation controls with active-booking conflict protection and public schedule reflection
+- Added Owner film create and edit forms with server-side validation, duplicate-slug conflict handling, and public catalog reflection
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 39 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 37 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 40 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 38 passing and 3 database integration skips
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -60,12 +61,16 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Public `/visit` contact submission inserts into `contact_messages` locally through the rendered route and redirects to `/visit?sent=1`
 - Owner `/admin/films` renders the film catalog with CSRF-protected archive and restore actions
 - Owner archive action hides a film from public `/films`, and restore makes it visible again through local PostgreSQL route verification
+- Owner `/admin/films/new` and `/admin/films/:filmId/edit` render CSRF-protected create and edit forms with field-level validation feedback
+- Owner film creation adds a non-archived film to public `/films`, and editing the film as archived removes it from public `/films` through local PostgreSQL route verification
+- Duplicate film slugs return a conflict response instead of surfacing a database error
 - Owner `/admin/screenings` renders the screening schedule with CSRF-protected cancel and restore actions for scheduled and cancelled screenings
 - Owner screening cancellation is blocked with a conflict response when active bookings exist
 - Completed screenings show no management action in the Owner schedule because they are preserved operational history
 - Owner screening cancellation hides the screening from public `/screenings`, and restore makes it visible again through local PostgreSQL route verification
 - Public home, list, and detail routes verified at 1280px and 390px without horizontal overflow
 - Owner film catalog verified at 1280px and 390px without horizontal overflow
+- Owner film create form verified at 1280px and 390px without horizontal overflow, with label, hint, validation-summary, and field-error associations checked in browser
 - Owner screening schedule verified at 1280px and 390px without horizontal overflow
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
@@ -167,12 +172,16 @@ Completed fourth vertical slice:
 Started fifth vertical slice:
 
 - `/admin/films` lists Owner-only film catalog rows with public state, upcoming screening count, next screening time, and archive or restore actions
+- `/admin/films/new` creates Owner-managed film records using the same public catalog data contract as the seed films
+- `/admin/films/:filmId/edit` updates Owner-managed film records without changing existing screening or booking history
+- Film create and edit forms validate required fields, slug format, release year, runtime, duplicate slugs, and missing film IDs
 - Film archive and restore actions require Owner role and CSRF validation
 - Invalid film identifiers return a stable not-found state
 - Archived films remain in the Owner catalog but are excluded from public film and screening queries
-- Automated tests cover unauthenticated redirect, Member and Staff denial, Owner access, invalid identifiers, archive, and restore behavior
+- Automated tests cover unauthenticated redirect, Member and Staff denial, Owner access, invalid identifiers, validation, duplicate slugs, create, edit, archive, and restore behavior
 - Local PostgreSQL route verification confirmed `Little Forest` disappears from public `/films` after archive and returns after restore
-- Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Owner film catalog
+- Local PostgreSQL route verification confirmed a newly created film appears in public `/films`, then disappears after the edit form archives it
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Owner film catalog and create form
 - `/admin/screenings` lists Owner-only screening rows with status, booking count, and cancel or restore actions where the status can be managed
 - Screening cancel and restore actions require Owner role and CSRF validation
 - Cancelling a screening with active bookings returns a conflict response and leaves the screening scheduled
@@ -184,7 +193,7 @@ Started fifth vertical slice:
 
 Next implementation slice:
 
-- Continue Owner management with the minimum Owner film create and edit form so the public film archive can grow without database edits
+- Continue Owner management with the minimum Owner screening create and edit form so schedule changes can be managed without database edits
 
 Cross-stage delivery infrastructure now available:
 

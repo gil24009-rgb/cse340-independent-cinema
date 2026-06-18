@@ -89,6 +89,7 @@ const reviews = [
 const films = [
   {
     age_rating: "15+",
+    country: "South Korea",
     director: "Kim Bora",
     film_id: 1,
     genre: "Drama",
@@ -98,11 +99,14 @@ const films = [
     release_year: 2018,
     runtime_minutes: 138,
     slug: "house-of-hummingbird",
+    synopsis: "A quiet coming-of-age story following a teenage girl in 1994 Seoul.",
+    poster_url: "/images/films/house-of-hummingbird.jpg",
     title: "House of Hummingbird",
     upcoming_screening_count: 2,
   },
   {
     age_rating: "12+",
+    country: "South Korea",
     director: "Yim Soon-rye",
     film_id: 2,
     genre: "Drama",
@@ -112,6 +116,8 @@ const films = [
     release_year: 2018,
     runtime_minutes: 103,
     slug: "little-forest",
+    synopsis: "A young woman returns to her rural hometown and finds a new rhythm.",
+    poster_url: "/images/films/little-forest.jpg",
     title: "Little Forest",
     upcoming_screening_count: 0,
   },
@@ -157,6 +163,7 @@ const screenings = [
 
 let server;
 let baseUrl;
+let nextFilmId = 3;
 let nextUserId = 5;
 
 function findUserByEmail(email) {
@@ -200,6 +207,76 @@ async function findReviewById(reviewId) {
 
 async function findOwnerFilms() {
   return films;
+}
+
+async function findOwnerFilmById(filmId) {
+  return films.find((candidate) => candidate.film_id === filmId) || null;
+}
+
+function duplicateFilmSlug(slug, currentFilmId = null) {
+  return films.some((candidate) => candidate.slug === slug && candidate.film_id !== currentFilmId);
+}
+
+function createDuplicateSlugError() {
+  const error = new Error("A film with that slug already exists.");
+  error.name = "FilmSlugConflictError";
+  error.status = 409;
+  return error;
+}
+
+async function createFilm(film) {
+  if (duplicateFilmSlug(film.slug)) {
+    throw createDuplicateSlugError();
+  }
+
+  const created = {
+    age_rating: film.ageRating,
+    country: film.country,
+    director: film.director,
+    film_id: nextFilmId,
+    genre: film.genre,
+    is_archived: film.isArchived,
+    is_featured: film.isFeatured,
+    next_screening_at: null,
+    poster_url: film.posterUrl,
+    release_year: film.releaseYear,
+    runtime_minutes: film.runtimeMinutes,
+    slug: film.slug,
+    synopsis: film.synopsis,
+    title: film.title,
+    upcoming_screening_count: 0,
+  };
+
+  nextFilmId += 1;
+  films.push(created);
+  return created;
+}
+
+async function updateFilm(filmId, film) {
+  const existing = films.find((candidate) => candidate.film_id === filmId);
+
+  if (!existing) {
+    return null;
+  }
+
+  if (duplicateFilmSlug(film.slug, filmId)) {
+    throw createDuplicateSlugError();
+  }
+
+  existing.age_rating = film.ageRating;
+  existing.country = film.country;
+  existing.director = film.director;
+  existing.genre = film.genre;
+  existing.is_archived = film.isArchived;
+  existing.is_featured = film.isFeatured;
+  existing.poster_url = film.posterUrl;
+  existing.release_year = film.releaseYear;
+  existing.runtime_minutes = film.runtimeMinutes;
+  existing.slug = film.slug;
+  existing.synopsis = film.synopsis;
+  existing.title = film.title;
+
+  return existing;
 }
 
 async function setFilmArchived(filmId, isArchived) {
@@ -303,12 +380,15 @@ async function signup(fields) {
 before(async () => {
   const app = createApp({
     account: {
+      createFilm,
       findBookingById,
+      findOwnerFilmById,
       findOwnerFilms,
       findOwnerScreenings,
       findReviewById,
       setFilmArchived,
       setScreeningStatus,
+      updateFilm,
     },
     auth: {
       createMemberUser,
@@ -338,7 +418,7 @@ after(async () => {
 });
 
 test("protected routes redirect unauthenticated direct access", async () => {
-  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin", "/admin/films", "/admin/screenings"]) {
+  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin", "/admin/films", "/admin/films/new", "/admin/films/1/edit", "/admin/screenings"]) {
     const response = await request(route);
 
     assert.equal(response.status, 303);
@@ -473,18 +553,24 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["member@cinema.test", "/staff", 403],
     ["member@cinema.test", "/admin", 403],
     ["member@cinema.test", "/admin/films", 403],
+    ["member@cinema.test", "/admin/films/new", 403],
+    ["member@cinema.test", "/admin/films/1/edit", 403],
     ["member@cinema.test", "/admin/screenings", 403],
     ["staff@cinema.test", "/account", 403],
     ["staff@cinema.test", "/account/bookings/1", 403],
     ["staff@cinema.test", "/staff", 200],
     ["staff@cinema.test", "/admin", 403],
     ["staff@cinema.test", "/admin/films", 403],
+    ["staff@cinema.test", "/admin/films/new", 403],
+    ["staff@cinema.test", "/admin/films/1/edit", 403],
     ["staff@cinema.test", "/admin/screenings", 403],
     ["owner@cinema.test", "/account", 403],
     ["owner@cinema.test", "/account/reviews/1", 403],
     ["owner@cinema.test", "/staff", 200],
     ["owner@cinema.test", "/admin", 200],
     ["owner@cinema.test", "/admin/films", 200],
+    ["owner@cinema.test", "/admin/films/new", 200],
+    ["owner@cinema.test", "/admin/films/1/edit", 200],
     ["owner@cinema.test", "/admin/screenings", 200],
   ];
 
@@ -495,6 +581,130 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     assert.equal(loginResponse.status, 303);
     assert.equal(response.status, expectedStatus, `${email} ${route}`);
   }
+});
+
+test("owner film create and edit forms validate input and preserve public catalog data", async () => {
+  const memberLogin = await login("member@cinema.test");
+  const memberCreate = await request("/admin/films", {
+    body: new URLSearchParams({ csrfToken: "invalid", title: "Unauthorized" }),
+    headers: {
+      cookie: memberLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(memberCreate.status, 403);
+
+  const ownerLogin = await login("owner@cinema.test");
+  const newFilmPage = await request("/admin/films/new", { headers: { cookie: ownerLogin.cookie } });
+  const newFilmBody = await newFilmPage.text();
+  const csrfToken = csrfFrom(newFilmBody);
+
+  assert.equal(newFilmPage.status, 200);
+  assert.match(newFilmBody, /Add a film to the catalog/);
+  assert.match(newFilmBody, /name="csrfToken"/);
+  assert.ok(csrfToken);
+
+  const invalidResponse = await request("/admin/films", {
+    body: new URLSearchParams({ csrfToken, title: "Only Title" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  const invalidBody = await invalidResponse.text();
+  assert.equal(invalidResponse.status, 422);
+  assert.match(invalidBody, /Please correct the following/);
+  assert.match(invalidBody, /Slug is required/);
+
+  const duplicateResponse = await request("/admin/films", {
+    body: new URLSearchParams({
+      ageRating: "12+",
+      country: "South Korea",
+      csrfToken,
+      director: "Kim Bora",
+      genre: "Drama",
+      posterUrl: "/images/films/test.jpg",
+      releaseYear: "2024",
+      runtimeMinutes: "95",
+      slug: "house-of-hummingbird",
+      synopsis: "A valid synopsis for a duplicate slug check.",
+      title: "Duplicate Slug Film",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(duplicateResponse.status, 409);
+
+  const createResponse = await request("/admin/films", {
+    body: new URLSearchParams({
+      ageRating: "12+",
+      country: "South Korea",
+      csrfToken,
+      director: "Park Chan-ok",
+      genre: "Drama",
+      isFeatured: "true",
+      posterUrl: "/images/films/test-film.jpg",
+      releaseYear: "2024",
+      runtimeMinutes: "97",
+      slug: "test-film",
+      synopsis: "A focused film record created through the Owner form.",
+      title: "Test Film",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(createResponse.status, 303);
+  assert.equal(createResponse.headers.get("location"), "/admin/films");
+  const createdFilm = films.find((film) => film.slug === "test-film");
+  assert.ok(createdFilm);
+  assert.equal(createdFilm.is_featured, true);
+  assert.equal(createdFilm.is_archived, false);
+
+  const editPage = await request(`/admin/films/${createdFilm.film_id}/edit`, { headers: { cookie: ownerLogin.cookie } });
+  const editBody = await editPage.text();
+  assert.equal(editPage.status, 200);
+  assert.match(editBody, /Edit a film record/);
+  assert.match(editBody, /value="Test Film"/);
+
+  const editCsrfToken = csrfFrom(editBody);
+  const editResponse = await request(`/admin/films/${createdFilm.film_id}`, {
+    body: new URLSearchParams({
+      ageRating: "15+",
+      country: "South Korea",
+      csrfToken: editCsrfToken,
+      director: "Park Chan-ok",
+      genre: "Drama",
+      isArchived: "true",
+      posterUrl: "/images/films/test-film.jpg",
+      releaseYear: "2024",
+      runtimeMinutes: "101",
+      slug: "test-film-updated",
+      synopsis: "Updated text from the Owner edit form.",
+      title: "Test Film Updated",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(editResponse.status, 303);
+  assert.equal(createdFilm.title, "Test Film Updated");
+  assert.equal(createdFilm.slug, "test-film-updated");
+  assert.equal(createdFilm.is_archived, true);
+
+  const missingEdit = await request("/admin/films/999/edit", { headers: { cookie: ownerLogin.cookie } });
+  assert.equal(missingEdit.status, 404);
 });
 
 test("owner screening status actions are owner-only and protect active bookings", async () => {

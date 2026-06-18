@@ -1,5 +1,13 @@
 import { query } from "../config/database.js";
 
+export class FilmSlugConflictError extends Error {
+  constructor() {
+    super("A film with that slug already exists.");
+    this.name = "FilmSlugConflictError";
+    this.status = 409;
+  }
+}
+
 export async function findPublicFilms() {
   const result = await query(
     `SELECT
@@ -96,6 +104,125 @@ export async function findOwnerFilms() {
   );
 
   return result.rows;
+}
+
+export async function findOwnerFilmById(filmId) {
+  const result = await query(
+    `SELECT
+      film_id,
+      title,
+      slug,
+      director,
+      release_year,
+      country,
+      runtime_minutes,
+      age_rating,
+      genre,
+      synopsis,
+      poster_url,
+      is_featured,
+      is_archived
+    FROM films
+    WHERE film_id = $1`,
+    [filmId],
+  );
+
+  return result.rows[0] || null;
+}
+
+function isUniqueSlugViolation(error) {
+  return error?.code === "23505" && error?.constraint === "films_slug_key";
+}
+
+export async function createFilm(film) {
+  try {
+    const result = await query(
+      `INSERT INTO films (
+        title,
+        slug,
+        director,
+        release_year,
+        country,
+        runtime_minutes,
+        age_rating,
+        genre,
+        synopsis,
+        poster_url,
+        is_featured,
+        is_archived
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING film_id, title, slug, is_archived`,
+      [
+        film.title,
+        film.slug,
+        film.director,
+        film.releaseYear,
+        film.country,
+        film.runtimeMinutes,
+        film.ageRating,
+        film.genre,
+        film.synopsis,
+        film.posterUrl,
+        film.isFeatured,
+        film.isArchived,
+      ],
+    );
+
+    return result.rows[0];
+  } catch (error) {
+    if (isUniqueSlugViolation(error)) {
+      throw new FilmSlugConflictError();
+    }
+
+    throw error;
+  }
+}
+
+export async function updateFilm(filmId, film) {
+  try {
+    const result = await query(
+      `UPDATE films
+       SET title = $2,
+        slug = $3,
+        director = $4,
+        release_year = $5,
+        country = $6,
+        runtime_minutes = $7,
+        age_rating = $8,
+        genre = $9,
+        synopsis = $10,
+        poster_url = $11,
+        is_featured = $12,
+        is_archived = $13,
+        updated_at = CURRENT_TIMESTAMP
+       WHERE film_id = $1
+       RETURNING film_id, title, slug, is_archived`,
+      [
+        filmId,
+        film.title,
+        film.slug,
+        film.director,
+        film.releaseYear,
+        film.country,
+        film.runtimeMinutes,
+        film.ageRating,
+        film.genre,
+        film.synopsis,
+        film.posterUrl,
+        film.isFeatured,
+        film.isArchived,
+      ],
+    );
+
+    return result.rows[0] || null;
+  } catch (error) {
+    if (isUniqueSlugViolation(error)) {
+      throw new FilmSlugConflictError();
+    }
+
+    throw error;
+  }
 }
 
 export async function setFilmArchived(filmId, isArchived) {

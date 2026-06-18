@@ -95,7 +95,11 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 구현 완료된 하위 범위:
 
 - `/admin/films` Owner-only film catalog
+- `/admin/films/new` Owner-only film create form
+- `/admin/films/:filmId/edit` Owner-only film edit form
+- required fields, slug format, duplicate slug conflict, invalid id 처리
 - film archive and restore action
+- created film의 public `/films` 반영과 archived edit 이후 제외 반영
 - archived film의 public `/films` 제외 반영
 - unauthenticated, Member, Staff, Owner direct access tests
 - `/admin/screenings` Owner-only screening schedule
@@ -107,7 +111,6 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 
 다음 하위 범위:
 
-- film create or edit form의 최소 검증 범위
 - screening create or edit form의 최소 검증 범위
 - Owner 변경사항의 public page 반영 검증 확장
 

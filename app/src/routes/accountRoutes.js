@@ -38,6 +38,10 @@ export function createAccountRoutes(options = {}) {
   router.get("/staff", requireRole("staff", "owner"), showStaffAccount);
   router.get("/admin", requireRole("owner"), showOwnerAccount);
   router.get("/admin/films", requireRole("owner"), ownerFilmController.showFilms);
+  router.get("/admin/films/new", requireRole("owner"), ownerFilmController.showNewFilm);
+  router.post("/admin/films", requireRole("owner"), verifyCsrfToken, ownerFilmController.createFilm);
+  router.get("/admin/films/:filmId/edit", requireRole("owner"), ownerFilmController.showEditFilm);
+  router.post("/admin/films/:filmId", requireRole("owner"), verifyCsrfToken, ownerFilmController.updateFilm);
   router.post("/admin/films/:filmId/archive", requireRole("owner"), verifyCsrfToken, ownerFilmController.updateFilmArchive);
   router.get("/admin/screenings", requireRole("owner"), ownerScreeningController.showScreenings);
   router.post(

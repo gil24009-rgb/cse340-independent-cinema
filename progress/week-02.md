@@ -41,6 +41,8 @@
 - `/admin/films` Owner-only catalog, film archive/restore action, public visibility reflection 추가
 - Step 5 Owner screening cancellation slice 구현
 - `/admin/screenings` Owner-only schedule, cancel/restore action, active-booking conflict handling, completed-screening no-action state, public schedule reflection 추가
+- Step 5 Owner film create and edit minimum form 구현
+- `/admin/films/new`와 `/admin/films/:filmId/edit` validation, duplicate slug conflict, public catalog reflection 추가
 
 ## 관련 문서
 
@@ -122,9 +124,15 @@
 - Browser에서 Owner screening table role, CSRF forms, active-booking disabled action, completed-screening no-action state 확인
 - Render production Owner login 후 `/admin/screenings` heading, CSRF forms, disabled action, completed-screening no-action state 확인
 - GitHub Actions CI latest run success 확인
+- PostgreSQL 사용 시 `pnpm test`에서 40 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 38 passed, 3 database integration skips
+- `node --test test/authentication.test.js`에서 Owner film create/edit 포함 17 passed
+- Local route에서 Owner create 후 검증 film이 public `/films`에 표시되고, edit로 archived 처리 후 public `/films`에서 제외되는 것 확인
+- Browser에서 `/admin/films/new` 1280px와 390px no overflow 확인
+- Browser에서 Owner film form labels, CSRF token, validation summary, aria-invalid, field error associations 확인
 
 ## 남은 위험 또는 Blocker
 
 ## 다음 작업
 
-- Step 5 Owner film create and edit minimum form 구현
+- Step 5 Owner screening create and edit minimum form 구현

@@ -1,0 +1,222 @@
+<%- include("../partials/document-head") %>
+
+<% const titleErrorId = errors.title ? "film-title-error" : ""; %>
+<% const slugErrorId = errors.slug ? "film-slug-error" : ""; %>
+<% const directorErrorId = errors.director ? "film-director-error" : ""; %>
+<% const releaseYearErrorId = errors.releaseYear ? "film-release-year-error" : ""; %>
+<% const countryErrorId = errors.country ? "film-country-error" : ""; %>
+<% const runtimeMinutesErrorId = errors.runtimeMinutes ? "film-runtime-error" : ""; %>
+<% const ageRatingErrorId = errors.ageRating ? "film-age-rating-error" : ""; %>
+<% const genreErrorId = errors.genre ? "film-genre-error" : ""; %>
+<% const synopsisErrorId = errors.synopsis ? "film-synopsis-error" : ""; %>
+<% const posterUrlErrorId = errors.posterUrl ? "film-poster-url-error" : ""; %>
+<% const slugDescribedBy = [slugErrorId, "film-slug-hint"].filter(Boolean).join(" "); %>
+<% const posterDescribedBy = [posterUrlErrorId, "film-poster-url-hint"].filter(Boolean).join(" "); %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading">
+    <p class="eyebrow">Owner operations</p>
+    <h1><%= mode === "edit" ? "Edit a film record." : "Add a film to the catalog." %></h1>
+    <p>Use this form for the public film archive. Screening creation is handled in the next management slice.</p>
+  </header>
+
+  <form class="auth-form owner-form" action="<%= formAction %>" method="post" novalidate>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+    <% if (errorSummary.length) { %>
+      <div class="error-summary" role="alert" aria-labelledby="film-errors-title" tabindex="-1">
+        <h2 id="film-errors-title">Please correct the following:</h2>
+        <ul>
+          <% errorSummary.forEach((message) => { %>
+            <li><%= message %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <label for="title">Title</label>
+    <input
+      id="title"
+      name="title"
+      type="text"
+      value="<%= form.title %>"
+      autocomplete="off"
+      aria-invalid="<%= errors.title ? 'true' : 'false' %>"
+      <%- titleErrorId ? `aria-describedby="${titleErrorId}"` : "" %>
+    />
+    <% if (errors.title) { %>
+      <p class="field-error" id="<%= titleErrorId %>"><%= errors.title[0] %></p>
+    <% } %>
+
+    <label for="slug">Slug</label>
+    <input
+      id="slug"
+      name="slug"
+      type="text"
+      value="<%= form.slug %>"
+      autocomplete="off"
+      aria-invalid="<%= errors.slug ? 'true' : 'false' %>"
+      aria-describedby="<%= slugDescribedBy %>"
+    />
+    <p class="field-hint" id="film-slug-hint">Use lowercase letters, numbers, and single hyphens.</p>
+    <% if (errors.slug) { %>
+      <p class="field-error" id="<%= slugErrorId %>"><%= errors.slug[0] %></p>
+    <% } %>
+
+    <label for="director">Director</label>
+    <input
+      id="director"
+      name="director"
+      type="text"
+      value="<%= form.director %>"
+      autocomplete="off"
+      aria-invalid="<%= errors.director ? 'true' : 'false' %>"
+      <%- directorErrorId ? `aria-describedby="${directorErrorId}"` : "" %>
+    />
+    <% if (errors.director) { %>
+      <p class="field-error" id="<%= directorErrorId %>"><%= errors.director[0] %></p>
+    <% } %>
+
+    <div class="form-grid">
+      <div>
+        <label for="releaseYear">Release year</label>
+        <input
+          id="releaseYear"
+          name="releaseYear"
+          type="number"
+          value="<%= form.releaseYear %>"
+          inputmode="numeric"
+          min="1888"
+          max="2100"
+          aria-invalid="<%= errors.releaseYear ? 'true' : 'false' %>"
+          <%- releaseYearErrorId ? `aria-describedby="${releaseYearErrorId}"` : "" %>
+        />
+        <% if (errors.releaseYear) { %>
+          <p class="field-error" id="<%= releaseYearErrorId %>"><%= errors.releaseYear[0] %></p>
+        <% } %>
+      </div>
+
+      <div>
+        <label for="runtimeMinutes">Runtime minutes</label>
+        <input
+          id="runtimeMinutes"
+          name="runtimeMinutes"
+          type="number"
+          value="<%= form.runtimeMinutes %>"
+          inputmode="numeric"
+          min="1"
+          max="600"
+          aria-invalid="<%= errors.runtimeMinutes ? 'true' : 'false' %>"
+          <%- runtimeMinutesErrorId ? `aria-describedby="${runtimeMinutesErrorId}"` : "" %>
+        />
+        <% if (errors.runtimeMinutes) { %>
+          <p class="field-error" id="<%= runtimeMinutesErrorId %>"><%= errors.runtimeMinutes[0] %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <label for="country">Country</label>
+    <input
+      id="country"
+      name="country"
+      type="text"
+      value="<%= form.country %>"
+      autocomplete="off"
+      aria-invalid="<%= errors.country ? 'true' : 'false' %>"
+      <%- countryErrorId ? `aria-describedby="${countryErrorId}"` : "" %>
+    />
+    <% if (errors.country) { %>
+      <p class="field-error" id="<%= countryErrorId %>"><%= errors.country[0] %></p>
+    <% } %>
+
+    <div class="form-grid">
+      <div>
+        <label for="ageRating">Age rating</label>
+        <input
+          id="ageRating"
+          name="ageRating"
+          type="text"
+          value="<%= form.ageRating %>"
+          autocomplete="off"
+          aria-invalid="<%= errors.ageRating ? 'true' : 'false' %>"
+          <%- ageRatingErrorId ? `aria-describedby="${ageRatingErrorId}"` : "" %>
+        />
+        <% if (errors.ageRating) { %>
+          <p class="field-error" id="<%= ageRatingErrorId %>"><%= errors.ageRating[0] %></p>
+        <% } %>
+      </div>
+
+      <div>
+        <label for="genre">Genre</label>
+        <input
+          id="genre"
+          name="genre"
+          type="text"
+          value="<%= form.genre %>"
+          autocomplete="off"
+          aria-invalid="<%= errors.genre ? 'true' : 'false' %>"
+          <%- genreErrorId ? `aria-describedby="${genreErrorId}"` : "" %>
+        />
+        <% if (errors.genre) { %>
+          <p class="field-error" id="<%= genreErrorId %>"><%= errors.genre[0] %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <label for="synopsis">Synopsis</label>
+    <textarea
+      id="synopsis"
+      name="synopsis"
+      rows="5"
+      aria-invalid="<%= errors.synopsis ? 'true' : 'false' %>"
+      <%- synopsisErrorId ? `aria-describedby="${synopsisErrorId}"` : "" %>
+    ><%= form.synopsis %></textarea>
+    <% if (errors.synopsis) { %>
+      <p class="field-error" id="<%= synopsisErrorId %>"><%= errors.synopsis[0] %></p>
+    <% } %>
+
+    <label for="posterUrl">Poster URL</label>
+    <input
+      id="posterUrl"
+      name="posterUrl"
+      type="text"
+      value="<%= form.posterUrl %>"
+      autocomplete="off"
+      aria-invalid="<%= errors.posterUrl ? 'true' : 'false' %>"
+      aria-describedby="<%= posterDescribedBy %>"
+    />
+    <p class="field-hint" id="film-poster-url-hint">Use an existing project image path or an approved public image URL.</p>
+    <% if (errors.posterUrl) { %>
+      <p class="field-error" id="<%= posterUrlErrorId %>"><%= errors.posterUrl[0] %></p>
+    <% } %>
+
+    <label class="checkbox-field" for="isFeatured">
+      <input
+        id="isFeatured"
+        name="isFeatured"
+        type="checkbox"
+        value="true"
+        <%= form.isFeatured ? "checked" : "" %>
+      />
+      Feature this film in public highlights
+    </label>
+
+    <label class="checkbox-field" for="isArchived">
+      <input
+        id="isArchived"
+        name="isArchived"
+        type="checkbox"
+        value="true"
+        <%= form.isArchived ? "checked" : "" %>
+      />
+      Keep this film archived
+    </label>
+
+    <div class="form-actions">
+      <button class="button button-primary" type="submit"><%= mode === "edit" ? "Save Film" : "Create Film" %></button>
+      <a class="button button-secondary" href="/admin/films">Back to Films</a>
+    </div>
+  </form>
+</main>
+
+<%- include("../partials/document-end") %>
