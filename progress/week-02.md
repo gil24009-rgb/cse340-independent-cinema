@@ -130,6 +130,8 @@
 - Local route에서 Owner create 후 검증 film이 public `/films`에 표시되고, edit로 archived 처리 후 public `/films`에서 제외되는 것 확인
 - Browser에서 `/admin/films/new` 1280px와 390px no overflow 확인
 - Browser에서 Owner film form labels, CSRF token, validation summary, aria-invalid, field error associations 확인
+- Render production Owner login 후 `/admin/films/new`와 live edit route heading, CSRF token, submit action 확인
+- GitHub Actions CI latest run success 확인
 
 ## 남은 위험 또는 Blocker
 
