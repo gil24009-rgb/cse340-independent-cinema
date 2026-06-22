@@ -115,7 +115,6 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 
 다음 하위 범위:
 
-- Step 5 stable-slice health review와 Director approval packet 갱신
 - Step 6 booking workflow 착수 전 PostgreSQL migration과 integration test baseline 재확인
 
 ## Step 5 완료 조건
@@ -126,3 +125,17 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 - Contact workflow가 public form에서 Staff workflow로 연결된다.
 - Normal, empty, invalid, forbidden, not-found, conflict, and error states가 적용되는 범위에서 검증된다.
 - 실제 데이터가 연결된 주요 public 화면을 사용자에게 frontend 검수 패킷으로 제공한다.
+
+## Step 5 Completion Review
+
+상태: Completed for Phase A handoff
+
+검수 패킷:
+
+- `quality-reviews/step-05-completion-approval-packet-ko.md`
+
+결론:
+
+- Step 5 기능 구현과 검증은 Step 6으로 넘어갈 수 있는 수준이다.
+- 사용자 frontend review는 비차단이며, Step 8 visual refinement에서 더 크게 반영할 수 있다.
+- Contact message processing은 Step 7 Staff operations 범위로 남는다.

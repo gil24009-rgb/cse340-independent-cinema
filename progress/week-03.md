@@ -17,6 +17,7 @@
 - Owner screening create 후 public `/screenings` 반영 확인
 - Owner screening edit로 cancelled 처리 후 public `/screenings` 제외 확인
 - Owner screening form browser verification 추가
+- Step 5 completion approval packet 추가
 - Step 5 상태 문서, traceability, 운영 메모리 갱신
 
 ## 관련 문서
@@ -25,6 +26,7 @@
 - `docs/current-status.md`
 - `planning/05-public-cinema-experience-ko.md`
 - `planning/requirements-traceability-ko.md`
+- `quality-reviews/step-05-completion-approval-packet-ko.md`
 - `.local/collaboration/OPERATING_MEMORY.md`
 
 ## 관련 Commit
@@ -39,11 +41,14 @@
 - Local route에서 Owner create 후 검증 screening이 public `/screenings`에 표시되고, edit로 cancelled 처리 후 public `/screenings`에서 제외되는 것 확인
 - Browser에서 `/admin/screenings/new`와 `/admin/screenings/2/edit` 1280px와 390px no overflow 확인
 - Browser에서 Owner screening form labels, CSRF token, validation summary, aria-invalid, field error associations 확인
+- Step 5 completion approval packet에서 representative routes, failure states, verification evidence, health review, debt classification 정리
+- Step 6 진입 전 `pnpm db:migrate` 재실행 통과
+- Step 6 진입 전 PostgreSQL 사용 `pnpm test`에서 41 passed, 1 environment-specific skip 재확인
 
 ## 남은 위험 또는 Blocker
 
-- Step 5 completion review packet must be refreshed before treating the step as fully accepted.
+- Step 6 booking workflow must prove transaction safety and capacity protection before booking creation is called complete.
 
 ## 다음 작업
 
-- Step 5 stable-slice health review와 Director approval packet 갱신
+- Step 6 transaction-safe Member booking creation slice 착수

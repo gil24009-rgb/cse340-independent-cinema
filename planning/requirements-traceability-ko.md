@@ -15,7 +15,7 @@
 | MVC organization | Models, controllers, routes, views | Folder structure | Predictable data presentation | Code review | Verified |
 | Middleware | Auth, roles, validation, errors | Shared middleware | Form and error feedback | Failure-path tests | In Progress |
 | Global error handler | Central error response | Error middleware | 404 and error pages | Forced error tests | Verified |
-| Admin content management | Owner film create, edit, visibility controls, and Owner screening create, edit, cancel, and restore controls | Owner controllers and models | Owner film catalog, Owner film forms, Owner screening schedule, and Owner screening forms | Owner route, validation, conflict, and public reflection tests | In Progress |
+| Admin content management | Owner film create, edit, visibility controls, and Owner screening create, edit, cancel, and restore controls | Owner controllers and models | Owner film catalog, Owner film forms, Owner screening schedule, and Owner screening forms | Owner route, validation, conflict, public reflection tests, and production read-only route checks | Verified |
 | User-generated content | Film reviews | reviews table and ownership | Review list and editor | Ownership tests | Defined |
 | User edit/delete own content | Own review management | Owner check | Edit/delete actions | Cross-account tests | Defined |
 | Multi-stage workflow | Booking status workflow | bookings and status history | Ticket status and timeline | Full workflow test | Defined |

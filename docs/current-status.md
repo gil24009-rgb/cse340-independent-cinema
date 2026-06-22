@@ -4,7 +4,7 @@ Last updated: June 22, 2026
 
 ## Current Stage
 
-Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is in progress.
+Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is the next implementation stage.
 
 ## Completed Work
 
@@ -34,11 +34,13 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added Owner screening cancellation controls with active-booking conflict protection and public schedule reflection
 - Added Owner film create and edit forms with server-side validation, duplicate-slug conflict handling, and public catalog reflection
 - Added Owner screening create and edit forms with server-side validation, schedule conflict handling, active-booking capacity and cancellation protection, and public schedule reflection
+- Added the Step 5 completion approval packet with representative routes, verification evidence, health review, debt classification, and frontend review questions
 
 ## Verified Baseline
 
 - Automated tests with local PostgreSQL: 41 passing and 1 environment-specific skip
 - Automated tests without `DATABASE_URL`: 39 passing and 3 database integration skips
+- Latest local `pnpm db:migrate` recheck passed before Step 6 handoff
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -179,7 +181,7 @@ Completed fourth vertical slice:
 - Local PostgreSQL route verification confirmed insert and cleanup through the rendered contact route
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior, labels, CSRF token, success state, and one primary action
 
-Started fifth vertical slice:
+Completed fifth vertical slice:
 
 - `/admin/films` lists Owner-only film catalog rows with public state, upcoming screening count, next screening time, and archive or restore actions
 - `/admin/films/new` creates Owner-managed film records using the same public catalog data contract as the seed films
@@ -211,7 +213,7 @@ Started fifth vertical slice:
 
 Next implementation slice:
 
-- Complete the Step 5 stable-slice health review, update the Director approval packet, and then begin Step 6 booking workflow only after confirming PostgreSQL migrations and integration tests remain operational
+- Begin Step 6 booking workflow with transaction-safe Member booking creation, duplicate-booking protection, capacity protection, and visible Member booking UI
 
 Cross-stage delivery infrastructure now available:
 
@@ -225,7 +227,7 @@ Cross-stage delivery infrastructure now available:
 
 | Step | Focus | Main Outcome |
 | --- | --- | --- |
-| 5 | Public cinema experience | Film, screening, information, contact, and Owner content-management workflows |
+| 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
 | 6 | Booking and Member experience | End-to-end booking creation, status, cancellation, and history |
 | 7 | Reviews and operations | Review CRUD, check-in, moderation, messages, and Owner management |
 | 8 | Frontend refinement | Responsive design system and reference-level interface review |
@@ -236,7 +238,7 @@ Cross-stage delivery infrastructure now available:
 - Final cinema brand name is not selected.
 - Final poster and film image sources are not selected.
 - Course deadline should be added once confirmed.
-- Full production workflows beyond authentication and public read routes remain unimplemented and unverified.
+- Full production workflows beyond authentication, public routes, and Owner read-only route checks remain unimplemented and unverified.
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
