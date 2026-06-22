@@ -81,7 +81,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
 - Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
-- Production Owner screening create and edit form verification remains pending for the current slice
+- Production Owner login reaches `/admin/screenings/new` and a live Owner screening edit route, and both render the expected form headings, CSRF tokens, and submit actions
 - Production `/visit` renders the updated contact form, CSRF token, and success state after deployment
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production `/` renders the PostgreSQL-backed program section and film detail links after the latest deploy
@@ -92,6 +92,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Latest GitHub Actions CI run passed for the Owner film visibility slice
 - Latest GitHub Actions CI run passed for the Owner screening cancellation slice
 - Latest GitHub Actions CI run passed for the Owner film create and edit slice
+- Latest GitHub Actions CI run passed for the Owner screening create and edit slice
 
 ## Current Implementation Stage
 

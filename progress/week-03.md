@@ -42,11 +42,8 @@
 
 ## 남은 위험 또는 Blocker
 
-- Production Owner screening create/edit form read-only verification is still pending for this slice.
 - Step 5 completion review packet must be refreshed before treating the step as fully accepted.
 
 ## 다음 작업
 
-- Production Owner screening form read-only verification
-- GitHub Actions CI 확인
 - Step 5 stable-slice health review와 Director approval packet 갱신
