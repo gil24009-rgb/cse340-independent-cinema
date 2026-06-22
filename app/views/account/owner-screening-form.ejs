@@ -1,0 +1,146 @@
+<%- include("../partials/document-head") %>
+
+<% const filmIdErrorId = errors.filmId ? "screening-film-error" : ""; %>
+<% const startsAtErrorId = errors.startsAt ? "screening-starts-at-error" : ""; %>
+<% const capacityErrorId = errors.capacity ? "screening-capacity-error" : ""; %>
+<% const ticketPriceErrorId = errors.ticketPriceCents ? "screening-ticket-price-error" : ""; %>
+<% const statusErrorId = errors.status ? "screening-status-error" : ""; %>
+<% const programLabelErrorId = errors.programLabel ? "screening-program-error" : ""; %>
+<% const startsAtDescribedBy = [startsAtErrorId, "screening-starts-at-hint"].filter(Boolean).join(" "); %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading">
+    <p class="eyebrow">Owner operations</p>
+    <h1><%= mode === "edit" ? "Edit a screening record." : "Add a screening to the schedule." %></h1>
+    <p>Manage the public schedule for the single auditorium. Completed screenings stay preserved as operational history.</p>
+  </header>
+
+  <form class="auth-form owner-form" action="<%= formAction %>" method="post" novalidate>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+    <% if (errorSummary.length) { %>
+      <div class="error-summary" role="alert" aria-labelledby="screening-errors-title" tabindex="-1">
+        <h2 id="screening-errors-title">Please correct the following:</h2>
+        <ul>
+          <% errorSummary.forEach((message) => { %>
+            <li><%= message %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <label for="filmId">Film</label>
+    <select
+      id="filmId"
+      name="filmId"
+      aria-invalid="<%= errors.filmId ? 'true' : 'false' %>"
+      <%- filmIdErrorId ? `aria-describedby="${filmIdErrorId}"` : "" %>
+    >
+      <option value="">Select a film</option>
+      <% filmOptions.forEach((film) => { %>
+        <option value="<%= film.film_id %>" <%= String(film.film_id) === form.filmId ? "selected" : "" %>><%= film.title %></option>
+      <% }) %>
+    </select>
+    <% if (errors.filmId) { %>
+      <p class="field-error" id="<%= filmIdErrorId %>"><%= errors.filmId[0] %></p>
+    <% } %>
+
+    <label for="startsAt">Start time</label>
+    <input
+      id="startsAt"
+      name="startsAt"
+      type="datetime-local"
+      value="<%= form.startsAt %>"
+      aria-invalid="<%= errors.startsAt ? 'true' : 'false' %>"
+      aria-describedby="<%= startsAtDescribedBy %>"
+    />
+    <p class="field-hint" id="screening-starts-at-hint">Use the local cinema date and time.</p>
+    <% if (errors.startsAt) { %>
+      <p class="field-error" id="<%= startsAtErrorId %>"><%= errors.startsAt[0] %></p>
+    <% } %>
+
+    <div class="form-grid">
+      <div>
+        <label for="capacity">Capacity</label>
+        <input
+          id="capacity"
+          name="capacity"
+          type="number"
+          value="<%= form.capacity %>"
+          inputmode="numeric"
+          min="1"
+          max="500"
+          aria-invalid="<%= errors.capacity ? 'true' : 'false' %>"
+          <%- capacityErrorId ? `aria-describedby="${capacityErrorId}"` : "" %>
+        />
+        <% if (errors.capacity) { %>
+          <p class="field-error" id="<%= capacityErrorId %>"><%= errors.capacity[0] %></p>
+        <% } %>
+      </div>
+
+      <div>
+        <label for="ticketPriceCents">Ticket price cents</label>
+        <input
+          id="ticketPriceCents"
+          name="ticketPriceCents"
+          type="number"
+          value="<%= form.ticketPriceCents %>"
+          inputmode="numeric"
+          min="0"
+          max="100000"
+          aria-invalid="<%= errors.ticketPriceCents ? 'true' : 'false' %>"
+          <%- ticketPriceErrorId ? `aria-describedby="${ticketPriceErrorId}"` : "" %>
+        />
+        <% if (errors.ticketPriceCents) { %>
+          <p class="field-error" id="<%= ticketPriceErrorId %>"><%= errors.ticketPriceCents[0] %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <label for="status">Status</label>
+    <select
+      id="status"
+      name="status"
+      aria-invalid="<%= errors.status ? 'true' : 'false' %>"
+      <%- statusErrorId ? `aria-describedby="${statusErrorId}"` : "" %>
+    >
+      <option value="scheduled" <%= form.status === "scheduled" ? "selected" : "" %>>Scheduled</option>
+      <option value="cancelled" <%= form.status === "cancelled" ? "selected" : "" %>>Cancelled</option>
+    </select>
+    <% if (errors.status) { %>
+      <p class="field-error" id="<%= statusErrorId %>"><%= errors.status[0] %></p>
+    <% } %>
+
+    <label for="programLabel">Program label</label>
+    <input
+      id="programLabel"
+      name="programLabel"
+      type="text"
+      value="<%= form.programLabel %>"
+      autocomplete="off"
+      aria-invalid="<%= errors.programLabel ? 'true' : 'false' %>"
+      <%- programLabelErrorId ? `aria-describedby="${programLabelErrorId}"` : "" %>
+    />
+    <% if (errors.programLabel) { %>
+      <p class="field-error" id="<%= programLabelErrorId %>"><%= errors.programLabel[0] %></p>
+    <% } %>
+
+    <label class="checkbox-field" for="hasGuestTalk">
+      <input
+        id="hasGuestTalk"
+        name="hasGuestTalk"
+        type="checkbox"
+        value="true"
+        <%= form.hasGuestTalk ? "checked" : "" %>
+      />
+      Includes guest talk
+    </label>
+
+    <div class="form-actions">
+      <button class="button button-primary" type="submit"><%= mode === "edit" ? "Save Screening" : "Create Screening" %></button>
+      <a class="button button-secondary" href="/admin/screenings">Back to Screenings</a>
+    </div>
+  </form>
+</main>
+
+<%- include("../partials/document-end") %>

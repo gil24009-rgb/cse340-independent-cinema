@@ -7,9 +7,15 @@ import {
   updateFilm,
 } from "../models/filmModel.js";
 import {
+  createScreening,
+  findOwnerScreeningById,
+  findOwnerScreeningFilmOptions,
   findOwnerScreenings,
+  ScreeningCapacityConflictError,
+  ScreeningScheduleConflictError,
   ScreeningStatusConflictError,
   setScreeningStatus,
+  updateScreening,
 } from "../models/screeningModel.js";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
@@ -19,6 +25,16 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
 
 function formatDateTime(value) {
   return value ? dateTimeFormatter.format(new Date(value)) : "Not available";
+}
+
+function formatDateTimeLocal(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return offsetDate.toISOString().slice(0, 16);
 }
 
 function formatStatus(status) {
@@ -171,8 +187,97 @@ function ownerFilmErrorSummary(errors) {
   return Object.values(errors).flat();
 }
 
+function formErrorSummary(errors) {
+  return Object.values(errors).flat();
+}
+
 function isFilmSlugConflict(error) {
   return error instanceof FilmSlugConflictError || error?.name === "FilmSlugConflictError" || error?.status === 409;
+}
+
+function isScreeningConflict(error) {
+  return (
+    error instanceof ScreeningScheduleConflictError
+    || error instanceof ScreeningCapacityConflictError
+    || error instanceof ScreeningStatusConflictError
+    || error?.name === "ScreeningScheduleConflictError"
+    || error?.name === "ScreeningCapacityConflictError"
+    || error?.name === "ScreeningStatusConflictError"
+  );
+}
+
+function ownerScreeningFormFromBody(body = {}) {
+  return {
+    capacity: normalizeText(body.capacity),
+    filmId: normalizeText(body.filmId),
+    hasGuestTalk: toCheckboxBoolean(body.hasGuestTalk),
+    programLabel: normalizeText(body.programLabel),
+    startsAt: normalizeText(body.startsAt),
+    status: normalizeText(body.status) || "scheduled",
+    ticketPriceCents: normalizeText(body.ticketPriceCents),
+  };
+}
+
+function ownerScreeningFormFromRecord(screening = {}) {
+  return {
+    capacity: screening.capacity ? String(screening.capacity) : "",
+    filmId: screening.film_id ? String(screening.film_id) : "",
+    hasGuestTalk: Boolean(screening.has_guest_talk),
+    programLabel: screening.program_label || "",
+    startsAt: formatDateTimeLocal(screening.starts_at),
+    status: screening.status || "scheduled",
+    ticketPriceCents: Number.isInteger(screening.ticket_price_cents) ? String(screening.ticket_price_cents) : "",
+  };
+}
+
+function validateOwnerScreeningForm(form) {
+  const errors = {};
+
+  addRequiredError(errors, "filmId", "Film", form.filmId);
+  addRequiredError(errors, "startsAt", "Start time", form.startsAt);
+  addRequiredError(errors, "capacity", "Capacity", form.capacity);
+  addRequiredError(errors, "ticketPriceCents", "Ticket price", form.ticketPriceCents);
+  validateLength(errors, "programLabel", "Program label", form.programLabel, 120);
+
+  const filmId = parseFormInteger(form.filmId);
+  if (form.filmId && (filmId === null || filmId <= 0)) {
+    errors.filmId ||= [];
+    errors.filmId.push("Film must be selected from the available catalog.");
+  }
+
+  const startsAtDate = form.startsAt ? new Date(form.startsAt) : null;
+  if (form.startsAt && Number.isNaN(startsAtDate.getTime())) {
+    errors.startsAt ||= [];
+    errors.startsAt.push("Start time must be a valid date and time.");
+  }
+
+  const capacity = parseFormInteger(form.capacity);
+  if (form.capacity && (capacity === null || capacity <= 0 || capacity > 500)) {
+    errors.capacity ||= [];
+    errors.capacity.push("Capacity must be between 1 and 500.");
+  }
+
+  const ticketPriceCents = parseFormInteger(form.ticketPriceCents);
+  if (form.ticketPriceCents && (ticketPriceCents === null || ticketPriceCents < 0 || ticketPriceCents > 100000)) {
+    errors.ticketPriceCents ||= [];
+    errors.ticketPriceCents.push("Ticket price must be between 0 and 100000 cents.");
+  }
+
+  if (!isAllowedScreeningStatus(form.status)) {
+    errors.status ||= [];
+    errors.status.push("Status must be scheduled or cancelled.");
+  }
+
+  return {
+    errors,
+    values: {
+      ...form,
+      capacity,
+      filmId,
+      startsAt: startsAtDate,
+      ticketPriceCents,
+    },
+  };
 }
 
 function presentOwnerFilm(film) {
@@ -389,8 +494,28 @@ export function createOwnerFilmController(options = {}) {
 }
 
 export function createOwnerScreeningController(options = {}) {
+  const addScreening = options.createScreening || createScreening;
+  const loadFilmOptions = options.findOwnerScreeningFilmOptions || findOwnerScreeningFilmOptions;
+  const loadScreening = options.findOwnerScreeningById || findOwnerScreeningById;
   const loadScreenings = options.findOwnerScreenings || findOwnerScreenings;
+  const saveScreening = options.updateScreening || updateScreening;
   const updateStatus = options.setScreeningStatus || setScreeningStatus;
+
+  async function renderScreeningForm(res, { errors = {}, form, mode, screeningId = null, status = 200 }) {
+    const filmOptions = await loadFilmOptions();
+
+    return res.status(status).render("account/owner-screening-form", {
+      errors,
+      errorSummary: formErrorSummary(errors),
+      filmOptions,
+      form,
+      formAction: mode === "edit" ? `/admin/screenings/${screeningId}` : "/admin/screenings",
+      mode,
+      pageDescription: mode === "edit" ? "Edit an Owner-managed screening record." : "Create an Owner-managed screening record.",
+      pageTitle: mode === "edit" ? "Edit Screening" : "New Screening",
+      screeningId,
+    });
+  }
 
   return {
     async showScreenings(req, res, next) {
@@ -403,6 +528,130 @@ export function createOwnerScreeningController(options = {}) {
           screenings,
         });
       } catch (error) {
+        return next(error);
+      }
+    },
+
+    async showNewScreening(req, res, next) {
+      try {
+        return await renderScreeningForm(res, {
+          form: ownerScreeningFormFromBody(),
+          mode: "new",
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async createScreening(req, res, next) {
+      const form = ownerScreeningFormFromBody(req.body);
+      const { errors, values } = validateOwnerScreeningForm(form);
+
+      if (Object.keys(errors).length > 0) {
+        return renderScreeningForm(res, {
+          errors,
+          form,
+          mode: "new",
+          status: 422,
+        }).catch(next);
+      }
+
+      try {
+        const screening = await addScreening(values);
+
+        if (!screening) {
+          errors.filmId = ["Film must be selected from the active catalog."];
+          return await renderScreeningForm(res, {
+            errors,
+            form,
+            mode: "new",
+            status: 422,
+          });
+        }
+
+        return res.redirect(303, "/admin/screenings");
+      } catch (error) {
+        if (isScreeningConflict(error)) {
+          errors.startsAt = [error.message];
+          return await renderScreeningForm(res, {
+            errors,
+            form,
+            mode: "new",
+            status: 409,
+          });
+        }
+
+        return next(error);
+      }
+    },
+
+    async showEditScreening(req, res, next) {
+      const screeningId = parsePositiveInteger(req.params?.screeningId);
+
+      if (!screeningId) {
+        return next(createNotFoundError("Screening not found."));
+      }
+
+      try {
+        const screening = await loadScreening(screeningId);
+
+        if (!screening || !isAllowedScreeningStatus(screening.status)) {
+          return next(createNotFoundError("Screening not found."));
+        }
+
+        return await renderScreeningForm(res, {
+          form: ownerScreeningFormFromRecord(screening),
+          mode: "edit",
+          screeningId,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async updateScreening(req, res, next) {
+      const screeningId = parsePositiveInteger(req.params?.screeningId);
+
+      if (!screeningId) {
+        return next(createNotFoundError("Screening not found."));
+      }
+
+      const form = ownerScreeningFormFromBody(req.body);
+      const { errors, values } = validateOwnerScreeningForm(form);
+
+      if (Object.keys(errors).length > 0) {
+        return renderScreeningForm(res, {
+          errors,
+          form,
+          mode: "edit",
+          screeningId,
+          status: 422,
+        }).catch(next);
+      }
+
+      try {
+        const screening = await saveScreening(screeningId, values);
+
+        if (!screening) {
+          return next(createNotFoundError("Screening not found."));
+        }
+
+        return res.redirect(303, "/admin/screenings");
+      } catch (error) {
+        if (isScreeningConflict(error)) {
+          const field = error instanceof ScreeningCapacityConflictError || error?.name === "ScreeningCapacityConflictError"
+            ? "capacity"
+            : "startsAt";
+          errors[field] = [error.message];
+          return await renderScreeningForm(res, {
+            errors,
+            form,
+            mode: "edit",
+            screeningId,
+            status: 409,
+          });
+        }
+
         return next(error);
       }
     },

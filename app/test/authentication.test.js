@@ -124,7 +124,7 @@ const films = [
 ];
 const screenings = [
   {
-    active_booking_count: 1,
+    active_booking_count: 2,
     capacity: 60,
     film_slug: "house-of-hummingbird",
     film_title: "House of Hummingbird",
@@ -164,6 +164,7 @@ const screenings = [
 let server;
 let baseUrl;
 let nextFilmId = 3;
+let nextScreeningId = 4;
 let nextUserId = 5;
 
 function findUserByEmail(email) {
@@ -294,6 +295,111 @@ async function findOwnerScreenings() {
   return screenings;
 }
 
+async function findOwnerScreeningById(screeningId) {
+  return screenings.find((candidate) => candidate.screening_id === screeningId) || null;
+}
+
+async function findOwnerScreeningFilmOptions() {
+  return films.filter((film) => !film.is_archived).map((film) => ({
+    film_id: film.film_id,
+    title: film.title,
+  }));
+}
+
+function filmTitleForId(filmId) {
+  return films.find((film) => film.film_id === filmId)?.title || "Unknown Film";
+}
+
+function filmSlugForId(filmId) {
+  return films.find((film) => film.film_id === filmId)?.slug || "unknown-film";
+}
+
+function activeFilmExists(filmId) {
+  return films.some((film) => film.film_id === filmId && !film.is_archived);
+}
+
+function duplicateScreeningStart(startsAt, currentScreeningId = null) {
+  const nextStart = new Date(startsAt).toISOString();
+  return screenings.some((screening) => {
+    return new Date(screening.starts_at).toISOString() === nextStart && screening.screening_id !== currentScreeningId;
+  });
+}
+
+function createScreeningConflict(name, message) {
+  const error = new Error(message);
+  error.name = name;
+  error.status = 409;
+  return error;
+}
+
+async function createScreening(screening) {
+  if (!activeFilmExists(screening.filmId)) {
+    return null;
+  }
+
+  if (duplicateScreeningStart(screening.startsAt)) {
+    throw createScreeningConflict("ScreeningScheduleConflictError", "A screening already exists at that start time.");
+  }
+
+  const created = {
+    active_booking_count: 0,
+    capacity: screening.capacity,
+    film_id: screening.filmId,
+    film_slug: filmSlugForId(screening.filmId),
+    film_title: filmTitleForId(screening.filmId),
+    has_guest_talk: screening.hasGuestTalk,
+    program_label: screening.programLabel || null,
+    screening_id: nextScreeningId,
+    starts_at: screening.startsAt.toISOString(),
+    status: screening.status,
+    ticket_price_cents: screening.ticketPriceCents,
+  };
+
+  nextScreeningId += 1;
+  screenings.push(created);
+  return created;
+}
+
+async function updateScreening(screeningId, screening) {
+  const existing = screenings.find((candidate) => candidate.screening_id === screeningId);
+
+  if (!existing) {
+    return null;
+  }
+
+  if (existing.status !== "scheduled" && existing.status !== "cancelled") {
+    return null;
+  }
+
+  if (!activeFilmExists(screening.filmId)) {
+    return null;
+  }
+
+  if (duplicateScreeningStart(screening.startsAt, screeningId)) {
+    throw createScreeningConflict("ScreeningScheduleConflictError", "A screening already exists at that start time.");
+  }
+
+  if (existing.active_booking_count > screening.capacity) {
+    throw createScreeningConflict("ScreeningCapacityConflictError", "Capacity cannot be lower than the active booking count.");
+  }
+
+  if (screening.status === "cancelled" && existing.active_booking_count > 0) {
+    throw createScreeningConflict("ScreeningStatusConflictError", "Screenings with active bookings cannot be cancelled in this management slice.");
+  }
+
+  existing.capacity = screening.capacity;
+  existing.film_id = screening.filmId;
+  existing.film_slug = filmSlugForId(screening.filmId);
+  existing.film_title = filmTitleForId(screening.filmId);
+  existing.has_guest_talk = screening.hasGuestTalk;
+  existing.program_label = screening.programLabel || null;
+  existing.starts_at = screening.startsAt.toISOString();
+  existing.status = screening.status;
+  existing.ticket_price_cents = screening.ticketPriceCents;
+
+  return existing;
+}
+
 async function setScreeningStatus(screeningId, status) {
   const screening = screenings.find((candidate) => candidate.screening_id === screeningId);
 
@@ -381,14 +487,18 @@ before(async () => {
   const app = createApp({
     account: {
       createFilm,
+      createScreening,
       findBookingById,
       findOwnerFilmById,
       findOwnerFilms,
+      findOwnerScreeningById,
+      findOwnerScreeningFilmOptions,
       findOwnerScreenings,
       findReviewById,
       setFilmArchived,
       setScreeningStatus,
       updateFilm,
+      updateScreening,
     },
     auth: {
       createMemberUser,
@@ -418,7 +528,7 @@ after(async () => {
 });
 
 test("protected routes redirect unauthenticated direct access", async () => {
-  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin", "/admin/films", "/admin/films/new", "/admin/films/1/edit", "/admin/screenings"]) {
+  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin", "/admin/films", "/admin/films/new", "/admin/films/1/edit", "/admin/screenings", "/admin/screenings/new", "/admin/screenings/1/edit"]) {
     const response = await request(route);
 
     assert.equal(response.status, 303);
@@ -556,6 +666,8 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["member@cinema.test", "/admin/films/new", 403],
     ["member@cinema.test", "/admin/films/1/edit", 403],
     ["member@cinema.test", "/admin/screenings", 403],
+    ["member@cinema.test", "/admin/screenings/new", 403],
+    ["member@cinema.test", "/admin/screenings/1/edit", 403],
     ["staff@cinema.test", "/account", 403],
     ["staff@cinema.test", "/account/bookings/1", 403],
     ["staff@cinema.test", "/staff", 200],
@@ -564,6 +676,8 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["staff@cinema.test", "/admin/films/new", 403],
     ["staff@cinema.test", "/admin/films/1/edit", 403],
     ["staff@cinema.test", "/admin/screenings", 403],
+    ["staff@cinema.test", "/admin/screenings/new", 403],
+    ["staff@cinema.test", "/admin/screenings/1/edit", 403],
     ["owner@cinema.test", "/account", 403],
     ["owner@cinema.test", "/account/reviews/1", 403],
     ["owner@cinema.test", "/staff", 200],
@@ -572,6 +686,8 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["owner@cinema.test", "/admin/films/new", 200],
     ["owner@cinema.test", "/admin/films/1/edit", 200],
     ["owner@cinema.test", "/admin/screenings", 200],
+    ["owner@cinema.test", "/admin/screenings/new", 200],
+    ["owner@cinema.test", "/admin/screenings/1/edit", 200],
   ];
 
   for (const [email, route, expectedStatus] of cases) {
@@ -705,6 +821,172 @@ test("owner film create and edit forms validate input and preserve public catalo
 
   const missingEdit = await request("/admin/films/999/edit", { headers: { cookie: ownerLogin.cookie } });
   assert.equal(missingEdit.status, 404);
+});
+
+test("owner screening create and edit forms validate input and preserve schedule rules", async () => {
+  const memberLogin = await login("member@cinema.test");
+  const memberCreate = await request("/admin/screenings", {
+    body: new URLSearchParams({ csrfToken: "invalid", filmId: "1" }),
+    headers: {
+      cookie: memberLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(memberCreate.status, 403);
+
+  const ownerLogin = await login("owner@cinema.test");
+  const newScreeningPage = await request("/admin/screenings/new", { headers: { cookie: ownerLogin.cookie } });
+  const newScreeningBody = await newScreeningPage.text();
+  const csrfToken = csrfFrom(newScreeningBody);
+
+  assert.equal(newScreeningPage.status, 200);
+  assert.match(newScreeningBody, /Add a screening to the schedule/);
+  assert.match(newScreeningBody, /House of Hummingbird/);
+  assert.doesNotMatch(newScreeningBody, /Little Forest/);
+  assert.ok(csrfToken);
+
+  const invalidResponse = await request("/admin/screenings", {
+    body: new URLSearchParams({ csrfToken, filmId: "1" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  const invalidBody = await invalidResponse.text();
+  assert.equal(invalidResponse.status, 422);
+  assert.match(invalidBody, /Please correct the following/);
+  assert.match(invalidBody, /Start time is required/);
+
+  const duplicateResponse = await request("/admin/screenings", {
+    body: new URLSearchParams({
+      capacity: "60",
+      csrfToken,
+      filmId: "1",
+      hasGuestTalk: "true",
+      programLabel: "Duplicate Check",
+      startsAt: "2026-06-20T01:00:00.000Z",
+      status: "scheduled",
+      ticketPriceCents: "1200",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(duplicateResponse.status, 409);
+
+  const createResponse = await request("/admin/screenings", {
+    body: new URLSearchParams({
+      capacity: "48",
+      csrfToken,
+      filmId: "1",
+      programLabel: "Route Test",
+      startsAt: "2026-07-20T19:00",
+      status: "scheduled",
+      ticketPriceCents: "1100",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(createResponse.status, 303);
+  const createdScreening = screenings.find((screening) => screening.program_label === "Route Test");
+  assert.ok(createdScreening);
+  assert.equal(createdScreening.capacity, 48);
+  assert.equal(createdScreening.status, "scheduled");
+
+  const editPage = await request(`/admin/screenings/${createdScreening.screening_id}/edit`, { headers: { cookie: ownerLogin.cookie } });
+  const editBody = await editPage.text();
+  const editCsrfToken = csrfFrom(editBody);
+  assert.equal(editPage.status, 200);
+  assert.match(editBody, /Edit a screening record/);
+  assert.match(editBody, /Route Test/);
+
+  const editResponse = await request(`/admin/screenings/${createdScreening.screening_id}`, {
+    body: new URLSearchParams({
+      capacity: "52",
+      csrfToken: editCsrfToken,
+      filmId: "1",
+      hasGuestTalk: "true",
+      programLabel: "Route Test Updated",
+      startsAt: "2026-07-21T19:30",
+      status: "cancelled",
+      ticketPriceCents: "1300",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+
+  assert.equal(editResponse.status, 303);
+  assert.equal(createdScreening.capacity, 52);
+  assert.equal(createdScreening.status, "cancelled");
+  assert.equal(createdScreening.program_label, "Route Test Updated");
+
+  const activeCapacityConflict = await request("/admin/screenings/1", {
+    body: new URLSearchParams({
+      capacity: "0",
+      csrfToken: editCsrfToken,
+      filmId: "1",
+      programLabel: "Too Small",
+      startsAt: "2026-07-22T19:30",
+      status: "scheduled",
+      ticketPriceCents: "1300",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(activeCapacityConflict.status, 422);
+
+  const activeCapacityRuleConflict = await request("/admin/screenings/1", {
+    body: new URLSearchParams({
+      capacity: "1",
+      csrfToken: editCsrfToken,
+      filmId: "1",
+      programLabel: "Too Small",
+      startsAt: "2026-07-22T19:30",
+      status: "scheduled",
+      ticketPriceCents: "1300",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(activeCapacityRuleConflict.status, 409);
+
+  const activeCancelConflict = await request("/admin/screenings/1", {
+    body: new URLSearchParams({
+      capacity: "60",
+      csrfToken: editCsrfToken,
+      filmId: "1",
+      programLabel: "Conflict",
+      startsAt: "2026-07-22T19:30",
+      status: "cancelled",
+      ticketPriceCents: "1300",
+    }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(activeCancelConflict.status, 409);
+
+  const completedEdit = await request("/admin/screenings/3/edit", { headers: { cookie: ownerLogin.cookie } });
+  assert.equal(completedEdit.status, 404);
 });
 
 test("owner screening status actions are owner-only and protect active bookings", async () => {

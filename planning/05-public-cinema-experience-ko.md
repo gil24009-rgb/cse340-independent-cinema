@@ -84,7 +84,7 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 
 ### Slice 5. Owner Film and Screening Management
 
-상태: In Progress
+상태: Implemented and locally verified
 
 구현 범위:
 
@@ -103,16 +103,20 @@ Public query는 archived film, cancelled screening, completed screening, past sc
 - archived film의 public `/films` 제외 반영
 - unauthenticated, Member, Staff, Owner direct access tests
 - `/admin/screenings` Owner-only screening schedule
+- `/admin/screenings/new` Owner-only screening create form
+- `/admin/screenings/:screeningId/edit` Owner-only screening edit form
 - scheduled screening cancel and restore action
+- required fields, duplicate start time, active booking capacity conflict, active booking cancellation conflict, invalid id 처리
 - active booking이 있는 screening cancellation conflict 처리
 - completed screening은 preserved operational history로 표시하고 action 미노출
+- created screening의 public `/screenings` 반영과 cancelled edit 이후 제외 반영
 - cancelled screening의 public `/screenings` 제외와 restore 반영
 - desktop 1280px와 mobile 390px no-overflow browser checks
 
 다음 하위 범위:
 
-- screening create or edit form의 최소 검증 범위
-- Owner 변경사항의 public page 반영 검증 확장
+- Step 5 stable-slice health review와 Director approval packet 갱신
+- Step 6 booking workflow 착수 전 PostgreSQL migration과 integration test baseline 재확인
 
 ## Step 5 완료 조건
 

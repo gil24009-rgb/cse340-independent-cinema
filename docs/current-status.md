@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: June 18, 2026
+Last updated: June 22, 2026
 
 ## Current Stage
 
@@ -33,11 +33,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the first Owner film management slice with Owner-only film visibility controls and public archive reflection
 - Added Owner screening cancellation controls with active-booking conflict protection and public schedule reflection
 - Added Owner film create and edit forms with server-side validation, duplicate-slug conflict handling, and public catalog reflection
+- Added Owner screening create and edit forms with server-side validation, schedule conflict handling, active-booking capacity and cancellation protection, and public schedule reflection
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 40 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 38 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 41 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 39 passing and 3 database integration skips
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -65,6 +66,10 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Owner film creation adds a non-archived film to public `/films`, and editing the film as archived removes it from public `/films` through local PostgreSQL route verification
 - Duplicate film slugs return a conflict response instead of surfacing a database error
 - Owner `/admin/screenings` renders the screening schedule with CSRF-protected cancel and restore actions for scheduled and cancelled screenings
+- Owner `/admin/screenings/new` and `/admin/screenings/:screeningId/edit` render CSRF-protected create and edit forms with field-level validation feedback
+- Owner screening creation adds a future scheduled screening to public `/screenings`, and editing the screening as cancelled removes it from public `/screenings` through local PostgreSQL route verification
+- Duplicate screening start times return a conflict response instead of surfacing a database error
+- Owner screening edit blocks reducing capacity below active bookings and blocks cancellation while active bookings remain
 - Owner screening cancellation is blocked with a conflict response when active bookings exist
 - Completed screenings show no management action in the Owner schedule because they are preserved operational history
 - Owner screening cancellation hides the screening from public `/screenings`, and restore makes it visible again through local PostgreSQL route verification
@@ -72,9 +77,11 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Owner film catalog verified at 1280px and 390px without horizontal overflow
 - Owner film create form verified at 1280px and 390px without horizontal overflow, with label, hint, validation-summary, and field-error associations checked in browser
 - Owner screening schedule verified at 1280px and 390px without horizontal overflow
+- Owner screening create and edit forms verified at 1280px and 390px without horizontal overflow, with label, hint, validation-summary, and field-error associations checked in browser
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
 - Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
+- Production Owner screening create and edit form verification remains pending for the current slice
 - Production `/visit` renders the updated contact form, CSRF token, and success state after deployment
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production `/` renders the PostgreSQL-backed program section and film detail links after the latest deploy
@@ -192,10 +199,18 @@ Started fifth vertical slice:
 - Automated tests cover unauthenticated redirect, Member and Staff denial, Owner access, invalid identifiers, active-booking conflict, completed-screening denial, cancel, and restore behavior
 - Local PostgreSQL route verification confirmed a screening disappears from public `/screenings` after cancel and returns after restore
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Owner screening schedule
+- `/admin/screenings/new` creates Owner-managed screening records for active films
+- `/admin/screenings/:screeningId/edit` updates scheduled or cancelled Owner-managed screening records without changing booking history
+- Screening create and edit forms validate film, start time, capacity, ticket price, status, and program label
+- Duplicate start times return a conflict state, active bookings block cancellation, and active bookings also block capacity reductions below the current active count
+- Newly created scheduled screenings appear on public `/screenings`, and edited cancelled screenings are excluded from public `/screenings`
+- Automated tests cover unauthenticated redirect, Member and Staff denial, Owner access, invalid input, duplicate start conflict, active-booking conflicts, create, edit, and completed-screening denial
+- Local PostgreSQL route verification confirmed a newly created scheduled screening appears in public `/screenings`, then disappears after the edit form cancels it
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Owner screening create and edit forms, including validation summary and field-error associations
 
 Next implementation slice:
 
-- Continue Owner management with the minimum Owner screening create and edit form so schedule changes can be managed without database edits
+- Complete the Step 5 stable-slice health review, update the Director approval packet, and then begin Step 6 booking workflow only after confirming PostgreSQL migrations and integration tests remain operational
 
 Cross-stage delivery infrastructure now available:
 
@@ -209,7 +224,7 @@ Cross-stage delivery infrastructure now available:
 
 | Step | Focus | Main Outcome |
 | --- | --- | --- |
-| 5 | Public cinema experience | Film, screening, information, and contact workflows |
+| 5 | Public cinema experience | Film, screening, information, contact, and Owner content-management workflows |
 | 6 | Booking and Member experience | End-to-end booking creation, status, cancellation, and history |
 | 7 | Reviews and operations | Review CRUD, check-in, moderation, messages, and Owner management |
 | 8 | Frontend refinement | Responsive design system and reference-level interface review |

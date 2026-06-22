@@ -780,6 +780,7 @@ h3 {
 }
 
 .auth-form input,
+.auth-form select,
 .auth-form textarea {
   width: 100%;
   min-height: 3rem;
@@ -796,6 +797,7 @@ h3 {
 }
 
 .auth-form input[aria-invalid="true"],
+.auth-form select[aria-invalid="true"],
 .auth-form textarea[aria-invalid="true"] {
   border-color: var(--accent);
 }
