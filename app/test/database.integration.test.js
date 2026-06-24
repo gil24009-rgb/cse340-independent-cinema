@@ -6,6 +6,12 @@ import session from "express-session";
 import pg from "pg";
 
 import { runMigrations } from "../scripts/run-migrations.js";
+import {
+  BookingCapacityConflictError,
+  BookingDuplicateConflictError,
+  createMemberBooking,
+} from "../src/models/bookingModel.js";
+import { closeDatabase } from "../src/config/database.js";
 
 const { Pool } = pg;
 const databaseUrl = process.env.DATABASE_URL;
@@ -31,6 +37,7 @@ before(async () => {
 });
 
 after(async () => {
+  await closeDatabase();
   await pool?.end();
 });
 
@@ -74,6 +81,80 @@ integrationTest("database rejects invalid roles and duplicate bookings", async (
     ),
     (error) => error.code === "23505",
   );
+});
+
+integrationTest("member booking creation writes initial history and protects capacity", async () => {
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const email = `booking-${suffix}@cinema.test`;
+  const otherEmail = `booking-other-${suffix}@cinema.test`;
+  const userResult = await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, last_name, role)
+     VALUES ($1, $2, $3, $4, 'member')
+     RETURNING user_id`,
+    [email, "hash", "Booking", "Member"],
+  );
+  const otherUserResult = await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, last_name, role)
+     VALUES ($1, $2, $3, $4, 'member')
+     RETURNING user_id`,
+    [otherEmail, "hash", "Other", "Member"],
+  );
+  const userId = userResult.rows[0].user_id;
+  const otherUserId = otherUserResult.rows[0].user_id;
+  const filmResult = await pool.query("SELECT film_id FROM films WHERE is_archived = FALSE ORDER BY film_id LIMIT 1");
+  const filmId = filmResult.rows[0].film_id;
+  const openScreeningResult = await pool.query(
+    `INSERT INTO screenings (film_id, starts_at, capacity, ticket_price_cents, status)
+     VALUES ($1, CURRENT_TIMESTAMP + INTERVAL '40 days', 2, 1200, 'scheduled')
+     RETURNING screening_id`,
+    [filmId],
+  );
+  const fullScreeningResult = await pool.query(
+    `INSERT INTO screenings (film_id, starts_at, capacity, ticket_price_cents, status)
+     VALUES ($1, CURRENT_TIMESTAMP + INTERVAL '41 days', 1, 1200, 'scheduled')
+     RETURNING screening_id`,
+    [filmId],
+  );
+  const openScreeningId = openScreeningResult.rows[0].screening_id;
+  const fullScreeningId = fullScreeningResult.rows[0].screening_id;
+
+  try {
+    const booking = await createMemberBooking({ screeningId: openScreeningId, userId });
+    assert.equal(booking.user_id, userId);
+    assert.equal(booking.screening_id, openScreeningId);
+    assert.equal(booking.status, "confirmed");
+
+    const historyResult = await pool.query(
+      `SELECT from_status, to_status, changed_by_user_id, note
+       FROM booking_status_history
+       WHERE booking_id = $1`,
+      [booking.booking_id],
+    );
+    assert.equal(historyResult.rows.length, 1);
+    assert.equal(historyResult.rows[0].from_status, null);
+    assert.equal(historyResult.rows[0].to_status, "confirmed");
+    assert.equal(historyResult.rows[0].changed_by_user_id, userId);
+    assert.equal(historyResult.rows[0].note, "Booking created.");
+
+    await assert.rejects(
+      createMemberBooking({ screeningId: openScreeningId, userId }),
+      BookingDuplicateConflictError,
+    );
+
+    await pool.query(
+      "INSERT INTO bookings (user_id, screening_id, status) VALUES ($1, $2, 'confirmed')",
+      [otherUserId, fullScreeningId],
+    );
+
+    await assert.rejects(
+      createMemberBooking({ screeningId: fullScreeningId, userId }),
+      BookingCapacityConflictError,
+    );
+  } finally {
+    await pool.query("DELETE FROM bookings WHERE user_id IN ($1, $2)", [userId, otherUserId]);
+    await pool.query("DELETE FROM screenings WHERE screening_id IN ($1, $2)", [openScreeningId, fullScreeningId]);
+    await pool.query("DELETE FROM users WHERE user_id IN ($1, $2)", [userId, otherUserId]);
+  }
 });
 
 integrationTest("PostgreSQL session store creates, reads, and destroys a session", async () => {

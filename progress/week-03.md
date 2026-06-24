@@ -19,12 +19,17 @@
 - Owner screening form browser verification 추가
 - Step 5 completion approval packet 추가
 - Step 5 상태 문서, traceability, 운영 메모리 갱신
+- Step 6 첫 slice로 transaction-safe Member booking creation 구현
+- Screening detail에서 Member-only booking action 추가
+- Booking creation에서 screening row lock, capacity check, duplicate conflict handling, initial status history transaction 추가
+- Booking 성공 후 `/account/bookings/:bookingId` redirect 연결
 
 ## 관련 문서
 
 - `README.md`
 - `docs/current-status.md`
 - `planning/05-public-cinema-experience-ko.md`
+- `planning/06-booking-workflow-member-experience-ko.md`
 - `planning/requirements-traceability-ko.md`
 - `quality-reviews/step-05-completion-approval-packet-ko.md`
 - `.local/collaboration/OPERATING_MEMORY.md`
@@ -44,11 +49,16 @@
 - Step 5 completion approval packet에서 representative routes, failure states, verification evidence, health review, debt classification 정리
 - Step 6 진입 전 `pnpm db:migrate` 재실행 통과
 - Step 6 진입 전 PostgreSQL 사용 `pnpm test`에서 41 passed, 1 environment-specific skip 재확인
+- `node --test test/publicRoutes.test.js test/database.integration.test.js`에서 10 passed
+- PostgreSQL 사용 시 `pnpm test`에서 43 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 40 passed, 4 database integration skips
+- Local route에서 실제 Member login, booking POST, booking detail redirect, history row 생성, cleanup 확인
+- Browser에서 Member booking flow 1280px와 390px no overflow 확인
 
 ## 남은 위험 또는 Blocker
 
-- Step 6 booking workflow must prove transaction safety and capacity protection before booking creation is called complete.
+- Member booking history list and cancellation path remain unimplemented.
 
 ## 다음 작업
 
-- Step 6 transaction-safe Member booking creation slice 착수
+- Step 6 Member booking history list, empty state, and cancellation path 구현

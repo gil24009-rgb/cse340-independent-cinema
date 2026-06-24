@@ -20,6 +20,23 @@ async function withServer(site, callback) {
   }
 }
 
+async function withAppServer(options, callback) {
+  const app = createApp({
+    session: { sessionSecret: "test-session-secret" },
+    ...options,
+  });
+  const server = await new Promise((resolve) => {
+    const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
+  });
+  const address = server.address();
+
+  try {
+    await callback(`http://127.0.0.1:${address.port}`);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+}
+
 function extractCsrfToken(body) {
   return body.match(/name="csrfToken" value="([^"]+)"/)?.[1] || "";
 }
@@ -58,6 +75,74 @@ const screening = {
   starts_at: new Date("2026-06-20T01:00:00.000Z"),
   ticket_price_cents: 1200,
 };
+
+const users = [
+  {
+    email: "member@cinema.test",
+    first_name: "Sora",
+    is_active: true,
+    last_name: "Kim",
+    password_hash: "valid-password",
+    role: "member",
+    user_id: 1,
+  },
+  {
+    email: "staff@cinema.test",
+    first_name: "Joon",
+    is_active: true,
+    last_name: "Lee",
+    password_hash: "valid-password",
+    role: "staff",
+    user_id: 2,
+  },
+];
+
+function cookieFrom(response) {
+  const setCookie = response.headers.get("set-cookie") || "";
+  return setCookie.split(";")[0];
+}
+
+async function login(baseUrl, email) {
+  const loginPage = await fetch(`${baseUrl}/login`);
+  const loginBody = await loginPage.text();
+  const cookie = cookieFrom(loginPage);
+  const csrfToken = extractCsrfToken(loginBody);
+  const response = await fetch(`${baseUrl}/login`, {
+    body: new URLSearchParams({
+      csrfToken,
+      email,
+      password: "correct-password",
+    }),
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      cookie,
+    },
+    method: "POST",
+    redirect: "manual",
+  });
+
+  return cookieFrom(response);
+}
+
+function createAuthenticatedOptions(site = {}) {
+  return {
+    auth: {
+      findUserByEmail: async (email) => users.find((user) => user.email === email) || null,
+      verifyPassword: async (password, hash) => password === "correct-password" && hash === "valid-password",
+    },
+    site: {
+      findPublicFilmBySlug: async () => film,
+      findPublicFilms: async () => [film],
+      findPublicScreeningById: async () => screening,
+      findPublicScreeningsByFilmId: async () => [screening],
+      findPublicUpcomingScreenings: async () => [screening],
+      ...site,
+    },
+    users: {
+      findActiveUserById: async (userId) => users.find((user) => user.user_id === userId && user.is_active) || null,
+    },
+  };
+}
 
 test("public film and screening routes render data-backed normal states", async () => {
   await withServer({
@@ -103,6 +188,83 @@ test("public film and screening routes render data-backed normal states", async 
     assert.match(screeningDetailBody, /House of Hummingbird/);
     assert.match(screeningDetailBody, /\$12\.00/);
     assert.match(screeningDetailBody, /View film detail/);
+    assert.match(screeningDetailBody, /Sign in to book/);
+  });
+});
+
+test("screening detail creates member bookings and handles booking conflicts", async () => {
+  const bookingAttempts = [];
+
+  await withAppServer(createAuthenticatedOptions({
+    createMemberBooking: async (booking) => {
+      bookingAttempts.push(booking);
+
+      if (bookingAttempts.length === 2) {
+        const error = new Error("You already have a booking for this screening.");
+        error.name = "BookingDuplicateConflictError";
+        throw error;
+      }
+
+      return {
+        booked_at: new Date(),
+        booking_id: 55,
+        cancelled_at: null,
+        film_title: "House of Hummingbird",
+        screening_id: booking.screeningId,
+        starts_at: screening.starts_at,
+        status: "confirmed",
+        user_id: booking.userId,
+      };
+    },
+  }), async (baseUrl) => {
+    const unauthenticatedPost = await fetch(`${baseUrl}/screenings/1/bookings`, {
+      method: "POST",
+      redirect: "manual",
+    });
+    assert.equal(unauthenticatedPost.status, 303);
+    assert.equal(unauthenticatedPost.headers.get("location"), "/login");
+
+    const staffCookie = await login(baseUrl, "staff@cinema.test");
+    const staffDetail = await fetch(`${baseUrl}/screenings/1`, {
+      headers: { cookie: staffCookie },
+    });
+    assert.equal(staffDetail.status, 200);
+    assert.match(await staffDetail.text(), /Only Member accounts can book screenings/);
+
+    const memberCookie = await login(baseUrl, "member@cinema.test");
+    const memberDetail = await fetch(`${baseUrl}/screenings/1`, {
+      headers: { cookie: memberCookie },
+    });
+    const memberDetailBody = await memberDetail.text();
+    const csrfToken = extractCsrfToken(memberDetailBody);
+    assert.equal(memberDetail.status, 200);
+    assert.match(memberDetailBody, /Book This Screening/);
+    assert.ok(csrfToken);
+
+    const createdResponse = await fetch(`${baseUrl}/screenings/1/bookings`, {
+      body: new URLSearchParams({ csrfToken }),
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        cookie: memberCookie,
+      },
+      method: "POST",
+      redirect: "manual",
+    });
+    assert.equal(createdResponse.status, 303);
+    assert.equal(createdResponse.headers.get("location"), "/account/bookings/55");
+    assert.deepEqual(bookingAttempts[0], { screeningId: 1, userId: 1 });
+
+    const conflictResponse = await fetch(`${baseUrl}/screenings/1/bookings`, {
+      body: new URLSearchParams({ csrfToken }),
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        cookie: memberCookie,
+      },
+      method: "POST",
+    });
+    const conflictBody = await conflictResponse.text();
+    assert.equal(conflictResponse.status, 409);
+    assert.match(conflictBody, /You already have a booking for this screening/);
   });
 });
 

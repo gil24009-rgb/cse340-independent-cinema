@@ -18,8 +18,8 @@
 | Admin content management | Owner film create, edit, visibility controls, and Owner screening create, edit, cancel, and restore controls | Owner controllers and models | Owner film catalog, Owner film forms, Owner screening schedule, and Owner screening forms | Owner route, validation, conflict, public reflection tests, and production read-only route checks | Verified |
 | User-generated content | Film reviews | reviews table and ownership | Review list and editor | Ownership tests | Defined |
 | User edit/delete own content | Own review management | Owner check | Edit/delete actions | Cross-account tests | Defined |
-| Multi-stage workflow | Booking status workflow | bookings and status history | Ticket status and timeline | Full workflow test | Defined |
-| Status history | Every booking state change recorded | booking_status_history | Booking detail timeline | History query test | Planned |
+| Multi-stage workflow | Member booking creation is implemented; cancellation and Staff status transitions remain next | bookings and status history | Screening detail booking action and Member booking detail | Route, PostgreSQL transaction, and conflict tests | In Progress |
+| Status history | Initial booking creation history is recorded in the same transaction; later transitions remain next | booking_status_history | Booking detail and later timeline | PostgreSQL history query test | In Progress |
 | Admin dashboard | Operational management | Aggregated queries and CRUD | Admin dashboard | Role test | Defined |
 | Manage users and roles | Owner changes roles | users role update | User management table | Owner-only tests | Defined |
 | Respond to submissions | Public contact message intake | contact_messages | Visit contact form and later Staff message queue | Route insert test and later status workflow test | In Progress |

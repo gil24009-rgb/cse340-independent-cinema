@@ -1,10 +1,10 @@
 # Current Status
 
-Last updated: June 22, 2026
+Last updated: June 24, 2026
 
 ## Current Stage
 
-Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is the next implementation stage.
+Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is in progress.
 
 ## Completed Work
 
@@ -35,11 +35,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added Owner film create and edit forms with server-side validation, duplicate-slug conflict handling, and public catalog reflection
 - Added Owner screening create and edit forms with server-side validation, schedule conflict handling, active-booking capacity and cancellation protection, and public schedule reflection
 - Added the Step 5 completion approval packet with representative routes, verification evidence, health review, debt classification, and frontend review questions
+- Added the first Step 6 vertical slice: transaction-safe Member booking creation from screening detail, duplicate-booking conflict handling, capacity protection, initial booking status history, and rendered Member booking detail redirect
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 41 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 39 passing and 3 database integration skips
+- Automated tests with local PostgreSQL: 43 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 40 passing and 4 database integration skips
 - Latest local `pnpm db:migrate` recheck passed before Step 6 handoff
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
@@ -59,6 +60,9 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Public `/screenings` renders future scheduled seed screenings with remaining capacity. The current local seed query returned two future screenings on June 16, 2026 because same-day screening rows age out after their start time.
 - Public `/films/:filmSlug` renders film metadata and upcoming screenings for valid slugs and returns `404` for invalid or missing slugs
 - Public `/screenings/:screeningId` renders screening availability for valid IDs and returns `404` for invalid or missing IDs
+- Member booking creation from `/screenings/:screeningId` writes the booking and initial `booking_status_history` row in one PostgreSQL transaction
+- Member booking creation redirects to `/account/bookings/:bookingId` after success
+- Duplicate Member booking attempts and sold-out screenings return stable conflict responses
 - Public `/` renders PostgreSQL-backed next-screening and program highlights with stable database-error handling
 - Public `/visit` renders visit information and a CSRF-protected contact form with validation, success, and database-error states
 - Public `/visit` contact submission inserts into `contact_messages` locally through the rendered route and redirects to `/visit?sent=1`
@@ -80,6 +84,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Owner film create form verified at 1280px and 390px without horizontal overflow, with label, hint, validation-summary, and field-error associations checked in browser
 - Owner screening schedule verified at 1280px and 390px without horizontal overflow
 - Owner screening create and edit forms verified at 1280px and 390px without horizontal overflow, with label, hint, validation-summary, and field-error associations checked in browser
+- Member booking flow verified at 1280px and 390px without horizontal overflow from screening detail to booking detail
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
 - Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
@@ -213,7 +218,7 @@ Completed fifth vertical slice:
 
 Next implementation slice:
 
-- Begin Step 6 booking workflow with transaction-safe Member booking creation, duplicate-booking protection, capacity protection, and visible Member booking UI
+- Continue Step 6 with Member booking history list, empty state, and cancellation path
 
 Cross-stage delivery infrastructure now available:
 
@@ -223,12 +228,27 @@ Cross-stage delivery infrastructure now available:
 - GitHub Actions CI provisions PostgreSQL 17 and runs database and application verification on pushes and pull requests
 - A Step 5 frontend direction review packet records the approved reference and review criteria before implementation
 
+### Step 6: Booking Workflow and Member Experience
+
+Started first vertical slice:
+
+- `/screenings/:screeningId` now shows a Member-only booking action when a future scheduled screening has remaining capacity
+- Unauthenticated users see a sign-in action instead of a booking form
+- Staff and Owner users see a non-bookable state because only Members can create bookings
+- `POST /screenings/:screeningId/bookings` requires Member role and CSRF validation
+- Booking creation locks the screening row, checks active booking count, rejects sold-out screenings, inserts the booking, and inserts the initial status history row in one transaction
+- Duplicate Member booking attempts return a stable conflict response instead of surfacing a database error
+- Successful booking redirects to the ownership-protected Member booking detail route
+- Automated tests cover rendered booking states, unauthenticated redirect, Member success, duplicate conflict, PostgreSQL history creation, database duplicate protection, and capacity protection
+- Local route verification confirmed Member booking creation, redirect, booking detail rendering, initial history row, and cleanup
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Member booking path
+
 ## Following Stages
 
 | Step | Focus | Main Outcome |
 | --- | --- | --- |
 | 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
-| 6 | Booking and Member experience | End-to-end booking creation, status, cancellation, and history |
+| 6 | Booking and Member experience | In progress with transaction-safe Member booking creation |
 | 7 | Reviews and operations | Review CRUD, check-in, moderation, messages, and Owner management |
 | 8 | Frontend refinement | Responsive design system and reference-level interface review |
 | 9 | Security and deployment | Regression testing, Render deployment, and submission documentation |

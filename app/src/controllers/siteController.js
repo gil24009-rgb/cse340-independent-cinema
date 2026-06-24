@@ -2,6 +2,11 @@ import {
   checkDatabaseConnection,
   isDatabaseConfigured,
 } from "../config/database.js";
+import {
+  BookingCapacityConflictError,
+  BookingDuplicateConflictError,
+  createMemberBooking,
+} from "../models/bookingModel.js";
 import { findPublicFilmBySlug, findPublicFilms } from "../models/filmModel.js";
 import {
   findPublicScreeningById,
@@ -67,6 +72,13 @@ function presentScreening(screening) {
   };
 }
 
+function isBookingConflict(error) {
+  return error instanceof BookingCapacityConflictError
+    || error instanceof BookingDuplicateConflictError
+    || error?.name === "BookingCapacityConflictError"
+    || error?.name === "BookingDuplicateConflictError";
+}
+
 function renderVisit(req, res, options = {}) {
   const errors = options.errors || {};
 
@@ -90,12 +102,38 @@ function renderVisit(req, res, options = {}) {
 }
 
 export function createPublicSiteController(options = {}) {
+  const createBookingRecord = options.createMemberBooking || createMemberBooking;
   const createMessage = options.createContactMessage || createContactMessage;
   const loadFilmBySlug = options.findPublicFilmBySlug || findPublicFilmBySlug;
   const loadFilms = options.findPublicFilms || findPublicFilms;
   const loadScreeningById = options.findPublicScreeningById || findPublicScreeningById;
   const loadScreeningsByFilmId = options.findPublicScreeningsByFilmId || findPublicScreeningsByFilmId;
   const loadScreenings = options.findPublicUpcomingScreenings || findPublicUpcomingScreenings;
+
+  async function renderScreeningDetail(req, res, next, options = {}) {
+    const screeningId = Number(req.params?.screeningId);
+
+    if (!Number.isInteger(screeningId) || screeningId < 1) {
+      return next(createNotFoundError("Screening not found."));
+    }
+
+    try {
+      const screening = await loadScreeningById(screeningId);
+
+      if (!screening) {
+        return next(createNotFoundError("Screening not found."));
+      }
+
+      return res.status(options.status || 200).render("screenings/detail", {
+        bookingError: options.bookingError || null,
+        pageDescription: `View the ${screening.film_title} screening and current availability.`,
+        pageTitle: screening.film_title,
+        screening: presentScreening(screening),
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
 
   return {
     showVisit(req, res) {
@@ -208,6 +246,10 @@ export function createPublicSiteController(options = {}) {
     },
 
     async showScreeningDetail(req, res, next) {
+      return renderScreeningDetail(req, res, next);
+    },
+
+    async createBooking(req, res, next) {
       const screeningId = Number(req.params?.screeningId);
 
       if (!Number.isInteger(screeningId) || screeningId < 1) {
@@ -215,18 +257,24 @@ export function createPublicSiteController(options = {}) {
       }
 
       try {
-        const screening = await loadScreeningById(screeningId);
+        const booking = await createBookingRecord({
+          screeningId,
+          userId: req.currentUser.user_id,
+        });
 
-        if (!screening) {
+        if (!booking) {
           return next(createNotFoundError("Screening not found."));
         }
 
-        return res.render("screenings/detail", {
-          pageDescription: `View the ${screening.film_title} screening and current availability.`,
-          pageTitle: screening.film_title,
-          screening: presentScreening(screening),
-        });
+        return res.redirect(303, `/account/bookings/${booking.booking_id}`);
       } catch (error) {
+        if (isBookingConflict(error)) {
+          return renderScreeningDetail(req, res, next, {
+            bookingError: error.message,
+            status: 409,
+          });
+        }
+
         return next(error);
       }
     },

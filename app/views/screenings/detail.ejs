@@ -13,9 +13,26 @@
       <h2>Before the screening</h2>
       <p><%= screening.synopsis %></p>
       <div class="detail-actions">
-        <a class="button button-primary" href="/films/<%= screening.film_slug %>">View film detail</a>
+        <% if (currentUser && currentUser.role === "member" && screening.remaining_capacity > 0) { %>
+          <form class="inline-action-form" action="/screenings/<%= screening.screening_id %>/bookings" method="post">
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+            <button class="button button-primary" type="submit">Book This Screening</button>
+          </form>
+        <% } else if (!currentUser) { %>
+          <a class="button button-primary" href="/login">Sign in to book</a>
+        <% } else if (screening.remaining_capacity <= 0) { %>
+          <p class="status-note" role="status">This screening is sold out.</p>
+        <% } else { %>
+          <p class="status-note" role="status">Only Member accounts can book screenings.</p>
+        <% } %>
+        <a class="text-link" href="/films/<%= screening.film_slug %>">View film detail</a>
         <a class="text-link" href="/screenings">Back to schedule</a>
       </div>
+      <% if (bookingError) { %>
+        <div class="error-summary" role="alert">
+          <p><%= bookingError %></p>
+        </div>
+      <% } %>
     </div>
 
     <dl class="detail-list public-detail-list">

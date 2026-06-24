@@ -5,6 +5,7 @@ import {
   showDatabaseHealth,
   showHealth,
 } from "../controllers/siteController.js";
+import { requireRole } from "../middleware/authentication.js";
 import { verifyCsrfToken } from "../middleware/csrf.js";
 import {
   requiredText,
@@ -33,6 +34,7 @@ export function createSiteRoutes(options = {}) {
   router.get("/films/:filmSlug", publicController.showFilmDetail);
   router.get("/screenings", publicController.showScreenings);
   router.get("/screenings/:screeningId", publicController.showScreeningDetail);
+  router.post("/screenings/:screeningId/bookings", requireRole("member"), verifyCsrfToken, publicController.createBooking);
   router.get("/health", showHealth);
   router.get("/health/database", showDatabaseHealth);
 
