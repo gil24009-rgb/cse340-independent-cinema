@@ -54,10 +54,12 @@
 - `DATABASE_URL` 없이 `pnpm test`에서 40 passed, 4 database integration skips
 - Local route에서 실제 Member login, booking POST, booking detail redirect, history row 생성, cleanup 확인
 - Browser에서 Member booking flow 1280px와 390px no overflow 확인
+- Production read-only booking CTA 확인은 현재 production seed schedule에 future screening detail route가 없어 pending으로 기록
 
 ## 남은 위험 또는 Blocker
 
 - Member booking history list and cancellation path remain unimplemented.
+- Production future-screening verification needs a seed or schedule refresh before final deployment review.
 
 ## 다음 작업
 

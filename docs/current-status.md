@@ -93,6 +93,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production `/` renders the PostgreSQL-backed program section and film detail links after the latest deploy
 - Production detail routes return `200` for `/films/house-of-hummingbird` and the current live future screening route `/screenings/3`, while invalid public identifiers return `404`
+- Production read-only check for the new Member booking action is pending because the current production seed schedule no longer exposes a future screening detail route
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
 - Latest GitHub Actions CI run passed for the Visit and Contact slice
@@ -261,6 +262,7 @@ Started first vertical slice:
 - Full production workflows beyond authentication, public routes, and Owner read-only route checks remain unimplemented and unverified.
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
+- Production seed screening dates can age out, which can block read-only verification of future-screening workflows until the next production seed or schedule refresh.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
 
 ## Working Checkpoints
