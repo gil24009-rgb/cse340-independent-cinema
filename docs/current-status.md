@@ -97,6 +97,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Production `/films` renders four public films and `/screenings` renders the remaining future scheduled screening with `200` responses
 - Production `/` renders the PostgreSQL-backed program section and film detail links after the latest deploy
 - Production detail routes return `200` for `/films/house-of-hummingbird` and the current live future screening route `/screenings/3`, while invalid public identifiers return `404`
+- Production Member login reaches `/account`, and the live Member account renders booking history with the two seed Member bookings after deployment
 - Production read-only check for the new Member booking action is pending because the current production seed schedule no longer exposes a future screening detail route
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
@@ -257,6 +258,7 @@ Completed second vertical slice:
 - Automated tests cover signed-in Member-only listing, cross-user exclusion, empty state rendering after signup, and existing role guard behavior
 - Local PostgreSQL route verification confirmed seed Member login reaches `/account` with the two Member seed bookings and detail links
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Member booking history list
+- Render production verification confirmed Member login reaches `/account` and renders the two seed Member bookings after deployment
 
 ## Following Stages
 

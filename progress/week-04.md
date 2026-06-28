@@ -38,6 +38,7 @@
 - Local route에서 실제 Member login 후 `/account` 200, seed Member booking 2건, detail link 확인
 - Browser에서 `/account` 1280px no overflow, Member booking 2건, detail link, main landmark 확인
 - Browser에서 `/account` 390px no overflow, booking card와 action button width 확인
+- Production에서 Member login 후 `/account` 200, seed Member booking 2건 확인
 
 ## 남은 위험 또는 Blocker
 
