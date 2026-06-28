@@ -6,6 +6,7 @@ import {
   setFilmArchived,
   updateFilm,
 } from "../models/filmModel.js";
+import { findBookingsByUserId } from "../models/bookingModel.js";
 import {
   createScreening,
   findOwnerScreeningById,
@@ -300,14 +301,41 @@ function presentOwnerScreening(screening) {
   };
 }
 
-export function showMemberAccount(req, res) {
-  res.render("account/landing", {
-    eyebrow: "Member account",
-    heading: `Welcome, ${req.currentUser.first_name}.`,
-    message: "Your bookings and screening history will appear here.",
-    pageDescription: "View your cinema account and bookings.",
-    pageTitle: "My Account",
-  });
+function presentMemberBooking(booking) {
+  const now = Date.now();
+  const startsAtTime = new Date(booking.starts_at).getTime();
+  const isCancelled = booking.status === "cancelled";
+  const timing = isCancelled ? "Cancelled" : startsAtTime >= now ? "Upcoming" : "Past";
+
+  return {
+    ...booking,
+    bookedAtDisplay: formatDateTime(booking.booked_at),
+    cancelledAtDisplay: booking.cancelled_at ? formatDateTime(booking.cancelled_at) : null,
+    startsAtDisplay: formatDateTime(booking.starts_at),
+    statusDisplay: formatStatus(booking.status),
+    timing,
+  };
+}
+
+export function createMemberAccountController(options = {}) {
+  const loadBookings = options.findBookingsByUserId || findBookingsByUserId;
+
+  return {
+    async showAccount(req, res, next) {
+      try {
+        const bookings = (await loadBookings(req.currentUser.user_id)).map(presentMemberBooking);
+
+        return res.render("account/member-dashboard", {
+          bookings,
+          memberName: req.currentUser.first_name,
+          pageDescription: "View your cinema account and bookings.",
+          pageTitle: "My Account",
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  };
 }
 
 export function showStaffAccount(req, res) {

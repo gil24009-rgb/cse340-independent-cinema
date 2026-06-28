@@ -37,6 +37,36 @@ export async function findBookingById(bookingId) {
   return result.rows[0] || null;
 }
 
+export async function findBookingsByUserId(userId) {
+  const result = await query(
+    `SELECT
+      b.booking_id,
+      b.user_id,
+      b.status,
+      b.booked_at,
+      b.cancelled_at,
+      s.screening_id,
+      s.starts_at,
+      f.title AS film_title
+    FROM bookings b
+    JOIN screenings s ON s.screening_id = b.screening_id
+    JOIN films f ON f.film_id = s.film_id
+    WHERE b.user_id = $1
+    ORDER BY
+      CASE
+        WHEN b.status = 'cancelled' THEN 2
+        WHEN s.starts_at >= CURRENT_TIMESTAMP THEN 0
+        ELSE 1
+      END,
+      CASE WHEN s.starts_at >= CURRENT_TIMESTAMP THEN s.starts_at END ASC,
+      CASE WHEN s.starts_at < CURRENT_TIMESTAMP THEN s.starts_at END DESC,
+      b.booking_id DESC`,
+    [userId],
+  );
+
+  return result.rows;
+}
+
 function isDuplicateBookingViolation(error) {
   return error?.code === "23505" && error?.constraint === "bookings_user_screening_unique";
 }

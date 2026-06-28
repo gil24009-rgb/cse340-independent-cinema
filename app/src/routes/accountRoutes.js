@@ -1,10 +1,10 @@
 import express from "express";
 
 import {
+  createMemberAccountController,
   createOwnerFilmController,
   createOwnerScreeningController,
   showMemberBookingDetail,
-  showMemberAccount,
   showMemberReviewDetail,
   showOwnerAccount,
   showStaffAccount,
@@ -12,11 +12,14 @@ import {
 import { requireRole } from "../middleware/authentication.js";
 import { verifyCsrfToken } from "../middleware/csrf.js";
 import { createOwnedResourceLoader } from "../middleware/ownership.js";
-import { findBookingById } from "../models/bookingModel.js";
+import { findBookingById, findBookingsByUserId } from "../models/bookingModel.js";
 import { findReviewById } from "../models/reviewModel.js";
 
 export function createAccountRoutes(options = {}) {
   const router = express.Router();
+  const memberAccountController = createMemberAccountController({
+    findBookingsByUserId: options.findBookingsByUserId || findBookingsByUserId,
+  });
   const ownerFilmController = createOwnerFilmController(options);
   const ownerScreeningController = createOwnerScreeningController(options);
   const loadOwnedBooking = createOwnedResourceLoader({
@@ -32,7 +35,7 @@ export function createAccountRoutes(options = {}) {
     resourceLabel: "Review",
   });
 
-  router.get("/account", requireRole("member"), showMemberAccount);
+  router.get("/account", requireRole("member"), memberAccountController.showAccount);
   router.get("/account/bookings/:bookingId", requireRole("member"), loadOwnedBooking, showMemberBookingDetail);
   router.get("/account/reviews/:reviewId", requireRole("member"), loadOwnedReview, showMemberReviewDetail);
   router.get("/staff", requireRole("staff", "owner"), showStaffAccount);

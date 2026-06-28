@@ -127,7 +127,7 @@ e-commerce처럼 보이지만 결제까지 구현하지 않아도 된다. 주문
 ### Role
 
 - Owner/Admin: print, collection, commission type, user 관리
-- Studio Staff: order status, commission notes, fulfillment 관리
+- Studio Staff: order status, commission notes, order completion 관리
 - Customer/User: 주문 요청, commission 요청, 리뷰 작성
 
 ### Workflow

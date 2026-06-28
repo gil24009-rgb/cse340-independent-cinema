@@ -32,24 +32,25 @@ Booking workflow는 이 프로젝트의 핵심 평가 지점이다. UI 버튼보
 
 ### Slice 2. Member Booking History
 
-상태: Next
+상태: Implemented and locally verified
 
 구현 범위:
 
-- `/account` 또는 `/account/bookings`에서 Member booking list 표시
+- `/account`에서 Member booking list 표시
 - upcoming, past, cancelled booking의 scan 가능한 상태 구분
 - empty state
 - booking detail로 이동
 
-검증 예정:
+검증:
 
 - Member만 자신의 booking list를 볼 수 있다.
-- 다른 Member booking은 노출되지 않는다.
-- empty, normal, cancelled state가 화면에 표시된다.
+- 다른 Member 또는 Staff booking은 노출되지 않는다.
+- empty와 normal state가 route test와 browser check로 확인됐다.
+- 1280px와 390px에서 no-overflow 상태를 확인했다.
 
 ### Slice 3. Member Booking Cancellation
 
-상태: Planned
+상태: Next
 
 구현 범위:
 

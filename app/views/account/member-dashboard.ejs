@@ -1,0 +1,62 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content member-dashboard">
+  <section class="page-heading">
+    <p class="eyebrow">Member account</p>
+    <h1>Welcome, <%= memberName %>.</h1>
+    <p>Track your bookings, screening times, and current booking status from one place.</p>
+  </section>
+
+  <section class="page-section" aria-labelledby="member-bookings-heading">
+    <div class="section-heading section-heading-stack">
+      <div>
+        <p class="eyebrow">My bookings</p>
+        <h2 id="member-bookings-heading">Booking history</h2>
+      </div>
+      <a class="text-link" href="/screenings">Browse screenings</a>
+    </div>
+
+    <% if (bookings.length > 0) { %>
+      <ol class="booking-list" aria-label="Your booking history">
+        <% bookings.forEach((booking) => { %>
+          <li class="booking-card">
+            <div>
+              <p class="eyebrow"><%= booking.timing %></p>
+              <h3><a class="title-link" href="/account/bookings/<%= booking.booking_id %>"><%= booking.film_title %></a></h3>
+              <dl class="compact-detail-list">
+                <div>
+                  <dt>Status</dt>
+                  <dd><span class="status-badge"><%= booking.statusDisplay %></span></dd>
+                </div>
+                <div>
+                  <dt>Screening</dt>
+                  <dd><%= booking.startsAtDisplay %></dd>
+                </div>
+                <div>
+                  <dt>Booked</dt>
+                  <dd><%= booking.bookedAtDisplay %></dd>
+                </div>
+                <% if (booking.cancelledAtDisplay) { %>
+                  <div>
+                    <dt>Cancelled</dt>
+                    <dd><%= booking.cancelledAtDisplay %></dd>
+                  </div>
+                <% } %>
+              </dl>
+            </div>
+            <a class="button button-secondary" href="/account/bookings/<%= booking.booking_id %>">View Details</a>
+          </li>
+        <% }) %>
+      </ol>
+    <% } else { %>
+      <div class="inline-empty-state">
+        <p class="eyebrow">No bookings yet</p>
+        <h3>Your booking history is empty.</h3>
+        <p>Choose an upcoming screening to create your first Member booking. Your status and screening history will appear here after booking.</p>
+        <a class="button button-primary" href="/screenings">Browse screenings</a>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include("../partials/document-end") %>

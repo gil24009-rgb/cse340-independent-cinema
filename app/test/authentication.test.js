@@ -202,6 +202,10 @@ async function findBookingById(bookingId) {
   return bookings.find((booking) => booking.booking_id === bookingId) || null;
 }
 
+async function findBookingsByUserId(userId) {
+  return bookings.filter((booking) => booking.user_id === userId);
+}
+
 async function findReviewById(reviewId) {
   return reviews.find((review) => review.review_id === reviewId) || null;
 }
@@ -489,6 +493,7 @@ before(async () => {
       createFilm,
       createScreening,
       findBookingById,
+      findBookingsByUserId,
       findOwnerFilmById,
       findOwnerFilms,
       findOwnerScreeningById,
@@ -639,6 +644,7 @@ test("signup creates a Member account with a normalized email and hashed passwor
   const accountBody = await accountResponse.text();
   assert.equal(accountResponse.status, 200);
   assert.match(accountBody, /Welcome, New/);
+  assert.match(accountBody, /Your booking history is empty/);
 });
 
 test("signup returns a conflict for duplicate emails", async () => {
@@ -1157,6 +1163,23 @@ test("current role is reloaded so stale privileges are rejected", async () => {
   staff.role = "staff";
 
   assert.equal(response.status, 403);
+});
+
+test("member account lists only the signed-in member bookings", async () => {
+  const { cookie } = await login("member@cinema.test");
+  const response = await request("/account", { headers: { cookie } });
+  const body = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(body, /Booking history/);
+  assert.match(body, /House of Hummingbird/);
+  assert.match(body, /Microhabitat/);
+  assert.match(body, /Confirmed/);
+  assert.match(body, /Completed/);
+  assert.match(body, /href="\/account\/bookings\/1"/);
+  assert.match(body, /href="\/account\/bookings\/2"/);
+  assert.doesNotMatch(body, /Little Forest/);
+  assert.doesNotMatch(body, /href="\/account\/bookings\/3"/);
 });
 
 test("member-owned booking and review routes reject invalid, missing, and cross-account access", async () => {
