@@ -199,11 +199,43 @@ async function createMemberUser({ email, firstName, lastName, passwordHash }) {
 }
 
 async function findBookingById(bookingId) {
-  return bookings.find((booking) => booking.booking_id === bookingId) || null;
+  const booking = bookings.find((candidate) => candidate.booking_id === bookingId);
+
+  if (!booking) {
+    return null;
+  }
+
+  return {
+    ...booking,
+    can_cancel: booking.status === "confirmed" && new Date(booking.starts_at) > new Date(),
+  };
 }
 
 async function findBookingsByUserId(userId) {
   return bookings.filter((booking) => booking.user_id === userId);
+}
+
+function createBookingCancellationConflict() {
+  const error = new Error("Only confirmed upcoming bookings can be cancelled.");
+  error.name = "BookingCancellationConflictError";
+  error.status = 409;
+  return error;
+}
+
+async function cancelMemberBooking({ bookingId, userId }) {
+  const booking = bookings.find((candidate) => candidate.booking_id === bookingId && candidate.user_id === userId);
+
+  if (!booking) {
+    return null;
+  }
+
+  if (booking.status !== "confirmed" || new Date(booking.starts_at) <= new Date()) {
+    throw createBookingCancellationConflict();
+  }
+
+  booking.status = "cancelled";
+  booking.cancelled_at = "2026-06-30T21:00:00.000Z";
+  return booking;
 }
 
 async function findReviewById(reviewId) {
@@ -490,6 +522,7 @@ async function signup(fields) {
 before(async () => {
   const app = createApp({
     account: {
+      cancelMemberBooking,
       createFilm,
       createScreening,
       findBookingById,
@@ -1180,6 +1213,151 @@ test("member account lists only the signed-in member bookings", async () => {
   assert.match(body, /href="\/account\/bookings\/2"/);
   assert.doesNotMatch(body, /Little Forest/);
   assert.doesNotMatch(body, /href="\/account\/bookings\/3"/);
+});
+
+test("member cancellation is owner-only, CSRF-protected, and limited to confirmed upcoming bookings", async () => {
+  const otherMember = await createMemberUser({
+    email: "cancel-other@cinema.test",
+    firstName: "Cancel",
+    lastName: "Other",
+    passwordHash: "valid-password",
+  });
+  const cancellableBooking = {
+    booked_at: "2026-06-30T18:30:00.000Z",
+    booking_id: 50,
+    cancelled_at: null,
+    film_title: "House of Hummingbird",
+    screening_id: 50,
+    starts_at: "2099-07-15T01:00:00.000Z",
+    status: "confirmed",
+    user_id: 1,
+  };
+  const completedBooking = {
+    booked_at: "2026-06-30T18:30:00.000Z",
+    booking_id: 51,
+    cancelled_at: null,
+    film_title: "Microhabitat",
+    screening_id: 51,
+    starts_at: "2099-07-16T01:00:00.000Z",
+    status: "completed",
+    user_id: 1,
+  };
+  const otherBooking = {
+    booked_at: "2026-06-30T18:30:00.000Z",
+    booking_id: 52,
+    cancelled_at: null,
+    film_title: "Little Forest",
+    screening_id: 52,
+    starts_at: "2099-07-17T01:00:00.000Z",
+    status: "confirmed",
+    user_id: otherMember.user_id,
+  };
+  bookings.push(cancellableBooking, completedBooking, otherBooking);
+
+  const unauthenticatedPost = await request("/account/bookings/50/cancel", {
+    method: "POST",
+  });
+  assert.equal(unauthenticatedPost.status, 303);
+  assert.equal(unauthenticatedPost.headers.get("location"), "/login");
+
+  const staffLogin = await login("staff@cinema.test");
+  const staffPost = await request("/account/bookings/50/cancel", {
+    body: new URLSearchParams({ csrfToken: "invalid" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(staffPost.status, 403);
+
+  const ownerLogin = await login("owner@cinema.test");
+  const ownerPost = await request("/account/bookings/50/cancel", {
+    body: new URLSearchParams({ csrfToken: "invalid" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(ownerPost.status, 403);
+
+  const { cookie } = await login("member@cinema.test");
+  const detailPage = await request("/account/bookings/50", { headers: { cookie } });
+  const detailBody = await detailPage.text();
+  const csrfToken = csrfFrom(detailBody);
+  assert.equal(detailPage.status, 200);
+  assert.match(detailBody, /Cancel Booking/);
+  assert.ok(csrfToken);
+
+  const invalidCsrfPost = await request("/account/bookings/50/cancel", {
+    body: new URLSearchParams({ csrfToken: "invalid" }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidCsrfPost.status, 403);
+
+  const missingPost = await request("/account/bookings/999/cancel", {
+    body: new URLSearchParams({ csrfToken }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(missingPost.status, 404);
+
+  const wrongOwnerPost = await request("/account/bookings/52/cancel", {
+    body: new URLSearchParams({ csrfToken }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(wrongOwnerPost.status, 404);
+
+  const completedPost = await request("/account/bookings/51/cancel", {
+    body: new URLSearchParams({ csrfToken }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(completedPost.status, 409);
+  assert.equal(completedBooking.status, "completed");
+
+  const cancelPost = await request("/account/bookings/50/cancel", {
+    body: new URLSearchParams({ csrfToken }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(cancelPost.status, 303);
+  assert.equal(cancelPost.headers.get("location"), "/account/bookings/50");
+  assert.equal(cancellableBooking.status, "cancelled");
+  assert.ok(cancellableBooking.cancelled_at);
+
+  const cancelledDetail = await request("/account/bookings/50", { headers: { cookie } });
+  const cancelledBody = await cancelledDetail.text();
+  assert.equal(cancelledDetail.status, 200);
+  assert.match(cancelledBody, /This booking has already been cancelled/);
+
+  const duplicateCancel = await request("/account/bookings/50/cancel", {
+    body: new URLSearchParams({ csrfToken }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(duplicateCancel.status, 409);
 });
 
 test("member-owned booking and review routes reject invalid, missing, and cross-account access", async () => {

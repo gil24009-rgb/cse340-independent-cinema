@@ -16,6 +16,14 @@ export class BookingCapacityConflictError extends Error {
   }
 }
 
+export class BookingCancellationConflictError extends Error {
+  constructor() {
+    super("Only confirmed upcoming bookings can be cancelled.");
+    this.name = "BookingCancellationConflictError";
+    this.status = 409;
+  }
+}
+
 export async function findBookingById(bookingId) {
   const result = await query(
     `SELECT
@@ -26,7 +34,8 @@ export async function findBookingById(bookingId) {
       b.cancelled_at,
       s.screening_id,
       s.starts_at,
-      f.title AS film_title
+      f.title AS film_title,
+      (b.status = 'confirmed' AND s.starts_at > CURRENT_TIMESTAMP) AS can_cancel
     FROM bookings b
     JOIN screenings s ON s.screening_id = b.screening_id
     JOIN films f ON f.film_id = s.film_id
@@ -149,6 +158,84 @@ export async function createMemberBooking({ screeningId, userId }) {
       ...booking,
       film_title: screening.film_title,
       starts_at: screening.starts_at,
+    };
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // Preserve the original transaction error for the caller.
+    }
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function cancelMemberBooking({ bookingId, userId }) {
+  const client = await getPool().connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const bookingResult = await client.query(
+      `SELECT
+        b.booking_id,
+        b.user_id,
+        b.screening_id,
+        b.status,
+        b.booked_at,
+        b.cancelled_at,
+        s.starts_at,
+        f.title AS film_title,
+        (b.status = 'confirmed' AND s.starts_at > CURRENT_TIMESTAMP) AS is_cancellable
+      FROM bookings b
+      JOIN screenings s ON s.screening_id = b.screening_id
+      JOIN films f ON f.film_id = s.film_id
+      WHERE b.booking_id = $1
+        AND b.user_id = $2
+      FOR UPDATE OF b`,
+      [bookingId, userId],
+    );
+    const booking = bookingResult.rows[0];
+
+    if (!booking) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    if (!booking.is_cancellable) {
+      await client.query("ROLLBACK");
+      throw new BookingCancellationConflictError();
+    }
+
+    const cancelledResult = await client.query(
+      `UPDATE bookings
+       SET status = 'cancelled',
+         cancelled_at = CURRENT_TIMESTAMP
+       WHERE booking_id = $1
+       RETURNING booking_id, user_id, screening_id, status, booked_at, cancelled_at`,
+      [bookingId],
+    );
+    const cancelled = cancelledResult.rows[0];
+
+    await client.query(
+      `INSERT INTO booking_status_history (
+        booking_id,
+        from_status,
+        to_status,
+        changed_by_user_id,
+        note
+      )
+      VALUES ($1, 'confirmed', 'cancelled', $2, $3)`,
+      [bookingId, userId, "Booking cancelled by member."],
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      ...cancelled,
+      film_title: booking.film_title,
+      starts_at: booking.starts_at,
     };
   } catch (error) {
     try {

@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: June 27, 2026
+Last updated: June 30, 2026
 
 ## Current Stage
 
@@ -37,11 +37,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the Step 5 completion approval packet with representative routes, verification evidence, health review, debt classification, and frontend review questions
 - Added the first Step 6 vertical slice: transaction-safe Member booking creation from screening detail, duplicate-booking conflict handling, capacity protection, initial booking status history, and rendered Member booking detail redirect
 - Added the second Step 6 vertical slice: Member booking history list on `/account`, Member-owned booking filtering, detail links, empty state, and responsive booking cards
+- Added the third Step 6 vertical slice: Member-owned booking cancellation with CSRF protection, ownership checks, confirmed-upcoming eligibility, `cancelled_at`, and status-history append in one transaction
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 44 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 41 passing and 4 database integration skips
+- Automated tests with local PostgreSQL: 45 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 42 passing and 4 database integration skips
 - Latest local `pnpm db:migrate` recheck passed before Step 6 handoff
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
@@ -66,6 +67,8 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Duplicate Member booking attempts and sold-out screenings return stable conflict responses
 - Member `/account` renders only the signed-in Member's booking history with current status, screening time, booked time, and booking detail links
 - Member `/account` renders an empty booking-history state for Members without bookings
+- Member-owned cancellation changes a confirmed upcoming booking to `cancelled`, sets `cancelled_at`, and appends a `booking_status_history` row in the same PostgreSQL transaction
+- Member cancellation rejects unauthenticated, Staff, Owner, wrong-owner, invalid-id, missing-booking, invalid-CSRF, duplicate, and ineligible-status cases with stable responses
 - Public `/` renders PostgreSQL-backed next-screening and program highlights with stable database-error handling
 - Public `/visit` renders visit information and a CSRF-protected contact form with validation, success, and database-error states
 - Public `/visit` contact submission inserts into `contact_messages` locally through the rendered route and redirects to `/visit?sent=1`
@@ -89,6 +92,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Owner screening create and edit forms verified at 1280px and 390px without horizontal overflow, with label, hint, validation-summary, and field-error associations checked in browser
 - Member booking flow verified at 1280px and 390px without horizontal overflow from screening detail to booking detail
 - Member booking history list verified at 1280px and 390px without horizontal overflow, with main landmark, booking detail links, and 45px mobile action controls
+- Member booking cancellation detail state verified at 1280px and 390px without horizontal overflow, including cancel form, CSRF token, cancelled status, and cancelled-state copy
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
 - Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
@@ -224,7 +228,7 @@ Completed fifth vertical slice:
 
 Next implementation slice:
 
-- Continue Step 6 with Member-owned booking cancellation and cancelled-state confirmation
+- Continue Step 6 with booking status history timeline on Member booking detail, then prepare the Step 6 booking workflow review packet
 
 Cross-stage delivery infrastructure now available:
 
@@ -260,12 +264,22 @@ Completed second vertical slice:
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Member booking history list
 - Render production verification confirmed Member login reaches `/account` and renders the two seed Member bookings after deployment
 
+Completed third vertical slice:
+
+- `/account/bookings/:bookingId` now shows a cancellation form only when the signed-in Member owns a confirmed upcoming booking
+- `POST /account/bookings/:bookingId/cancel` requires Member role, CSRF validation, and owned-booking loading before mutation
+- Cancellation updates `bookings.status` to `cancelled`, sets `cancelled_at`, and appends a `booking_status_history` row from `confirmed` to `cancelled` in one transaction
+- Duplicate cancellation, completed bookings, past bookings, Staff, Owner, wrong owner, invalid id, missing booking, and invalid CSRF cases return stable failure responses
+- Automated tests cover route permissions, CSRF, ownership, successful cancellation, duplicate cancellation, ineligible status, and PostgreSQL history append
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the cancellation result state
+- Local PostgreSQL route verification confirmed cancellation state and history row, then removed the temporary verification booking
+
 ## Following Stages
 
 | Step | Focus | Main Outcome |
 | --- | --- | --- |
 | 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
-| 6 | Booking and Member experience | In progress with booking creation and Member booking history |
+| 6 | Booking and Member experience | In progress with booking creation, Member booking history, and Member-owned cancellation |
 | 7 | Reviews and operations | Review CRUD, check-in, moderation, messages, and Owner management |
 | 8 | Frontend refinement | Responsive design system and reference-level interface review |
 | 9 | Security and deployment | Regression testing, Render deployment, and submission documentation |

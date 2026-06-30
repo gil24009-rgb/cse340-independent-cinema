@@ -12,12 +12,13 @@ import {
 import { requireRole } from "../middleware/authentication.js";
 import { verifyCsrfToken } from "../middleware/csrf.js";
 import { createOwnedResourceLoader } from "../middleware/ownership.js";
-import { findBookingById, findBookingsByUserId } from "../models/bookingModel.js";
+import { cancelMemberBooking, findBookingById, findBookingsByUserId } from "../models/bookingModel.js";
 import { findReviewById } from "../models/reviewModel.js";
 
 export function createAccountRoutes(options = {}) {
   const router = express.Router();
   const memberAccountController = createMemberAccountController({
+    cancelMemberBooking: options.cancelMemberBooking || cancelMemberBooking,
     findBookingsByUserId: options.findBookingsByUserId || findBookingsByUserId,
   });
   const ownerFilmController = createOwnerFilmController(options);
@@ -37,6 +38,13 @@ export function createAccountRoutes(options = {}) {
 
   router.get("/account", requireRole("member"), memberAccountController.showAccount);
   router.get("/account/bookings/:bookingId", requireRole("member"), loadOwnedBooking, showMemberBookingDetail);
+  router.post(
+    "/account/bookings/:bookingId/cancel",
+    requireRole("member"),
+    verifyCsrfToken,
+    loadOwnedBooking,
+    memberAccountController.cancelBooking,
+  );
   router.get("/account/reviews/:reviewId", requireRole("member"), loadOwnedReview, showMemberReviewDetail);
   router.get("/staff", requireRole("staff", "owner"), showStaffAccount);
   router.get("/admin", requireRole("owner"), showOwnerAccount);

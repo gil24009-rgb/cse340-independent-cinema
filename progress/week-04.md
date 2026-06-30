@@ -17,6 +17,10 @@
 - `/account` placeholder landing을 실제 Member booking dashboard로 교체
 - Member booking history responsive card style 추가
 - Member account route test에서 own-booking listing, cross-user exclusion, empty state 확인
+- Member-owned booking cancellation route 추가
+- Cancellation에서 current status, `cancelled_at`, `booking_status_history` append를 하나의 transaction으로 처리
+- Booking detail에 eligible booking cancel form과 cancelled-state copy 추가
+- Cancellation route test에서 CSRF, ownership, role, duplicate, ineligible status, missing booking 검증 추가
 
 ## 관련 문서
 
@@ -28,25 +32,27 @@
 
 ## 관련 Commit
 
-- Current slice: Add member booking history dashboard
+- Current slice: Add member booking cancellation
 
 ## 검증 결과
 
-- `node --test test/authentication.test.js test/database.integration.test.js`에서 23 passed
-- PostgreSQL 사용 시 `pnpm test`에서 44 passed, 1 environment-specific skip
-- `DATABASE_URL` 없이 `pnpm test`에서 41 passed, 4 database integration skips
+- `node --test test/authentication.test.js test/database.integration.test.js`에서 24 passed
+- PostgreSQL 사용 시 `pnpm test`에서 45 passed, 1 environment-specific skip
+- `DATABASE_URL` 없이 `pnpm test`에서 42 passed, 4 database integration skips
 - Local route에서 실제 Member login 후 `/account` 200, seed Member booking 2건, detail link 확인
 - Browser에서 `/account` 1280px no overflow, Member booking 2건, detail link, main landmark 확인
 - Browser에서 `/account` 390px no overflow, booking card와 action button width 확인
 - Production에서 Member login 후 `/account` 200, seed Member booking 2건 확인
+- Local browser에서 임시 Member booking detail cancel form, CSRF token, cancellation redirect, cancelled state 확인
+- Local PostgreSQL에서 cancellation 후 status `cancelled`, `cancelled_at`, confirmed to cancelled history row 확인 후 임시 데이터 정리
 
 ## 남은 위험 또는 Blocker
 
-- Member cancellation path remains unimplemented.
+- Booking detail status timeline remains unimplemented.
 - Production future-screening booking CTA verification remains pending until production seed schedule exposes a future screening detail route or final production data is refreshed.
 
 ## 다음 작업
 
-- Step 6 Member-owned booking cancellation 구현
-- Cancellation에서 current booking status와 `booking_status_history` row를 같은 transaction으로 변경
-- Duplicate cancellation, wrong-owner, Staff, Owner, ineligible status, not-found, conflict 상태 검증
+- Step 6 booking status history timeline 구현
+- Booking creation, cancellation, later Staff transitions를 같은 timeline UI로 표시
+- Step 6 booking workflow review packet 준비

@@ -50,7 +50,7 @@ Booking workflow는 이 프로젝트의 핵심 평가 지점이다. UI 버튼보
 
 ### Slice 3. Member Booking Cancellation
 
-상태: Next
+상태: Implemented and locally verified
 
 구현 범위:
 
@@ -59,12 +59,33 @@ Booking workflow는 이 프로젝트의 핵심 평가 지점이다. UI 버튼보
 - cancelled_at policy 적용
 - duplicate cancellation과 ineligible status conflict 처리
 
-검증 예정:
+검증:
 
 - owner Member만 취소할 수 있다.
 - Staff와 Owner는 Member cancellation route를 사용할 수 없다.
 - confirmed booking만 취소 가능하다.
 - current status와 history row가 같은 transaction에서 바뀐다.
+- CSRF, wrong owner, invalid id, missing booking, duplicate cancellation, completed booking conflict가 route test로 확인됐다.
+- PostgreSQL integration test에서 cancellation update와 history append가 확인됐다.
+- 1280px와 390px에서 cancelled detail state의 no-overflow 상태를 확인했다.
+
+### Slice 4. Booking Status Timeline and Step Review Packet
+
+상태: Next
+
+구현 범위:
+
+- booking detail에서 `booking_status_history` timeline 표시
+- initial creation, cancellation, later Staff status transition 기록을 같은 UI 패턴으로 읽을 수 있게 구성
+- empty or missing history fallback
+- Step 6 booking workflow review packet 준비
+
+검증 예정:
+
+- Member는 자신의 booking history timeline만 볼 수 있다.
+- history row가 시간순으로 표시된다.
+- cancellation 후 timeline에 confirmed to cancelled transition이 표시된다.
+- Step 6 review packet이 representative routes, normal and failure states, verification evidence, and nonblocking debt를 정리한다.
 
 ## Step 6 완료 조건
 

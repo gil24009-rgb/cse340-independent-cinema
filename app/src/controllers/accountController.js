@@ -6,7 +6,11 @@ import {
   setFilmArchived,
   updateFilm,
 } from "../models/filmModel.js";
-import { findBookingsByUserId } from "../models/bookingModel.js";
+import {
+  BookingCancellationConflictError,
+  cancelMemberBooking,
+  findBookingsByUserId,
+} from "../models/bookingModel.js";
 import {
   createScreening,
   findOwnerScreeningById,
@@ -207,6 +211,12 @@ function isScreeningConflict(error) {
   );
 }
 
+function isBookingCancellationConflict(error) {
+  return error instanceof BookingCancellationConflictError
+    || error?.name === "BookingCancellationConflictError"
+    || error?.status === 409;
+}
+
 function ownerScreeningFormFromBody(body = {}) {
   return {
     capacity: normalizeText(body.capacity),
@@ -318,6 +328,7 @@ function presentMemberBooking(booking) {
 }
 
 export function createMemberAccountController(options = {}) {
+  const cancelBooking = options.cancelMemberBooking || cancelMemberBooking;
   const loadBookings = options.findBookingsByUserId || findBookingsByUserId;
 
   return {
@@ -332,6 +343,27 @@ export function createMemberAccountController(options = {}) {
           pageTitle: "My Account",
         });
       } catch (error) {
+        return next(error);
+      }
+    },
+
+    async cancelBooking(req, res, next) {
+      try {
+        const cancelled = await cancelBooking({
+          bookingId: req.booking.booking_id,
+          userId: req.currentUser.user_id,
+        });
+
+        if (!cancelled) {
+          return next(createNotFoundError("Booking not found."));
+        }
+
+        return res.redirect(303, `/account/bookings/${cancelled.booking_id}`);
+      } catch (error) {
+        if (isBookingCancellationConflict(error)) {
+          return next(error);
+        }
+
         return next(error);
       }
     },
@@ -717,6 +749,7 @@ export function showMemberBookingDetail(req, res) {
       ...req.booking,
       bookedAtDisplay: formatDateTime(req.booking.booked_at),
       cancelledAtDisplay: req.booking.cancelled_at ? formatDateTime(req.booking.cancelled_at) : null,
+      canCancel: Boolean(req.booking.can_cancel),
       startsAtDisplay: formatDateTime(req.booking.starts_at),
       statusDisplay: formatStatus(req.booking.status),
     },

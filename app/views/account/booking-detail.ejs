@@ -30,7 +30,19 @@
     </div>
   </dl>
 
-  <a class="button button-primary" href="/account">Return to account</a>
+  <div class="detail-actions">
+    <a class="button button-primary" href="/account">Return to account</a>
+    <% if (booking.canCancel) { %>
+      <form class="inline-action-form" action="/account/bookings/<%= booking.booking_id %>/cancel" method="post">
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+        <button class="button button-secondary" type="submit">Cancel Booking</button>
+      </form>
+    <% } else if (booking.status === "cancelled") { %>
+      <p class="status-note">This booking has already been cancelled.</p>
+    <% } else { %>
+      <p class="status-note">This booking is no longer eligible for Member cancellation.</p>
+    <% } %>
+  </div>
 </main>
 
 <%- include("../partials/document-end") %>

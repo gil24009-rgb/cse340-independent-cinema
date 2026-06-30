@@ -8,7 +8,9 @@ import pg from "pg";
 import { runMigrations } from "../scripts/run-migrations.js";
 import {
   BookingCapacityConflictError,
+  BookingCancellationConflictError,
   BookingDuplicateConflictError,
+  cancelMemberBooking,
   createMemberBooking,
 } from "../src/models/bookingModel.js";
 import { closeDatabase } from "../src/config/database.js";
@@ -149,6 +151,28 @@ integrationTest("member booking creation writes initial history and protects cap
     await assert.rejects(
       createMemberBooking({ screeningId: fullScreeningId, userId }),
       BookingCapacityConflictError,
+    );
+
+    const cancelled = await cancelMemberBooking({ bookingId: booking.booking_id, userId });
+    assert.equal(cancelled.status, "cancelled");
+    assert.ok(cancelled.cancelled_at);
+
+    const cancelledHistoryResult = await pool.query(
+      `SELECT from_status, to_status, changed_by_user_id, note
+       FROM booking_status_history
+       WHERE booking_id = $1
+       ORDER BY history_id DESC
+       LIMIT 1`,
+      [booking.booking_id],
+    );
+    assert.equal(cancelledHistoryResult.rows[0].from_status, "confirmed");
+    assert.equal(cancelledHistoryResult.rows[0].to_status, "cancelled");
+    assert.equal(cancelledHistoryResult.rows[0].changed_by_user_id, userId);
+    assert.equal(cancelledHistoryResult.rows[0].note, "Booking cancelled by member.");
+
+    await assert.rejects(
+      cancelMemberBooking({ bookingId: booking.booking_id, userId }),
+      BookingCancellationConflictError,
     );
   } finally {
     await pool.query("DELETE FROM bookings WHERE user_id IN ($1, $2)", [userId, otherUserId]);
