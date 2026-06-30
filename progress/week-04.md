@@ -45,6 +45,7 @@
 - Production에서 Member login 후 `/account` 200, seed Member booking 2건 확인
 - Local browser에서 임시 Member booking detail cancel form, CSRF token, cancellation redirect, cancelled state 확인
 - Local PostgreSQL에서 cancellation 후 status `cancelled`, `cancelled_at`, confirmed to cancelled history row 확인 후 임시 데이터 정리
+- Production에서 Member booking detail의 cancellation-state UI와 CSRF token 확인. Live seed booking은 cancellation eligible 상태가 아니어서 production mutation은 수행하지 않음
 
 ## 남은 위험 또는 Blocker
 
