@@ -789,6 +789,86 @@ h3 {
   margin-top: 1.5rem;
 }
 
+.status-timeline-section {
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.status-timeline-section h2 {
+  margin-bottom: 1rem;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  line-height: 1;
+}
+
+.status-timeline {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.status-timeline-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+
+.status-timeline-marker {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.25rem;
+  background: var(--accent);
+  border-radius: 999px;
+  box-shadow: 0 0 0 0.4rem rgb(217 180 105 / 0.12);
+}
+
+.status-timeline-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: baseline;
+  margin: 0;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.status-timeline-title span:nth-child(2) {
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.status-timeline-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.85rem 0 0;
+}
+
+.status-timeline-meta div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.status-timeline-meta dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.status-timeline-meta dd {
+  margin: 0;
+}
+
+.status-timeline-note {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+}
+
 .auth-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr);
@@ -1047,7 +1127,8 @@ h3 {
   }
 
   .booking-card,
-  .compact-detail-list {
+  .compact-detail-list,
+  .status-timeline-meta {
     grid-template-columns: 1fr;
   }
 

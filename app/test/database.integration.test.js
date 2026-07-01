@@ -12,6 +12,7 @@ import {
   BookingDuplicateConflictError,
   cancelMemberBooking,
   createMemberBooking,
+  findBookingStatusHistoryByBookingId,
 } from "../src/models/bookingModel.js";
 import { closeDatabase } from "../src/config/database.js";
 
@@ -169,6 +170,14 @@ integrationTest("member booking creation writes initial history and protects cap
     assert.equal(cancelledHistoryResult.rows[0].to_status, "cancelled");
     assert.equal(cancelledHistoryResult.rows[0].changed_by_user_id, userId);
     assert.equal(cancelledHistoryResult.rows[0].note, "Booking cancelled by member.");
+
+    const statusHistory = await findBookingStatusHistoryByBookingId(booking.booking_id);
+    assert.equal(statusHistory.length, 2);
+    assert.equal(statusHistory[0].from_status, null);
+    assert.equal(statusHistory[0].to_status, "confirmed");
+    assert.equal(statusHistory[1].from_status, "confirmed");
+    assert.equal(statusHistory[1].to_status, "cancelled");
+    assert.equal(statusHistory[1].changed_by_user_id, userId);
 
     await assert.rejects(
       cancelMemberBooking({ bookingId: booking.booking_id, userId }),

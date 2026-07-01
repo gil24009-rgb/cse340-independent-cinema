@@ -4,7 +4,6 @@ import {
   createMemberAccountController,
   createOwnerFilmController,
   createOwnerScreeningController,
-  showMemberBookingDetail,
   showMemberReviewDetail,
   showOwnerAccount,
   showStaffAccount,
@@ -12,13 +11,20 @@ import {
 import { requireRole } from "../middleware/authentication.js";
 import { verifyCsrfToken } from "../middleware/csrf.js";
 import { createOwnedResourceLoader } from "../middleware/ownership.js";
-import { cancelMemberBooking, findBookingById, findBookingsByUserId } from "../models/bookingModel.js";
+import {
+  cancelMemberBooking,
+  findBookingById,
+  findBookingStatusHistoryByBookingId,
+  findBookingsByUserId,
+} from "../models/bookingModel.js";
 import { findReviewById } from "../models/reviewModel.js";
 
 export function createAccountRoutes(options = {}) {
   const router = express.Router();
   const memberAccountController = createMemberAccountController({
     cancelMemberBooking: options.cancelMemberBooking || cancelMemberBooking,
+    findBookingStatusHistoryByBookingId:
+      options.findBookingStatusHistoryByBookingId || findBookingStatusHistoryByBookingId,
     findBookingsByUserId: options.findBookingsByUserId || findBookingsByUserId,
   });
   const ownerFilmController = createOwnerFilmController(options);
@@ -37,7 +43,7 @@ export function createAccountRoutes(options = {}) {
   });
 
   router.get("/account", requireRole("member"), memberAccountController.showAccount);
-  router.get("/account/bookings/:bookingId", requireRole("member"), loadOwnedBooking, showMemberBookingDetail);
+  router.get("/account/bookings/:bookingId", requireRole("member"), loadOwnedBooking, memberAccountController.showBookingDetail);
   router.post(
     "/account/bookings/:bookingId/cancel",
     requireRole("member"),

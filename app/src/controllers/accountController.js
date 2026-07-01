@@ -9,6 +9,7 @@ import {
 import {
   BookingCancellationConflictError,
   cancelMemberBooking,
+  findBookingStatusHistoryByBookingId,
   findBookingsByUserId,
 } from "../models/bookingModel.js";
 import {
@@ -327,8 +328,25 @@ function presentMemberBooking(booking) {
   };
 }
 
+function presentBookingStatusHistoryEntry(entry) {
+  const fromStatusDisplay = entry.from_status ? formatStatus(entry.from_status) : "Created";
+  const changedByName = [entry.changed_by_first_name, entry.changed_by_last_name].filter(Boolean).join(" ");
+  const changedByRole = entry.changed_by_role ? formatStatus(entry.changed_by_role) : null;
+
+  return {
+    ...entry,
+    changedAtDisplay: formatDateTime(entry.changed_at),
+    changedByDisplay: changedByName
+      ? `${changedByName}${changedByRole ? ` (${changedByRole})` : ""}`
+      : "System record",
+    fromStatusDisplay,
+    toStatusDisplay: formatStatus(entry.to_status),
+  };
+}
+
 export function createMemberAccountController(options = {}) {
   const cancelBooking = options.cancelMemberBooking || cancelMemberBooking;
+  const loadBookingStatusHistory = options.findBookingStatusHistoryByBookingId || findBookingStatusHistoryByBookingId;
   const loadBookings = options.findBookingsByUserId || findBookingsByUserId;
 
   return {
@@ -341,6 +359,25 @@ export function createMemberAccountController(options = {}) {
           memberName: req.currentUser.first_name,
           pageDescription: "View your cinema account and bookings.",
           pageTitle: "My Account",
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async showBookingDetail(req, res, next) {
+      try {
+        const statusHistory = (await loadBookingStatusHistory(req.booking.booking_id))
+          .map(presentBookingStatusHistoryEntry);
+
+        return res.render("account/booking-detail", {
+          booking: {
+            ...presentMemberBooking(req.booking),
+            canCancel: Boolean(req.booking.can_cancel),
+          },
+          pageDescription: "View your booking status and screening details.",
+          pageTitle: "Booking Detail",
+          statusHistory,
         });
       } catch (error) {
         return next(error);
@@ -741,21 +778,6 @@ export function createOwnerScreeningController(options = {}) {
       }
     },
   };
-}
-
-export function showMemberBookingDetail(req, res) {
-  res.render("account/booking-detail", {
-    booking: {
-      ...req.booking,
-      bookedAtDisplay: formatDateTime(req.booking.booked_at),
-      cancelledAtDisplay: req.booking.cancelled_at ? formatDateTime(req.booking.cancelled_at) : null,
-      canCancel: Boolean(req.booking.can_cancel),
-      startsAtDisplay: formatDateTime(req.booking.starts_at),
-      statusDisplay: formatStatus(req.booking.status),
-    },
-    pageDescription: "View a booking detail and verify ownership-protected access.",
-    pageTitle: "Booking Detail",
-  });
 }
 
 export function showMemberReviewDetail(req, res) {

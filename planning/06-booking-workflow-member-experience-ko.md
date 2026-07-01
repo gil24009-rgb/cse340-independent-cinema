@@ -71,7 +71,7 @@ Booking workflow는 이 프로젝트의 핵심 평가 지점이다. UI 버튼보
 
 ### Slice 4. Booking Status Timeline and Step Review Packet
 
-상태: Next
+상태: Implemented and locally verified
 
 구현 범위:
 
@@ -80,12 +80,29 @@ Booking workflow는 이 프로젝트의 핵심 평가 지점이다. UI 버튼보
 - empty or missing history fallback
 - Step 6 booking workflow review packet 준비
 
-검증 예정:
+검증:
 
 - Member는 자신의 booking history timeline만 볼 수 있다.
 - history row가 시간순으로 표시된다.
 - cancellation 후 timeline에 confirmed to cancelled transition이 표시된다.
+- missing history row fallback이 깨진 화면 대신 안정적인 안내를 표시한다.
+- route test에서 booking detail timeline과 cancellation 후 timeline content가 확인됐다.
+- PostgreSQL integration test에서 creation과 cancellation history lookup이 확인됐다.
+- local browser에서 1280px와 390px no-overflow 상태를 확인했다.
 - Step 6 review packet이 representative routes, normal and failure states, verification evidence, and nonblocking debt를 정리한다.
+
+## Step 6 Review Packet
+
+상태: Recorded
+
+검수 파일:
+
+- `quality-reviews/step-06-completion-approval-packet-ko.md`
+
+검수 성격:
+
+- 비차단 frontend and direction review
+- 범위, role, workflow, data relationship, architecture를 바꾸는 요청이 없으면 Step 7 Staff operations로 계속 진행한다.
 
 ## Step 6 완료 조건
 

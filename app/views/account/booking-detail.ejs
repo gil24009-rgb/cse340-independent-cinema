@@ -30,6 +30,42 @@
     </div>
   </dl>
 
+  <section class="status-timeline-section" aria-labelledby="booking-status-history-heading">
+    <p class="eyebrow">Status history</p>
+    <h2 id="booking-status-history-heading">Booking timeline</h2>
+    <% if (statusHistory.length > 0) { %>
+      <ol class="status-timeline" aria-label="Booking status history">
+        <% statusHistory.forEach((entry) => { %>
+          <li class="status-timeline-item">
+            <div class="status-timeline-marker" aria-hidden="true"></div>
+            <div>
+              <p class="status-timeline-title">
+                <span><%= entry.fromStatusDisplay %></span>
+                <span>to</span>
+                <span><%= entry.toStatusDisplay %></span>
+              </p>
+              <dl class="status-timeline-meta">
+                <div>
+                  <dt>Changed</dt>
+                  <dd><%= entry.changedAtDisplay %></dd>
+                </div>
+                <div>
+                  <dt>By</dt>
+                  <dd><%= entry.changedByDisplay %></dd>
+                </div>
+              </dl>
+              <% if (entry.note) { %>
+                <p class="status-timeline-note"><%= entry.note %></p>
+              <% } %>
+            </div>
+          </li>
+        <% }) %>
+      </ol>
+    <% } else { %>
+      <p class="status-note">No status history is recorded for this booking yet.</p>
+    <% } %>
+  </section>
+
   <div class="detail-actions">
     <a class="button button-primary" href="/account">Return to account</a>
     <% if (booking.canCancel) { %>

@@ -46,6 +46,29 @@ export async function findBookingById(bookingId) {
   return result.rows[0] || null;
 }
 
+export async function findBookingStatusHistoryByBookingId(bookingId) {
+  const result = await query(
+    `SELECT
+      h.history_id,
+      h.booking_id,
+      h.from_status,
+      h.to_status,
+      h.changed_by_user_id,
+      h.note,
+      h.changed_at,
+      u.first_name AS changed_by_first_name,
+      u.last_name AS changed_by_last_name,
+      u.role AS changed_by_role
+    FROM booking_status_history h
+    LEFT JOIN users u ON u.user_id = h.changed_by_user_id
+    WHERE h.booking_id = $1
+    ORDER BY h.changed_at ASC, h.history_id ASC`,
+    [bookingId],
+  );
+
+  return result.rows;
+}
+
 export async function findBookingsByUserId(userId) {
   const result = await query(
     `SELECT

@@ -64,6 +64,44 @@ const bookings = [
     user_id: 4,
   },
 ];
+const bookingStatusHistory = [
+  {
+    booking_id: 1,
+    changed_at: "2026-06-10T18:30:00.000Z",
+    changed_by_first_name: "Sora",
+    changed_by_last_name: "Kim",
+    changed_by_role: "member",
+    changed_by_user_id: 1,
+    from_status: null,
+    history_id: 1,
+    note: "Booking created.",
+    to_status: "confirmed",
+  },
+  {
+    booking_id: 2,
+    changed_at: "2026-06-02T18:30:00.000Z",
+    changed_by_first_name: "Sora",
+    changed_by_last_name: "Kim",
+    changed_by_role: "member",
+    changed_by_user_id: 1,
+    from_status: null,
+    history_id: 2,
+    note: "Booking created.",
+    to_status: "confirmed",
+  },
+  {
+    booking_id: 2,
+    changed_at: "2026-06-08T03:30:00.000Z",
+    changed_by_first_name: "Joon",
+    changed_by_last_name: "Lee",
+    changed_by_role: "staff",
+    changed_by_user_id: 2,
+    from_status: "confirmed",
+    history_id: 3,
+    note: "Screening completed.",
+    to_status: "completed",
+  },
+];
 const reviews = [
   {
     body: "A precise and quietly moving film that stayed with me after the screening.",
@@ -164,6 +202,7 @@ const screenings = [
 let server;
 let baseUrl;
 let nextFilmId = 3;
+let nextHistoryId = 4;
 let nextScreeningId = 4;
 let nextUserId = 5;
 
@@ -211,6 +250,12 @@ async function findBookingById(bookingId) {
   };
 }
 
+async function findBookingStatusHistoryByBookingId(bookingId) {
+  return bookingStatusHistory
+    .filter((entry) => entry.booking_id === bookingId)
+    .sort((first, second) => first.changed_at.localeCompare(second.changed_at) || first.history_id - second.history_id);
+}
+
 async function findBookingsByUserId(userId) {
   return bookings.filter((booking) => booking.user_id === userId);
 }
@@ -235,6 +280,20 @@ async function cancelMemberBooking({ bookingId, userId }) {
 
   booking.status = "cancelled";
   booking.cancelled_at = "2026-06-30T21:00:00.000Z";
+  bookingStatusHistory.push({
+    booking_id: booking.booking_id,
+    changed_at: "2026-06-30T21:00:00.000Z",
+    changed_by_first_name: "Sora",
+    changed_by_last_name: "Kim",
+    changed_by_role: "member",
+    changed_by_user_id: userId,
+    from_status: "confirmed",
+    history_id: nextHistoryId,
+    note: "Booking cancelled by member.",
+    to_status: "cancelled",
+  });
+  nextHistoryId += 1;
+
   return booking;
 }
 
@@ -526,6 +585,7 @@ before(async () => {
       createFilm,
       createScreening,
       findBookingById,
+      findBookingStatusHistoryByBookingId,
       findBookingsByUserId,
       findOwnerFilmById,
       findOwnerFilms,
@@ -1288,6 +1348,7 @@ test("member cancellation is owner-only, CSRF-protected, and limited to confirme
   const csrfToken = csrfFrom(detailBody);
   assert.equal(detailPage.status, 200);
   assert.match(detailBody, /Cancel Booking/);
+  assert.match(detailBody, /No status history is recorded for this booking yet/);
   assert.ok(csrfToken);
 
   const invalidCsrfPost = await request("/account/bookings/50/cancel", {
@@ -1348,6 +1409,10 @@ test("member cancellation is owner-only, CSRF-protected, and limited to confirme
   const cancelledBody = await cancelledDetail.text();
   assert.equal(cancelledDetail.status, 200);
   assert.match(cancelledBody, /This booking has already been cancelled/);
+  assert.match(cancelledBody, /Booking timeline/);
+  assert.match(cancelledBody, /Confirmed/);
+  assert.match(cancelledBody, /Cancelled/);
+  assert.match(cancelledBody, /Booking cancelled by member/);
 
   const duplicateCancel = await request("/account/bookings/50/cancel", {
     body: new URLSearchParams({ csrfToken }),
@@ -1412,6 +1477,10 @@ test("owned booking and review pages render resource details for the signed-in m
   assert.equal(bookingResponse.status, 200);
   assert.match(bookingBody, /House of Hummingbird/);
   assert.match(bookingBody, /Booking ID/);
+  assert.match(bookingBody, /Booking timeline/);
+  assert.match(bookingBody, /Created/);
+  assert.match(bookingBody, /Sora Kim \(Member\)/);
+  assert.match(bookingBody, /Booking created/);
 
   const reviewResponse = await request("/account/reviews/1", { headers: { cookie } });
   const reviewBody = await reviewResponse.text();
