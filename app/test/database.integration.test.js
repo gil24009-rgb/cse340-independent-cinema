@@ -10,9 +10,11 @@ import {
   BookingCapacityConflictError,
   BookingCancellationConflictError,
   BookingDuplicateConflictError,
+  BookingStatusTransitionConflictError,
   cancelMemberBooking,
   createMemberBooking,
   findBookingStatusHistoryByBookingId,
+  transitionStaffBookingStatus,
 } from "../src/models/bookingModel.js";
 import { closeDatabase } from "../src/config/database.js";
 
@@ -104,6 +106,8 @@ integrationTest("member booking creation writes initial history and protects cap
   );
   const userId = userResult.rows[0].user_id;
   const otherUserId = otherUserResult.rows[0].user_id;
+  const staffUserResult = await pool.query("SELECT user_id FROM users WHERE role = 'staff' ORDER BY user_id LIMIT 1");
+  const staffUserId = staffUserResult.rows[0].user_id;
   const filmResult = await pool.query("SELECT film_id FROM films WHERE is_archived = FALSE ORDER BY film_id LIMIT 1");
   const filmId = filmResult.rows[0].film_id;
   const openScreeningResult = await pool.query(
@@ -152,6 +156,39 @@ integrationTest("member booking creation writes initial history and protects cap
     await assert.rejects(
       createMemberBooking({ screeningId: fullScreeningId, userId }),
       BookingCapacityConflictError,
+    );
+
+    const operationalBooking = await createMemberBooking({ screeningId: openScreeningId, userId: otherUserId });
+    const checkedIn = await transitionStaffBookingStatus({
+      bookingId: operationalBooking.booking_id,
+      changedByUserId: staffUserId,
+      toStatus: "checked_in",
+    });
+    assert.equal(checkedIn.status, "checked_in");
+
+    const completed = await transitionStaffBookingStatus({
+      bookingId: operationalBooking.booking_id,
+      changedByUserId: staffUserId,
+      toStatus: "completed",
+    });
+    assert.equal(completed.status, "completed");
+
+    const operationalHistory = await findBookingStatusHistoryByBookingId(operationalBooking.booking_id);
+    assert.equal(operationalHistory.length, 3);
+    assert.equal(operationalHistory[1].from_status, "confirmed");
+    assert.equal(operationalHistory[1].to_status, "checked_in");
+    assert.equal(operationalHistory[1].changed_by_user_id, staffUserId);
+    assert.equal(operationalHistory[2].from_status, "checked_in");
+    assert.equal(operationalHistory[2].to_status, "completed");
+    assert.equal(operationalHistory[2].changed_by_user_id, staffUserId);
+
+    await assert.rejects(
+      transitionStaffBookingStatus({
+        bookingId: operationalBooking.booking_id,
+        changedByUserId: staffUserId,
+        toStatus: "no_show",
+      }),
+      BookingStatusTransitionConflictError,
     );
 
     const cancelled = await cancelMemberBooking({ bookingId: booking.booking_id, userId });

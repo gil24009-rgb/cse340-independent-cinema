@@ -8,9 +8,12 @@ import {
 } from "../models/filmModel.js";
 import {
   BookingCancellationConflictError,
+  BookingStatusTransitionConflictError,
   cancelMemberBooking,
   findBookingStatusHistoryByBookingId,
   findBookingsByUserId,
+  findStaffOperationalBookings,
+  transitionStaffBookingStatus,
 } from "../models/bookingModel.js";
 import {
   createScreening,
@@ -218,6 +221,12 @@ function isBookingCancellationConflict(error) {
     || error?.status === 409;
 }
 
+function isBookingStatusTransitionConflict(error) {
+  return error instanceof BookingStatusTransitionConflictError
+    || error?.name === "BookingStatusTransitionConflictError"
+    || error?.status === 409;
+}
+
 function ownerScreeningFormFromBody(body = {}) {
   return {
     capacity: normalizeText(body.capacity),
@@ -344,6 +353,38 @@ function presentBookingStatusHistoryEntry(entry) {
   };
 }
 
+function staffBookingTransitions(status) {
+  if (status === "confirmed") {
+    return [
+      ["checked_in", "Check In"],
+      ["no_show", "Mark No Show"],
+    ];
+  }
+
+  if (status === "checked_in") {
+    return [
+      ["completed", "Complete"],
+      ["no_show", "Mark No Show"],
+    ];
+  }
+
+  return [];
+}
+
+function presentStaffBooking(booking) {
+  const memberName = [booking.member_first_name, booking.member_last_name].filter(Boolean).join(" ");
+
+  return {
+    ...booking,
+    bookedAtDisplay: formatDateTime(booking.booked_at),
+    cancelledAtDisplay: booking.cancelled_at ? formatDateTime(booking.cancelled_at) : null,
+    memberDisplay: memberName || booking.member_email || "Member account",
+    screeningDisplay: formatDateTime(booking.starts_at),
+    statusDisplay: formatStatus(booking.status),
+    transitions: staffBookingTransitions(booking.status),
+  };
+}
+
 export function createMemberAccountController(options = {}) {
   const cancelBooking = options.cancelMemberBooking || cancelMemberBooking;
   const loadBookingStatusHistory = options.findBookingStatusHistoryByBookingId || findBookingStatusHistoryByBookingId;
@@ -407,14 +448,55 @@ export function createMemberAccountController(options = {}) {
   };
 }
 
-export function showStaffAccount(req, res) {
-  res.render("account/landing", {
-    eyebrow: "Staff operations",
-    heading: `Welcome, ${req.currentUser.first_name}.`,
-    message: "Today's screenings and booking operations will appear here.",
-    pageDescription: "Access cinema staff operations.",
-    pageTitle: "Staff",
-  });
+export function createStaffOperationsController(options = {}) {
+  const loadBookings = options.findStaffOperationalBookings || findStaffOperationalBookings;
+  const transitionBookingStatus = options.transitionStaffBookingStatus || transitionStaffBookingStatus;
+
+  return {
+    async showDashboard(req, res, next) {
+      try {
+        const bookings = (await loadBookings()).map(presentStaffBooking);
+
+        return res.render("account/staff-dashboard", {
+          bookings,
+          pageDescription: "Manage booking check-in and operational status.",
+          pageTitle: "Staff Operations",
+          staffName: req.currentUser.first_name,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async updateBookingStatus(req, res, next) {
+      const bookingId = parsePositiveInteger(req.params?.bookingId);
+      const toStatus = normalizeText(req.body?.toStatus);
+
+      if (!bookingId) {
+        return next(createNotFoundError("Booking not found."));
+      }
+
+      try {
+        const booking = await transitionBookingStatus({
+          bookingId,
+          changedByUserId: req.currentUser.user_id,
+          toStatus,
+        });
+
+        if (!booking) {
+          return next(createNotFoundError("Booking not found."));
+        }
+
+        return res.redirect(303, "/staff");
+      } catch (error) {
+        if (isBookingStatusTransitionConflict(error)) {
+          return next(error);
+        }
+
+        return next(error);
+      }
+    },
+  };
 }
 
 export function showOwnerAccount(req, res) {

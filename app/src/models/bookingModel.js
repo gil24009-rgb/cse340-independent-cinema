@@ -24,6 +24,23 @@ export class BookingCancellationConflictError extends Error {
   }
 }
 
+export class BookingStatusTransitionConflictError extends Error {
+  constructor() {
+    super("That booking cannot move to the requested status.");
+    this.name = "BookingStatusTransitionConflictError";
+    this.status = 409;
+  }
+}
+
+const STAFF_ALLOWED_TRANSITIONS = {
+  checked_in: new Set(["completed", "no_show"]),
+  confirmed: new Set(["checked_in", "no_show"]),
+};
+
+function canApplyStaffStatusTransition(fromStatus, toStatus) {
+  return STAFF_ALLOWED_TRANSITIONS[fromStatus]?.has(toStatus) || false;
+}
+
 export async function findBookingById(bookingId) {
   const result = await query(
     `SELECT
@@ -44,6 +61,36 @@ export async function findBookingById(bookingId) {
   );
 
   return result.rows[0] || null;
+}
+
+export async function findStaffOperationalBookings() {
+  const result = await query(
+    `SELECT
+      b.booking_id,
+      b.user_id,
+      b.status,
+      b.booked_at,
+      b.cancelled_at,
+      s.screening_id,
+      s.starts_at,
+      f.title AS film_title,
+      u.first_name AS member_first_name,
+      u.last_name AS member_last_name,
+      u.email AS member_email
+    FROM bookings b
+    JOIN screenings s ON s.screening_id = b.screening_id
+    JOIN films f ON f.film_id = s.film_id
+    JOIN users u ON u.user_id = b.user_id
+    ORDER BY
+      CASE
+        WHEN b.status IN ('confirmed', 'checked_in') THEN 0
+        ELSE 1
+      END,
+      s.starts_at ASC,
+      b.booking_id ASC`,
+  );
+
+  return result.rows;
 }
 
 export async function findBookingStatusHistoryByBookingId(bookingId) {
@@ -67,6 +114,89 @@ export async function findBookingStatusHistoryByBookingId(bookingId) {
   );
 
   return result.rows;
+}
+
+export async function transitionStaffBookingStatus({ bookingId, changedByUserId, toStatus }) {
+  const client = await getPool().connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const bookingResult = await client.query(
+      `SELECT
+        b.booking_id,
+        b.user_id,
+        b.screening_id,
+        b.status,
+        b.booked_at,
+        b.cancelled_at,
+        s.starts_at,
+        f.title AS film_title
+      FROM bookings b
+      JOIN screenings s ON s.screening_id = b.screening_id
+      JOIN films f ON f.film_id = s.film_id
+      WHERE b.booking_id = $1
+      FOR UPDATE OF b`,
+      [bookingId],
+    );
+    const booking = bookingResult.rows[0];
+
+    if (!booking) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    if (!canApplyStaffStatusTransition(booking.status, toStatus)) {
+      await client.query("ROLLBACK");
+      throw new BookingStatusTransitionConflictError();
+    }
+
+    const updatedResult = await client.query(
+      `UPDATE bookings
+       SET status = $2,
+         cancelled_at = NULL,
+         updated_at = CURRENT_TIMESTAMP
+       WHERE booking_id = $1
+       RETURNING booking_id, user_id, screening_id, status, booked_at, cancelled_at`,
+      [bookingId, toStatus],
+    );
+    const updated = updatedResult.rows[0];
+
+    await client.query(
+      `INSERT INTO booking_status_history (
+        booking_id,
+        from_status,
+        to_status,
+        changed_by_user_id,
+        note
+      )
+      VALUES ($1, $2, $3, $4, $5)`,
+      [
+        bookingId,
+        booking.status,
+        toStatus,
+        changedByUserId,
+        `Staff marked booking as ${toStatus.replaceAll("_", " ")}.`,
+      ],
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      ...updated,
+      film_title: booking.film_title,
+      starts_at: booking.starts_at,
+    };
+  } catch (error) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // Preserve the original transaction error for the caller.
+    }
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function findBookingsByUserId(userId) {

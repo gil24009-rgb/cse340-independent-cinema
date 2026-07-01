@@ -4,7 +4,7 @@ Last updated: July 1, 2026
 
 ## Current Stage
 
-Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is implemented and ready for nonblocking Director frontend review. Step 7, Reviews, Staff Operations, and Admin Dashboard, is next.
+Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is implemented and ready for nonblocking Director frontend review. Step 7, Reviews, Staff Operations, and Admin Dashboard, is in progress.
 
 ## Completed Work
 
@@ -39,11 +39,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the second Step 6 vertical slice: Member booking history list on `/account`, Member-owned booking filtering, detail links, empty state, and responsive booking cards
 - Added the third Step 6 vertical slice: Member-owned booking cancellation with CSRF protection, ownership checks, confirmed-upcoming eligibility, `cancelled_at`, and status-history append in one transaction
 - Added the fourth Step 6 vertical slice: Member booking status timeline on booking detail, PostgreSQL-backed history ordering, missing-history fallback, and responsive timeline layout
+- Added the first Step 7 vertical slice: Staff and Owner booking status controls with CSRF protection, valid transition enforcement, and status-history append in one transaction
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 45 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 42 passing and 4 database integration skips
+- Automated tests with local PostgreSQL: 46 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 43 passing and 4 database integration skips
 - Latest local `pnpm db:migrate` recheck passed before Step 6 handoff
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
@@ -72,6 +73,9 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Member cancellation rejects unauthenticated, Staff, Owner, wrong-owner, invalid-id, missing-booking, invalid-CSRF, duplicate, and ineligible-status cases with stable responses
 - Member booking detail renders ordered `booking_status_history` entries with from-status, to-status, changed time, actor, and note
 - Member booking detail renders a stable missing-history fallback when no history rows exist
+- Staff `/staff` renders operational booking rows with status controls for confirmed and checked-in bookings
+- Staff booking status updates reject unauthenticated, Member, invalid-CSRF, missing-booking, and invalid-transition cases with stable responses
+- Staff booking status updates change current booking status and append a `booking_status_history` row in one PostgreSQL transaction
 - Public `/` renders PostgreSQL-backed next-screening and program highlights with stable database-error handling
 - Public `/visit` renders visit information and a CSRF-protected contact form with validation, success, and database-error states
 - Public `/visit` contact submission inserts into `contact_messages` locally through the rendered route and redirects to `/visit?sent=1`
@@ -96,6 +100,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Member booking flow verified at 1280px and 390px without horizontal overflow from screening detail to booking detail
 - Member booking history list verified at 1280px and 390px without horizontal overflow, with main landmark, booking detail links, and 45px mobile action controls
 - Member booking detail states verified at 1280px and 390px without horizontal overflow, including cancel form, CSRF token, cancelled status, cancelled-state copy, and status timeline
+- Staff operational booking dashboard verified at 1280px and 390px without horizontal overflow, including CSRF-protected check-in controls and post-action state
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
 - Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
@@ -106,6 +111,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Production detail routes return `200` for `/films/house-of-hummingbird` and the current live future screening route `/screenings/3`, while invalid public identifiers return `404`
 - Production Member login reaches `/account`, and the live Member account renders booking history with the two seed Member bookings after deployment
 - Production Member booking detail renders the new cancellation-state UI and CSRF token; the current live seed booking is not eligible for cancellation, so no production mutation was performed
+- Production Member booking detail renders the Step 6 status timeline after deployment
 - Production read-only check for the new Member booking action is pending because the current production seed schedule no longer exposes a future screening detail route
 - Git history has passed 15 total commits; the final substantial-commit review remains pending
 - GitHub Actions CI applies schema, seed, migrations, verification queries, and the full test suite; the first remote run passed
@@ -232,7 +238,7 @@ Completed fifth vertical slice:
 
 Next implementation slice:
 
-- Start Step 7 with the smallest Staff operations slice for booking status transitions and check-in controls
+- Continue Step 7 with Staff screening roster grouping and operational scan improvements
 
 Cross-stage delivery infrastructure now available:
 
@@ -290,13 +296,27 @@ Completed fourth vertical slice:
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the status timeline
 - Step 6 completion approval packet is recorded in `quality-reviews/step-06-completion-approval-packet-ko.md`
 
+### Step 7: Reviews, Staff Operations, and Admin Dashboard
+
+Completed first vertical slice:
+
+- `/staff` now renders operational booking rows instead of a placeholder landing page
+- Staff and Owner can see booking film, screening time, Member identity, current status, and eligible operational actions
+- `POST /staff/bookings/:bookingId/status` requires Staff or Owner role and CSRF validation
+- Staff status transitions are allowlisted: `confirmed` to `checked_in`, `confirmed` to `no_show`, `checked_in` to `completed`, and `checked_in` to `no_show`
+- Invalid transitions, terminal states, missing bookings, invalid IDs, invalid CSRF, and Member access are rejected
+- Current booking status and `booking_status_history` append happen in one PostgreSQL transaction
+- Automated tests cover Staff and Owner access, Member denial, CSRF, valid transition, invalid transition, missing booking, and history append
+- PostgreSQL integration tests cover Staff transition history from `confirmed` to `checked_in` to `completed`
+- Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Staff booking status controls
+
 ## Following Stages
 
 | Step | Focus | Main Outcome |
 | --- | --- | --- |
 | 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
 | 6 | Booking and Member experience | Implemented and ready for nonblocking Director frontend review |
-| 7 | Reviews and operations | Next: review CRUD, check-in, moderation, messages, and Owner management |
+| 7 | Reviews and operations | In progress: Staff booking status controls implemented; roster, reviews, moderation, messages, and Owner user management remain |
 | 8 | Frontend refinement | Responsive design system and reference-level interface review |
 | 9 | Security and deployment | Regression testing, Render deployment, and submission documentation |
 
@@ -309,7 +329,7 @@ Completed fourth vertical slice:
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Production seed screening dates can age out, which can block read-only verification of future-screening workflows until the next production seed or schedule refresh.
-- Staff booking status transition and check-in controls remain Step 7 work.
+- Staff screening roster grouping, review CRUD, moderation, contact processing, and Owner user management remain Step 7 work.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
 
 ## Working Checkpoints

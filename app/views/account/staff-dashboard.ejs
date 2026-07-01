@@ -1,0 +1,69 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content staff-dashboard">
+  <section class="page-heading">
+    <p class="eyebrow">Staff operations</p>
+    <h1>Welcome, <%= staffName %>.</h1>
+    <p>Check in Members and keep booking status history current for the front desk workflow.</p>
+  </section>
+
+  <section class="page-section" aria-labelledby="staff-bookings-heading">
+    <div class="section-heading section-heading-stack">
+      <div>
+        <p class="eyebrow">Booking workflow</p>
+        <h2 id="staff-bookings-heading">Operational bookings</h2>
+      </div>
+    </div>
+
+    <% if (bookings.length > 0) { %>
+      <div class="status-table staff-booking-table" role="table" aria-label="Operational booking status">
+        <div class="status-row status-header staff-booking-row" role="row">
+          <span role="columnheader">Booking</span>
+          <span role="columnheader">Member</span>
+          <span role="columnheader">Status</span>
+          <span role="columnheader">Actions</span>
+        </div>
+        <% bookings.forEach((booking) => { %>
+          <article class="status-row staff-booking-row" role="row">
+            <div role="cell">
+              <h3><%= booking.film_title %></h3>
+              <p><%= booking.screeningDisplay %></p>
+              <p class="owner-row-note">Booking #<%= booking.booking_id %>, booked <%= booking.bookedAtDisplay %></p>
+            </div>
+            <div role="cell">
+              <strong><%= booking.memberDisplay %></strong>
+              <p class="owner-row-note"><%= booking.member_email %></p>
+            </div>
+            <div role="cell">
+              <span class="status-badge"><%= booking.statusDisplay %></span>
+              <% if (booking.cancelledAtDisplay) { %>
+                <p class="owner-row-note">Cancelled <%= booking.cancelledAtDisplay %></p>
+              <% } %>
+            </div>
+            <div class="owner-actions" role="cell">
+              <% if (booking.transitions.length > 0) { %>
+                <% booking.transitions.forEach(([toStatus, label]) => { %>
+                  <form action="/staff/bookings/<%= booking.booking_id %>/status" method="post">
+                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                    <input type="hidden" name="toStatus" value="<%= toStatus %>" />
+                    <button class="button button-secondary" type="submit"><%= label %></button>
+                  </form>
+                <% }) %>
+              <% } else { %>
+                <p class="status-note">No staff action available.</p>
+              <% } %>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="inline-empty-state">
+        <p class="eyebrow">No operational bookings</p>
+        <h3>No bookings need staff action.</h3>
+        <p>Confirmed and checked-in bookings will appear here when there is work for the front desk.</p>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include("../partials/document-end") %>

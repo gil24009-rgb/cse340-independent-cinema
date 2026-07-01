@@ -586,6 +586,21 @@ h3 {
   grid-template-columns: minmax(240px, 1.4fr) minmax(120px, 0.45fr) minmax(220px, 1fr) minmax(170px, 0.7fr);
 }
 
+.staff-booking-row {
+  grid-template-columns: minmax(260px, 1.25fr) minmax(180px, 0.75fr) minmax(120px, 0.45fr) minmax(220px, 0.9fr);
+}
+
+.staff-booking-row h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.35rem;
+}
+
+.staff-booking-row p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .owner-row h2 {
   margin: 0 0 0.4rem;
   font-size: 1.35rem;
@@ -1122,6 +1137,7 @@ h3 {
   }
 
   .owner-row,
+  .staff-booking-row,
   .owner-table .status-header {
     grid-template-columns: 1fr;
   }

@@ -260,11 +260,67 @@ async function findBookingsByUserId(userId) {
   return bookings.filter((booking) => booking.user_id === userId);
 }
 
+async function findStaffOperationalBookings() {
+  return bookings.map((booking) => {
+    const user = users.find((candidate) => candidate.user_id === booking.user_id);
+
+    return {
+      ...booking,
+      member_email: user?.email || "unknown@cinema.test",
+      member_first_name: user?.first_name || "Unknown",
+      member_last_name: user?.last_name || "Member",
+    };
+  });
+}
+
 function createBookingCancellationConflict() {
   const error = new Error("Only confirmed upcoming bookings can be cancelled.");
   error.name = "BookingCancellationConflictError";
   error.status = 409;
   return error;
+}
+
+function createBookingStatusTransitionConflict() {
+  const error = new Error("That booking cannot move to the requested status.");
+  error.name = "BookingStatusTransitionConflictError";
+  error.status = 409;
+  return error;
+}
+
+const staffAllowedTransitions = {
+  checked_in: new Set(["completed", "no_show"]),
+  confirmed: new Set(["checked_in", "no_show"]),
+};
+
+async function transitionStaffBookingStatus({ bookingId, changedByUserId, toStatus }) {
+  const booking = bookings.find((candidate) => candidate.booking_id === bookingId);
+
+  if (!booking) {
+    return null;
+  }
+
+  if (!staffAllowedTransitions[booking.status]?.has(toStatus)) {
+    throw createBookingStatusTransitionConflict();
+  }
+
+  const fromStatus = booking.status;
+  booking.status = toStatus;
+  booking.cancelled_at = null;
+  bookingStatusHistory.push({
+    booking_id: booking.booking_id,
+    changed_at: "2026-07-01T21:00:00.000Z",
+    changed_by_first_name: "Joon",
+    changed_by_last_name: "Lee",
+    changed_by_role: "staff",
+    changed_by_user_id: changedByUserId,
+    from_status: fromStatus,
+    history_id: nextHistoryId,
+    note: `Staff marked booking as ${toStatus.replaceAll("_", " ")}.`,
+    to_status: toStatus,
+  });
+  nextHistoryId += 1;
+
+  return booking;
 }
 
 async function cancelMemberBooking({ bookingId, userId }) {
@@ -587,6 +643,7 @@ before(async () => {
       findBookingById,
       findBookingStatusHistoryByBookingId,
       findBookingsByUserId,
+      findStaffOperationalBookings,
       findOwnerFilmById,
       findOwnerFilms,
       findOwnerScreeningById,
@@ -595,6 +652,7 @@ before(async () => {
       findReviewById,
       setFilmArchived,
       setScreeningStatus,
+      transitionStaffBookingStatus,
       updateFilm,
       updateScreening,
     },
@@ -795,6 +853,121 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
 
     assert.equal(loginResponse.status, 303);
     assert.equal(response.status, expectedStatus, `${email} ${route}`);
+  }
+});
+
+test("staff dashboard updates booking status with CSRF and appends history", async () => {
+  const staffBooking = {
+    booked_at: "2026-07-01T18:30:00.000Z",
+    booking_id: 60,
+    cancelled_at: null,
+    film_title: "House of Hummingbird",
+    screening_id: 60,
+    starts_at: "2099-07-20T01:00:00.000Z",
+    status: "confirmed",
+    user_id: 1,
+  };
+  bookings.push(staffBooking);
+
+  const memberLogin = await login("member@cinema.test");
+  const memberPost = await request("/staff/bookings/60/status", {
+    body: new URLSearchParams({ csrfToken: "invalid", toStatus: "checked_in" }),
+    headers: {
+      cookie: memberLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(memberPost.status, 403);
+
+  const staffLogin = await login("staff@cinema.test");
+  const dashboard = await request("/staff", { headers: { cookie: staffLogin.cookie } });
+  const dashboardBody = await dashboard.text();
+  const csrfToken = csrfFrom(dashboardBody);
+  assert.equal(dashboard.status, 200);
+  assert.match(dashboardBody, /Operational bookings/);
+  assert.match(dashboardBody, /Check In/);
+  assert.match(dashboardBody, /Mark No Show/);
+  assert.match(dashboardBody, /Sora Kim/);
+  assert.ok(csrfToken);
+
+  const invalidCsrf = await request("/staff/bookings/60/status", {
+    body: new URLSearchParams({ csrfToken: "invalid", toStatus: "checked_in" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidCsrf.status, 403);
+
+  const invalidTransition = await request("/staff/bookings/60/status", {
+    body: new URLSearchParams({ csrfToken, toStatus: "completed" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidTransition.status, 409);
+  assert.equal(staffBooking.status, "confirmed");
+
+  const missingBooking = await request("/staff/bookings/999/status", {
+    body: new URLSearchParams({ csrfToken, toStatus: "checked_in" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(missingBooking.status, 404);
+
+  const checkIn = await request("/staff/bookings/60/status", {
+    body: new URLSearchParams({ csrfToken, toStatus: "checked_in" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(checkIn.status, 303);
+  assert.equal(checkIn.headers.get("location"), "/staff");
+  assert.equal(staffBooking.status, "checked_in");
+  assert.ok(bookingStatusHistory.some((entry) => (
+    entry.booking_id === 60
+    && entry.from_status === "confirmed"
+    && entry.to_status === "checked_in"
+    && entry.changed_by_user_id === 2
+  )));
+
+  const ownerLogin = await login("owner@cinema.test");
+  const ownerDashboard = await request("/staff", { headers: { cookie: ownerLogin.cookie } });
+  const ownerCsrfToken = csrfFrom(await ownerDashboard.text());
+  const complete = await request("/staff/bookings/60/status", {
+    body: new URLSearchParams({ csrfToken: ownerCsrfToken, toStatus: "completed" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(complete.status, 303);
+  assert.equal(staffBooking.status, "completed");
+  assert.ok(bookingStatusHistory.some((entry) => (
+    entry.booking_id === 60
+    && entry.from_status === "checked_in"
+    && entry.to_status === "completed"
+    && entry.changed_by_user_id === 3
+  )));
+
+  const bookingIndex = bookings.findIndex((booking) => booking.booking_id === 60);
+  if (bookingIndex >= 0) {
+    bookings.splice(bookingIndex, 1);
+  }
+  for (let index = bookingStatusHistory.length - 1; index >= 0; index -= 1) {
+    if (bookingStatusHistory[index].booking_id === 60) {
+      bookingStatusHistory.splice(index, 1);
+    }
   }
 });
 

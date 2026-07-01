@@ -4,9 +4,9 @@ import {
   createMemberAccountController,
   createOwnerFilmController,
   createOwnerScreeningController,
+  createStaffOperationsController,
   showMemberReviewDetail,
   showOwnerAccount,
-  showStaffAccount,
 } from "../controllers/accountController.js";
 import { requireRole } from "../middleware/authentication.js";
 import { verifyCsrfToken } from "../middleware/csrf.js";
@@ -16,6 +16,8 @@ import {
   findBookingById,
   findBookingStatusHistoryByBookingId,
   findBookingsByUserId,
+  findStaffOperationalBookings,
+  transitionStaffBookingStatus,
 } from "../models/bookingModel.js";
 import { findReviewById } from "../models/reviewModel.js";
 
@@ -26,6 +28,10 @@ export function createAccountRoutes(options = {}) {
     findBookingStatusHistoryByBookingId:
       options.findBookingStatusHistoryByBookingId || findBookingStatusHistoryByBookingId,
     findBookingsByUserId: options.findBookingsByUserId || findBookingsByUserId,
+  });
+  const staffOperationsController = createStaffOperationsController({
+    findStaffOperationalBookings: options.findStaffOperationalBookings || findStaffOperationalBookings,
+    transitionStaffBookingStatus: options.transitionStaffBookingStatus || transitionStaffBookingStatus,
   });
   const ownerFilmController = createOwnerFilmController(options);
   const ownerScreeningController = createOwnerScreeningController(options);
@@ -52,7 +58,13 @@ export function createAccountRoutes(options = {}) {
     memberAccountController.cancelBooking,
   );
   router.get("/account/reviews/:reviewId", requireRole("member"), loadOwnedReview, showMemberReviewDetail);
-  router.get("/staff", requireRole("staff", "owner"), showStaffAccount);
+  router.get("/staff", requireRole("staff", "owner"), staffOperationsController.showDashboard);
+  router.post(
+    "/staff/bookings/:bookingId/status",
+    requireRole("staff", "owner"),
+    verifyCsrfToken,
+    staffOperationsController.updateBookingStatus,
+  );
   router.get("/admin", requireRole("owner"), showOwnerAccount);
   router.get("/admin/films", requireRole("owner"), ownerFilmController.showFilms);
   router.get("/admin/films/new", requireRole("owner"), ownerFilmController.showNewFilm);
