@@ -590,7 +590,49 @@ h3 {
   grid-template-columns: minmax(260px, 1.25fr) minmax(180px, 0.75fr) minmax(120px, 0.45fr) minmax(220px, 0.9fr);
 }
 
-.staff-booking-row h3 {
+.staff-screening-roster {
+  display: grid;
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.staff-screening-group {
+  border-top: 1px solid var(--ink);
+}
+
+.staff-screening-summary {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(220px, 0.45fr);
+  gap: 1.5rem;
+  align-items: end;
+  padding: 2rem 0 1.25rem;
+}
+
+.staff-screening-summary h3 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.9rem, 3vw, 3rem);
+}
+
+.staff-screening-summary p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.staff-screening-counts {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.staff-booking-table {
+  margin-top: 0;
+}
+
+.staff-booking-row h3,
+.staff-booking-row h4 {
   margin: 0 0 0.4rem;
   font-size: 1.35rem;
 }
@@ -1112,6 +1154,16 @@ h3 {
     padding-top: 1rem;
   }
 
+  .staff-screening-summary {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .staff-screening-counts {
+    justify-items: start;
+    text-align: left;
+  }
+
   .foundation-grid article,
   .foundation-grid article:first-child,
   .information-list section,
@@ -1170,7 +1222,24 @@ h3 {
     width: min(100% - 2rem, var(--max-width));
   }
 
+  .site-header {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    align-items: start;
+  }
+
+  .account-actions {
+    flex-wrap: wrap;
+    justify-self: start;
+  }
+
+  .account-link {
+    justify-self: start;
+  }
+
   .primary-nav {
+    max-width: 100%;
+    padding-bottom: 0.25rem;
     gap: 1rem;
   }
 

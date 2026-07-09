@@ -15,43 +15,62 @@
       </div>
     </div>
 
-    <% if (bookings.length > 0) { %>
-      <div class="status-table staff-booking-table" role="table" aria-label="Operational booking status">
-        <div class="status-row status-header staff-booking-row" role="row">
-          <span role="columnheader">Booking</span>
-          <span role="columnheader">Member</span>
-          <span role="columnheader">Status</span>
-          <span role="columnheader">Actions</span>
-        </div>
-        <% bookings.forEach((booking) => { %>
-          <article class="status-row staff-booking-row" role="row">
-            <div role="cell">
-              <h3><%= booking.film_title %></h3>
-              <p><%= booking.screeningDisplay %></p>
-              <p class="owner-row-note">Booking #<%= booking.booking_id %>, booked <%= booking.bookedAtDisplay %></p>
-            </div>
-            <div role="cell">
-              <strong><%= booking.memberDisplay %></strong>
-              <p class="owner-row-note"><%= booking.member_email %></p>
-            </div>
-            <div role="cell">
-              <span class="status-badge"><%= booking.statusDisplay %></span>
-              <% if (booking.cancelledAtDisplay) { %>
-                <p class="owner-row-note">Cancelled <%= booking.cancelledAtDisplay %></p>
-              <% } %>
-            </div>
-            <div class="owner-actions" role="cell">
-              <% if (booking.transitions.length > 0) { %>
-                <% booking.transitions.forEach(([toStatus, label]) => { %>
-                  <form action="/staff/bookings/<%= booking.booking_id %>/status" method="post">
-                    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
-                    <input type="hidden" name="toStatus" value="<%= toStatus %>" />
-                    <button class="button button-secondary" type="submit"><%= label %></button>
-                  </form>
-                <% }) %>
-              <% } else { %>
-                <p class="status-note">No staff action available.</p>
-              <% } %>
+    <% if (screeningGroups.length > 0) { %>
+      <div class="staff-screening-roster" aria-label="Operational booking roster grouped by screening">
+        <% screeningGroups.forEach((screeningGroup) => { %>
+          <article class="staff-screening-group" aria-labelledby="staff-screening-<%= screeningGroup.screeningId %>">
+            <header class="staff-screening-summary">
+              <div>
+                <p class="eyebrow"><%= screeningGroup.programLabel %></p>
+                <h3 id="staff-screening-<%= screeningGroup.screeningId %>"><%= screeningGroup.filmTitle %></h3>
+                <p><%= screeningGroup.screeningDisplay %></p>
+              </div>
+              <div class="staff-screening-counts" aria-label="Screening work summary">
+                <span><%= screeningGroup.actionSummary %></span>
+                <span><%= screeningGroup.bookingSummary %></span>
+                <% if (screeningGroup.screeningStatusDisplay) { %>
+                  <span><%= screeningGroup.screeningStatusDisplay %></span>
+                <% } %>
+              </div>
+            </header>
+            <div class="status-table staff-booking-table" role="table" aria-label="Operational booking status for <%= screeningGroup.filmTitle %>">
+              <div class="status-row status-header staff-booking-row" role="row">
+                <span role="columnheader">Booking</span>
+                <span role="columnheader">Member</span>
+                <span role="columnheader">Status</span>
+                <span role="columnheader">Actions</span>
+              </div>
+              <% screeningGroup.bookings.forEach((booking) => { %>
+                <div class="status-row staff-booking-row" role="row">
+                  <div role="cell">
+                    <h4>Booking #<%= booking.booking_id %></h4>
+                    <p class="owner-row-note">Booked <%= booking.bookedAtDisplay %></p>
+                  </div>
+                  <div role="cell">
+                    <strong><%= booking.memberDisplay %></strong>
+                    <p class="owner-row-note"><%= booking.member_email %></p>
+                  </div>
+                  <div role="cell">
+                    <span class="status-badge"><%= booking.statusDisplay %></span>
+                    <% if (booking.cancelledAtDisplay) { %>
+                      <p class="owner-row-note">Cancelled <%= booking.cancelledAtDisplay %></p>
+                    <% } %>
+                  </div>
+                  <div class="owner-actions" role="cell">
+                    <% if (booking.transitions.length > 0) { %>
+                      <% booking.transitions.forEach(([toStatus, label]) => { %>
+                        <form action="/staff/bookings/<%= booking.booking_id %>/status" method="post">
+                          <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                          <input type="hidden" name="toStatus" value="<%= toStatus %>" />
+                          <button class="button button-secondary" type="submit"><%= label %></button>
+                        </form>
+                      <% }) %>
+                    <% } else { %>
+                      <p class="status-note">No staff action available.</p>
+                    <% } %>
+                  </div>
+                </div>
+              <% }) %>
             </div>
           </article>
         <% }) %>

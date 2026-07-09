@@ -73,6 +73,8 @@ export async function findStaffOperationalBookings() {
       b.cancelled_at,
       s.screening_id,
       s.starts_at,
+      s.program_label,
+      s.status AS screening_status,
       f.title AS film_title,
       u.first_name AS member_first_name,
       u.last_name AS member_last_name,

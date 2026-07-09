@@ -862,7 +862,9 @@ test("staff dashboard updates booking status with CSRF and appends history", asy
     booking_id: 60,
     cancelled_at: null,
     film_title: "House of Hummingbird",
+    program_label: "Director Q&A",
     screening_id: 60,
+    screening_status: "scheduled",
     starts_at: "2099-07-20T01:00:00.000Z",
     status: "confirmed",
     user_id: 1,
@@ -886,6 +888,10 @@ test("staff dashboard updates booking status with CSRF and appends history", asy
   const csrfToken = csrfFrom(dashboardBody);
   assert.equal(dashboard.status, 200);
   assert.match(dashboardBody, /Operational bookings/);
+  assert.match(dashboardBody, /Operational booking roster grouped by screening/);
+  assert.match(dashboardBody, /Director Q&amp;A/);
+  assert.match(dashboardBody, /1 booking needs staff action/);
+  assert.match(dashboardBody, /1 booking/);
   assert.match(dashboardBody, /Check In/);
   assert.match(dashboardBody, /Mark No Show/);
   assert.match(dashboardBody, /Sora Kim/);

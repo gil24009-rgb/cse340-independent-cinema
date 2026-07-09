@@ -385,6 +385,41 @@ function presentStaffBooking(booking) {
   };
 }
 
+function groupStaffBookingsByScreening(bookings) {
+  const groups = new Map();
+
+  for (const booking of bookings) {
+    const screeningId = booking.screening_id;
+    const existingGroup = groups.get(screeningId);
+    const group = existingGroup || {
+      activeActionCount: 0,
+      bookingCount: 0,
+      bookings: [],
+      filmTitle: booking.film_title,
+      programLabel: booking.program_label || "Regular screening",
+      screeningDisplay: booking.screeningDisplay,
+      screeningId,
+      screeningStatusDisplay: booking.screening_status ? formatStatus(booking.screening_status) : null,
+    };
+
+    group.bookings.push(booking);
+    group.bookingCount += 1;
+    if (booking.transitions.length > 0) {
+      group.activeActionCount += 1;
+    }
+
+    groups.set(screeningId, group);
+  }
+
+  return Array.from(groups.values()).map((group) => ({
+    ...group,
+    actionSummary: group.activeActionCount === 1
+      ? "1 booking needs staff action"
+      : `${group.activeActionCount} bookings need staff action`,
+    bookingSummary: group.bookingCount === 1 ? "1 booking" : `${group.bookingCount} bookings`,
+  }));
+}
+
 export function createMemberAccountController(options = {}) {
   const cancelBooking = options.cancelMemberBooking || cancelMemberBooking;
   const loadBookingStatusHistory = options.findBookingStatusHistoryByBookingId || findBookingStatusHistoryByBookingId;
@@ -456,11 +491,13 @@ export function createStaffOperationsController(options = {}) {
     async showDashboard(req, res, next) {
       try {
         const bookings = (await loadBookings()).map(presentStaffBooking);
+        const screeningGroups = groupStaffBookingsByScreening(bookings);
 
         return res.render("account/staff-dashboard", {
           bookings,
           pageDescription: "Manage booking check-in and operational status.",
           pageTitle: "Staff Operations",
+          screeningGroups,
           staffName: req.currentUser.first_name,
         });
       } catch (error) {

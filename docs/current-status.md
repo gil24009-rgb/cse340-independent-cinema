@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: July 1, 2026
+Last updated: July 9, 2026
 
 ## Current Stage
 
@@ -40,6 +40,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the third Step 6 vertical slice: Member-owned booking cancellation with CSRF protection, ownership checks, confirmed-upcoming eligibility, `cancelled_at`, and status-history append in one transaction
 - Added the fourth Step 6 vertical slice: Member booking status timeline on booking detail, PostgreSQL-backed history ordering, missing-history fallback, and responsive timeline layout
 - Added the first Step 7 vertical slice: Staff and Owner booking status controls with CSRF protection, valid transition enforcement, and status-history append in one transaction
+- Added the second Step 7 vertical slice: Staff screening roster grouping with screening context, per-screening work summaries, preserved status actions, and mobile header reflow correction
 
 ## Verified Baseline
 
@@ -74,6 +75,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Member booking detail renders ordered `booking_status_history` entries with from-status, to-status, changed time, actor, and note
 - Member booking detail renders a stable missing-history fallback when no history rows exist
 - Staff `/staff` renders operational booking rows with status controls for confirmed and checked-in bookings
+- Staff `/staff` groups operational booking rows by screening with program label, film title, screening time, booking count, action count, and screening status before individual booking actions
 - Staff booking status updates reject unauthenticated, Member, invalid-CSRF, missing-booking, and invalid-transition cases with stable responses
 - Staff booking status updates change current booking status and append a `booking_status_history` row in one PostgreSQL transaction
 - Public `/` renders PostgreSQL-backed next-screening and program highlights with stable database-error handling
@@ -101,6 +103,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Member booking history list verified at 1280px and 390px without horizontal overflow, with main landmark, booking detail links, and 45px mobile action controls
 - Member booking detail states verified at 1280px and 390px without horizontal overflow, including cancel form, CSRF token, cancelled status, cancelled-state copy, and status timeline
 - Staff operational booking dashboard verified at 1280px and 390px without horizontal overflow, including CSRF-protected check-in controls and post-action state
+- Staff roster grouping verified through route tests, local PostgreSQL integration tests, authenticated local SSR inspection, and headless Chrome 1280px and 390px screenshots with no detected horizontal overflow elements
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
 - Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
@@ -238,7 +241,7 @@ Completed fifth vertical slice:
 
 Next implementation slice:
 
-- Continue Step 7 with Staff screening roster grouping and operational scan improvements
+- Continue Step 7 with Member review CRUD, including completed-booking eligibility and ownership failure states
 
 Cross-stage delivery infrastructure now available:
 
