@@ -57,6 +57,66 @@
       </div>
     <% } %>
   </section>
+
+  <section class="page-section" aria-labelledby="member-reviews-heading">
+    <div class="section-heading section-heading-stack">
+      <div>
+        <p class="eyebrow">My reviews</p>
+        <h2 id="member-reviews-heading">Film reviews</h2>
+      </div>
+      <a class="text-link" href="/account/reviews/new">Write a review</a>
+    </div>
+
+    <% const availableReviewFilms = reviewableFilms.filter((film) => !film.hasReview); %>
+    <% if (availableReviewFilms.length > 0) { %>
+      <div class="review-prompt">
+        <p class="eyebrow">Ready to review</p>
+        <h3>Completed screenings can now become reviews.</h3>
+        <p>
+          <% availableReviewFilms.forEach((film, index) => { %>
+            <%= film.film_title %><%= index < availableReviewFilms.length - 1 ? ", " : "" %>
+          <% }) %>
+        </p>
+        <a class="button button-primary" href="/account/reviews/new">Write a Review</a>
+      </div>
+    <% } else { %>
+      <p class="status-note">Completed bookings without a review will appear here.</p>
+    <% } %>
+
+    <% if (reviews.length > 0) { %>
+      <ol class="review-list" aria-label="Your film reviews">
+        <% reviews.forEach((review) => { %>
+          <li class="review-card">
+            <div>
+              <p class="eyebrow"><%= review.visibilityDisplay %></p>
+              <h3><a class="title-link" href="/account/reviews/<%= review.review_id %>"><%= review.film_title %></a></h3>
+              <dl class="compact-detail-list">
+                <div>
+                  <dt>Rating</dt>
+                  <dd><%= review.ratingDisplay %></dd>
+                </div>
+                <div>
+                  <dt>Updated</dt>
+                  <dd><%= review.updatedAtDisplay %></dd>
+                </div>
+              </dl>
+              <p><%= review.body %></p>
+            </div>
+            <div class="detail-actions">
+              <a class="button button-secondary" href="/account/reviews/<%= review.review_id %>">View Review</a>
+              <a class="button button-secondary" href="/account/reviews/<%= review.review_id %>/edit">Edit Review</a>
+            </div>
+          </li>
+        <% }) %>
+      </ol>
+    <% } else { %>
+      <div class="inline-empty-state">
+        <p class="eyebrow">No reviews yet</p>
+        <h3>Your review list is empty.</h3>
+        <p>After a booking reaches completed status, you can write one review for that film.</p>
+      </div>
+    <% } %>
+  </section>
 </main>
 
 <%- include("../partials/document-end") %>

@@ -106,6 +106,7 @@ const reviews = [
   {
     body: "A precise and quietly moving film that stayed with me after the screening.",
     created_at: "2026-06-09T18:30:00.000Z",
+    film_id: 3,
     film_title: "Microhabitat",
     is_visible: true,
     rating: 5,
@@ -116,6 +117,7 @@ const reviews = [
   {
     body: "Another member review.",
     created_at: "2026-06-11T18:30:00.000Z",
+    film_id: 2,
     film_title: "Little Forest",
     is_visible: true,
     rating: 4,
@@ -157,6 +159,23 @@ const films = [
     synopsis: "A young woman returns to her rural hometown and finds a new rhythm.",
     poster_url: "/images/films/little-forest.jpg",
     title: "Little Forest",
+    upcoming_screening_count: 0,
+  },
+  {
+    age_rating: "15+",
+    country: "South Korea",
+    director: "Jeon Go-woon",
+    film_id: 3,
+    genre: "Drama",
+    is_archived: false,
+    is_featured: false,
+    next_screening_at: null,
+    release_year: 2017,
+    runtime_minutes: 106,
+    slug: "microhabitat",
+    synopsis: "A housekeeper chooses her small daily pleasures over rising rent.",
+    poster_url: "/images/films/microhabitat.jpg",
+    title: "Microhabitat",
     upcoming_screening_count: 0,
   },
 ];
@@ -201,8 +220,9 @@ const screenings = [
 
 let server;
 let baseUrl;
-let nextFilmId = 3;
+let nextFilmId = 4;
 let nextHistoryId = 4;
+let nextReviewId = 4;
 let nextScreeningId = 4;
 let nextUserId = 5;
 
@@ -355,6 +375,97 @@ async function cancelMemberBooking({ bookingId, userId }) {
 
 async function findReviewById(reviewId) {
   return reviews.find((review) => review.review_id === reviewId) || null;
+}
+
+function filmForCompletedBooking(booking) {
+  return films.find((film) => film.title === booking.film_title) || null;
+}
+
+async function findReviewsByUserId(userId) {
+  return reviews.filter((review) => review.user_id === userId);
+}
+
+async function findReviewableFilmsByUserId(userId) {
+  const completedFilms = bookings
+    .filter((booking) => booking.user_id === userId && booking.status === "completed")
+    .map(filmForCompletedBooking)
+    .filter(Boolean);
+  const uniqueFilms = new Map();
+
+  for (const film of completedFilms) {
+    uniqueFilms.set(film.film_id, film);
+  }
+
+  return Array.from(uniqueFilms.values()).map((film) => ({
+    film_id: film.film_id,
+    film_title: film.title,
+    review_id: reviews.find((review) => review.user_id === userId && review.film_id === film.film_id)?.review_id || null,
+  }));
+}
+
+function createReviewConflict(name, message) {
+  const error = new Error(message);
+  error.name = name;
+  error.status = 409;
+  return error;
+}
+
+function memberCanReviewFilm(userId, filmId) {
+  return bookings.some((booking) => {
+    const film = filmForCompletedBooking(booking);
+    return booking.user_id === userId && booking.status === "completed" && film?.film_id === filmId;
+  });
+}
+
+async function createMemberReview({ body, filmId, rating, userId }) {
+  if (!memberCanReviewFilm(userId, filmId)) {
+    throw createReviewConflict("ReviewEligibilityConflictError", "A completed booking is required before reviewing this film.");
+  }
+
+  if (reviews.some((review) => review.user_id === userId && review.film_id === filmId)) {
+    throw createReviewConflict("ReviewDuplicateConflictError", "You have already reviewed this film.");
+  }
+
+  const film = films.find((candidate) => candidate.film_id === filmId);
+  const review = {
+    body,
+    created_at: "2026-07-10T21:00:00.000Z",
+    film_id: filmId,
+    film_title: film?.title || "Unknown Film",
+    is_visible: true,
+    rating,
+    review_id: nextReviewId,
+    updated_at: "2026-07-10T21:00:00.000Z",
+    user_id: userId,
+  };
+
+  nextReviewId += 1;
+  reviews.push(review);
+  return review;
+}
+
+async function updateMemberReview({ body, rating, reviewId, userId }) {
+  const review = reviews.find((candidate) => candidate.review_id === reviewId && candidate.user_id === userId);
+
+  if (!review) {
+    return null;
+  }
+
+  review.body = body;
+  review.rating = rating;
+  review.updated_at = "2026-07-10T21:10:00.000Z";
+  return review;
+}
+
+async function deleteMemberReview({ reviewId, userId }) {
+  const index = reviews.findIndex((candidate) => candidate.review_id === reviewId && candidate.user_id === userId);
+
+  if (index < 0) {
+    return null;
+  }
+
+  const [deleted] = reviews.splice(index, 1);
+  return deleted;
 }
 
 async function findOwnerFilms() {
@@ -638,6 +749,8 @@ before(async () => {
   const app = createApp({
     account: {
       cancelMemberBooking,
+      createMemberReview,
+      deleteMemberReview,
       createFilm,
       createScreening,
       findBookingById,
@@ -650,10 +763,13 @@ before(async () => {
       findOwnerScreeningFilmOptions,
       findOwnerScreenings,
       findReviewById,
+      findReviewableFilmsByUserId,
+      findReviewsByUserId,
       setFilmArchived,
       setScreeningStatus,
       transitionStaffBookingStatus,
       updateFilm,
+      updateMemberReview,
       updateScreening,
     },
     auth: {
@@ -684,7 +800,7 @@ after(async () => {
 });
 
 test("protected routes redirect unauthenticated direct access", async () => {
-  for (const route of ["/account", "/account/bookings/1", "/account/reviews/1", "/staff", "/admin", "/admin/films", "/admin/films/new", "/admin/films/1/edit", "/admin/screenings", "/admin/screenings/new", "/admin/screenings/1/edit"]) {
+  for (const route of ["/account", "/account/bookings/1", "/account/reviews/new", "/account/reviews/1", "/account/reviews/1/edit", "/staff", "/admin", "/admin/films", "/admin/films/new", "/admin/films/1/edit", "/admin/screenings", "/admin/screenings/new", "/admin/screenings/1/edit"]) {
     const response = await request(route);
 
     assert.equal(response.status, 303);
@@ -1666,6 +1782,165 @@ test("owned booking and review pages render resource details for the signed-in m
   assert.equal(reviewResponse.status, 200);
   assert.match(reviewBody, /Microhabitat/);
   assert.match(reviewBody, /A precise and quietly moving film/);
+});
+
+test("member review CRUD requires a completed booking and preserves ownership", async () => {
+  const reviewableBooking = {
+    booked_at: "2026-07-04T18:30:00.000Z",
+    booking_id: 70,
+    cancelled_at: null,
+    film_title: "Little Forest",
+    screening_id: 70,
+    starts_at: "2026-07-04T20:00:00.000Z",
+    status: "completed",
+    user_id: 1,
+  };
+  bookings.push(reviewableBooking);
+
+  const { cookie } = await login("member@cinema.test");
+  const account = await request("/account", { headers: { cookie } });
+  const accountBody = await account.text();
+  assert.equal(account.status, 200);
+  assert.match(accountBody, /Film reviews/);
+  assert.match(accountBody, /Write a Review/);
+  assert.match(accountBody, /Microhabitat/);
+
+  const newForm = await request("/account/reviews/new", { headers: { cookie } });
+  const newFormBody = await newForm.text();
+  const csrfToken = csrfFrom(newFormBody);
+  assert.equal(newForm.status, 200);
+  assert.match(newFormBody, /Write a film review/);
+  assert.match(newFormBody, /Little Forest/);
+  assert.match(newFormBody, /Microhabitat \(already reviewed\)/);
+  assert.ok(csrfToken);
+
+  const invalidCsrf = await request("/account/reviews", {
+    body: new URLSearchParams({ csrfToken: "invalid", filmId: "2", rating: "5", body: "A warm and quiet film." }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidCsrf.status, 403);
+
+  const invalidInput = await request("/account/reviews", {
+    body: new URLSearchParams({ csrfToken, filmId: "", rating: "6", body: "" }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  const invalidBody = await invalidInput.text();
+  assert.equal(invalidInput.status, 400);
+  assert.match(invalidBody, /Please correct the following/);
+  assert.match(invalidBody, /Film is required/);
+  assert.match(invalidBody, /Rating must be between 1 and 5/);
+  assert.match(invalidBody, /Review is required/);
+
+  const ineligible = await request("/account/reviews", {
+    body: new URLSearchParams({ csrfToken, filmId: "1", rating: "4", body: "Not eligible yet." }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  const ineligibleBody = await ineligible.text();
+  assert.equal(ineligible.status, 409);
+  assert.match(ineligibleBody, /completed booking is required/i);
+
+  const created = await request("/account/reviews", {
+    body: new URLSearchParams({ csrfToken, filmId: "2", rating: "4", body: "A warm and quiet film." }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(created.status, 303);
+  const createdLocation = created.headers.get("location");
+  assert.match(createdLocation, /^\/account\/reviews\/\d+$/);
+  const reviewId = Number(createdLocation.split("/").at(-1));
+  assert.ok(reviews.some((review) => review.review_id === reviewId && review.user_id === 1 && review.film_id === 2));
+
+  const duplicate = await request("/account/reviews", {
+    body: new URLSearchParams({ csrfToken, filmId: "2", rating: "5", body: "Second attempt." }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(duplicate.status, 409);
+
+  const detail = await request(createdLocation, { headers: { cookie } });
+  const detailBody = await detail.text();
+  assert.equal(detail.status, 200);
+  assert.match(detailBody, /Little Forest/);
+  assert.match(detailBody, /A warm and quiet film/);
+  assert.match(detailBody, /Edit Review/);
+  assert.match(detailBody, /Delete Review/);
+
+  const editForm = await request(`/account/reviews/${reviewId}/edit`, { headers: { cookie } });
+  const editFormBody = await editForm.text();
+  const editCsrfToken = csrfFrom(editFormBody);
+  assert.equal(editForm.status, 200);
+  assert.match(editFormBody, /Edit your review/);
+  assert.match(editFormBody, /Little Forest/);
+
+  const invalidEdit = await request(`/account/reviews/${reviewId}`, {
+    body: new URLSearchParams({ csrfToken: editCsrfToken, rating: "0", body: "" }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidEdit.status, 400);
+
+  const wrongOwnerUpdate = await request("/account/reviews/2", {
+    body: new URLSearchParams({ csrfToken: editCsrfToken, rating: "5", body: "Wrong owner edit." }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(wrongOwnerUpdate.status, 404);
+
+  const updated = await request(`/account/reviews/${reviewId}`, {
+    body: new URLSearchParams({ csrfToken: editCsrfToken, rating: "5", body: "Updated after thinking about the film." }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(updated.status, 303);
+  assert.equal(updated.headers.get("location"), `/account/reviews/${reviewId}`);
+  assert.equal(reviews.find((review) => review.review_id === reviewId).rating, 5);
+
+  const deleteResponse = await request(`/account/reviews/${reviewId}/delete`, {
+    body: new URLSearchParams({ csrfToken: editCsrfToken }),
+    headers: {
+      cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(deleteResponse.status, 303);
+  assert.equal(deleteResponse.headers.get("location"), "/account");
+  assert.equal(reviews.some((review) => review.review_id === reviewId), false);
+
+  const deletedDetail = await request(`/account/reviews/${reviewId}`, { headers: { cookie } });
+  assert.equal(deletedDetail.status, 404);
+
+  const bookingIndex = bookings.findIndex((booking) => booking.booking_id === 70);
+  if (bookingIndex >= 0) {
+    bookings.splice(bookingIndex, 1);
+  }
 });
 
 test("logout requires CSRF and invalidates the active session", async () => {

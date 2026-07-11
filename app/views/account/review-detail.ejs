@@ -29,7 +29,14 @@
     <p><%= review.body %></p>
   </section>
 
-  <a class="button button-primary" href="/account">Return to account</a>
+  <div class="detail-actions">
+    <a class="button button-primary" href="/account">Return to account</a>
+    <a class="button button-secondary" href="/account/reviews/<%= review.review_id %>/edit">Edit Review</a>
+    <form class="inline-action-form" action="/account/reviews/<%= review.review_id %>/delete" method="post">
+      <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+      <button class="button button-secondary" type="submit">Delete Review</button>
+    </form>
+  </div>
 </main>
 
 <%- include("../partials/document-end") %>

@@ -19,15 +19,27 @@ import {
   findStaffOperationalBookings,
   transitionStaffBookingStatus,
 } from "../models/bookingModel.js";
-import { findReviewById } from "../models/reviewModel.js";
+import {
+  createMemberReview,
+  deleteMemberReview,
+  findReviewById,
+  findReviewableFilmsByUserId,
+  findReviewsByUserId,
+  updateMemberReview,
+} from "../models/reviewModel.js";
 
 export function createAccountRoutes(options = {}) {
   const router = express.Router();
   const memberAccountController = createMemberAccountController({
     cancelMemberBooking: options.cancelMemberBooking || cancelMemberBooking,
+    createMemberReview: options.createMemberReview || createMemberReview,
+    deleteMemberReview: options.deleteMemberReview || deleteMemberReview,
     findBookingStatusHistoryByBookingId:
       options.findBookingStatusHistoryByBookingId || findBookingStatusHistoryByBookingId,
     findBookingsByUserId: options.findBookingsByUserId || findBookingsByUserId,
+    findReviewableFilmsByUserId: options.findReviewableFilmsByUserId || findReviewableFilmsByUserId,
+    findReviewsByUserId: options.findReviewsByUserId || findReviewsByUserId,
+    updateMemberReview: options.updateMemberReview || updateMemberReview,
   });
   const staffOperationsController = createStaffOperationsController({
     findStaffOperationalBookings: options.findStaffOperationalBookings || findStaffOperationalBookings,
@@ -57,7 +69,24 @@ export function createAccountRoutes(options = {}) {
     loadOwnedBooking,
     memberAccountController.cancelBooking,
   );
+  router.get("/account/reviews/new", requireRole("member"), memberAccountController.showNewReview);
+  router.post("/account/reviews", requireRole("member"), verifyCsrfToken, memberAccountController.createReview);
   router.get("/account/reviews/:reviewId", requireRole("member"), loadOwnedReview, showMemberReviewDetail);
+  router.get("/account/reviews/:reviewId/edit", requireRole("member"), loadOwnedReview, memberAccountController.showEditReview);
+  router.post(
+    "/account/reviews/:reviewId",
+    requireRole("member"),
+    verifyCsrfToken,
+    loadOwnedReview,
+    memberAccountController.updateReview,
+  );
+  router.post(
+    "/account/reviews/:reviewId/delete",
+    requireRole("member"),
+    verifyCsrfToken,
+    loadOwnedReview,
+    memberAccountController.deleteReview,
+  );
   router.get("/staff", requireRole("staff", "owner"), staffOperationsController.showDashboard);
   router.post(
     "/staff/bookings/:bookingId/status",

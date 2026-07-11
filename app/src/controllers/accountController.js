@@ -26,6 +26,15 @@ import {
   setScreeningStatus,
   updateScreening,
 } from "../models/screeningModel.js";
+import {
+  ReviewDuplicateConflictError,
+  ReviewEligibilityConflictError,
+  createMemberReview,
+  deleteMemberReview,
+  findReviewableFilmsByUserId,
+  findReviewsByUserId,
+  updateMemberReview,
+} from "../models/reviewModel.js";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "long",
@@ -227,6 +236,13 @@ function isBookingStatusTransitionConflict(error) {
     || error?.status === 409;
 }
 
+function isReviewConflict(error) {
+  return error instanceof ReviewEligibilityConflictError
+    || error instanceof ReviewDuplicateConflictError
+    || error?.name === "ReviewEligibilityConflictError"
+    || error?.name === "ReviewDuplicateConflictError";
+}
+
 function ownerScreeningFormFromBody(body = {}) {
   return {
     capacity: normalizeText(body.capacity),
@@ -353,6 +369,71 @@ function presentBookingStatusHistoryEntry(entry) {
   };
 }
 
+function reviewFormFromBody(body = {}) {
+  return {
+    body: normalizeText(body.body),
+    filmId: normalizeText(body.filmId),
+    rating: normalizeText(body.rating),
+  };
+}
+
+function reviewFormFromRecord(review = {}) {
+  return {
+    body: review.body || "",
+    filmId: review.film_id ? String(review.film_id) : "",
+    rating: review.rating ? String(review.rating) : "",
+  };
+}
+
+function validateReviewForm(form, { requireFilm = true } = {}) {
+  const errors = {};
+
+  if (requireFilm) {
+    addRequiredError(errors, "filmId", "Film", form.filmId);
+  }
+  addRequiredError(errors, "rating", "Rating", form.rating);
+  addRequiredError(errors, "body", "Review", form.body);
+  validateLength(errors, "body", "Review", form.body, 2000);
+
+  const filmId = parseFormInteger(form.filmId);
+  if (requireFilm && form.filmId && (filmId === null || filmId <= 0)) {
+    errors.filmId ||= [];
+    errors.filmId.push("Film must be selected from your completed bookings.");
+  }
+
+  const rating = parseFormInteger(form.rating);
+  if (form.rating && (rating === null || rating < 1 || rating > 5)) {
+    errors.rating ||= [];
+    errors.rating.push("Rating must be between 1 and 5.");
+  }
+
+  return {
+    errors,
+    values: {
+      body: form.body,
+      filmId,
+      rating,
+    },
+  };
+}
+
+function presentMemberReview(review) {
+  return {
+    ...review,
+    createdAtDisplay: formatDateTime(review.created_at),
+    ratingDisplay: `${review.rating}/5`,
+    updatedAtDisplay: formatDateTime(review.updated_at),
+    visibilityDisplay: review.is_visible ? "Visible" : "Hidden",
+  };
+}
+
+function presentReviewableFilm(film) {
+  return {
+    ...film,
+    hasReview: Boolean(film.review_id),
+  };
+}
+
 function staffBookingTransitions(status) {
   if (status === "confirmed") {
     return [
@@ -422,19 +503,51 @@ function groupStaffBookingsByScreening(bookings) {
 
 export function createMemberAccountController(options = {}) {
   const cancelBooking = options.cancelMemberBooking || cancelMemberBooking;
+  const createReview = options.createMemberReview || createMemberReview;
+  const deleteReview = options.deleteMemberReview || deleteMemberReview;
   const loadBookingStatusHistory = options.findBookingStatusHistoryByBookingId || findBookingStatusHistoryByBookingId;
   const loadBookings = options.findBookingsByUserId || findBookingsByUserId;
+  const loadReviewableFilms = options.findReviewableFilmsByUserId || findReviewableFilmsByUserId;
+  const loadReviews = options.findReviewsByUserId || findReviewsByUserId;
+  const updateReview = options.updateMemberReview || updateMemberReview;
+
+  async function renderReviewForm(res, {
+    errors = {},
+    form,
+    mode,
+    review = null,
+    status = 200,
+    userId,
+  }) {
+    const reviewableFilms = (await loadReviewableFilms(userId)).map(presentReviewableFilm);
+
+    return res.status(status).render("account/review-form", {
+      errorSummary: formErrorSummary(errors),
+      errors,
+      form,
+      formAction: mode === "edit" ? `/account/reviews/${review.review_id}` : "/account/reviews",
+      mode,
+      pageDescription: mode === "edit" ? "Edit your film review." : "Write a review for a completed booking.",
+      pageTitle: mode === "edit" ? "Edit Review" : "Write Review",
+      review,
+      reviewableFilms,
+    });
+  }
 
   return {
     async showAccount(req, res, next) {
       try {
         const bookings = (await loadBookings(req.currentUser.user_id)).map(presentMemberBooking);
+        const reviews = (await loadReviews(req.currentUser.user_id)).map(presentMemberReview);
+        const reviewableFilms = (await loadReviewableFilms(req.currentUser.user_id)).map(presentReviewableFilm);
 
         return res.render("account/member-dashboard", {
           bookings,
           memberName: req.currentUser.first_name,
           pageDescription: "View your cinema account and bookings.",
           pageTitle: "My Account",
+          reviewableFilms,
+          reviews,
         });
       } catch (error) {
         return next(error);
@@ -477,6 +590,123 @@ export function createMemberAccountController(options = {}) {
           return next(error);
         }
 
+        return next(error);
+      }
+    },
+
+    async showNewReview(req, res, next) {
+      try {
+        return await renderReviewForm(res, {
+          form: reviewFormFromBody(),
+          mode: "new",
+          userId: req.currentUser.user_id,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async createReview(req, res, next) {
+      const form = reviewFormFromBody(req.body);
+      const { errors, values } = validateReviewForm(form);
+
+      if (Object.keys(errors).length) {
+        return await renderReviewForm(res, {
+          errors,
+          form,
+          mode: "new",
+          status: 400,
+          userId: req.currentUser.user_id,
+        });
+      }
+
+      try {
+        const review = await createReview({
+          body: values.body,
+          filmId: values.filmId,
+          rating: values.rating,
+          userId: req.currentUser.user_id,
+        });
+
+        return res.redirect(303, `/account/reviews/${review.review_id}`);
+      } catch (error) {
+        if (isReviewConflict(error)) {
+          return await renderReviewForm(res, {
+            errors: { filmId: [error.message] },
+            form,
+            mode: "new",
+            status: 409,
+            userId: req.currentUser.user_id,
+          });
+        }
+
+        return next(error);
+      }
+    },
+
+    async showEditReview(req, res, next) {
+      try {
+        return await renderReviewForm(res, {
+          form: reviewFormFromRecord(req.review),
+          mode: "edit",
+          review: presentMemberReview(req.review),
+          userId: req.currentUser.user_id,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async updateReview(req, res, next) {
+      const form = {
+        ...reviewFormFromRecord(req.review),
+        ...reviewFormFromBody(req.body),
+        filmId: String(req.review.film_id),
+      };
+      const { errors, values } = validateReviewForm(form, { requireFilm: false });
+
+      if (Object.keys(errors).length) {
+        return await renderReviewForm(res, {
+          errors,
+          form,
+          mode: "edit",
+          review: presentMemberReview(req.review),
+          status: 400,
+          userId: req.currentUser.user_id,
+        });
+      }
+
+      try {
+        const review = await updateReview({
+          body: values.body,
+          rating: values.rating,
+          reviewId: req.review.review_id,
+          userId: req.currentUser.user_id,
+        });
+
+        if (!review) {
+          return next(createNotFoundError("Review not found."));
+        }
+
+        return res.redirect(303, `/account/reviews/${review.review_id}`);
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async deleteReview(req, res, next) {
+      try {
+        const deleted = await deleteReview({
+          reviewId: req.review.review_id,
+          userId: req.currentUser.user_id,
+        });
+
+        if (!deleted) {
+          return next(createNotFoundError("Review not found."));
+        }
+
+        return res.redirect(303, "/account");
+      } catch (error) {
         return next(error);
       }
     },
@@ -903,11 +1133,6 @@ export function showMemberReviewDetail(req, res) {
   res.render("account/review-detail", {
     pageDescription: "View a review detail and verify ownership-protected access.",
     pageTitle: "Review Detail",
-    review: {
-      ...req.review,
-      createdAtDisplay: formatDateTime(req.review.created_at),
-      ratingDisplay: `${req.review.rating}/5`,
-      visibilityDisplay: req.review.is_visible ? "Visible" : "Hidden",
-    },
+    review: presentMemberReview(req.review),
   });
 }

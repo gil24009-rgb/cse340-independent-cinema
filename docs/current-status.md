@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: July 9, 2026
+Last updated: July 10, 2026
 
 ## Current Stage
 
@@ -41,6 +41,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the fourth Step 6 vertical slice: Member booking status timeline on booking detail, PostgreSQL-backed history ordering, missing-history fallback, and responsive timeline layout
 - Added the first Step 7 vertical slice: Staff and Owner booking status controls with CSRF protection, valid transition enforcement, and status-history append in one transaction
 - Added the second Step 7 vertical slice: Staff screening roster grouping with screening context, per-screening work summaries, preserved status actions, and mobile header reflow correction
+- Added the third Step 7 vertical slice: Member review CRUD with completed-booking eligibility, duplicate-review conflict handling, ownership-protected edit and delete, validation feedback, and Member account review list
 
 ## Verified Baseline
 
@@ -74,6 +75,11 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Member cancellation rejects unauthenticated, Staff, Owner, wrong-owner, invalid-id, missing-booking, invalid-CSRF, duplicate, and ineligible-status cases with stable responses
 - Member booking detail renders ordered `booking_status_history` entries with from-status, to-status, changed time, actor, and note
 - Member booking detail renders a stable missing-history fallback when no history rows exist
+- Member `/account` renders owned review cards and reviewable completed-booking prompts
+- Member `/account/reviews/new` creates reviews only for films with a completed booking by the same Member
+- Member review creation rejects missing film, invalid rating, blank body, invalid CSRF, ineligible films, and duplicate reviews with stable responses
+- Member `/account/reviews/:reviewId/edit` updates only the signed-in Member's own review
+- Member review deletion removes only the signed-in Member's own review and returns deleted review detail routes to `404`
 - Staff `/staff` renders operational booking rows with status controls for confirmed and checked-in bookings
 - Staff `/staff` groups operational booking rows by screening with program label, film title, screening time, booking count, action count, and screening status before individual booking actions
 - Staff booking status updates reject unauthenticated, Member, invalid-CSRF, missing-booking, and invalid-transition cases with stable responses
@@ -104,6 +110,8 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Member booking detail states verified at 1280px and 390px without horizontal overflow, including cancel form, CSRF token, cancelled status, cancelled-state copy, and status timeline
 - Staff operational booking dashboard verified at 1280px and 390px without horizontal overflow, including CSRF-protected check-in controls and post-action state
 - Staff roster grouping verified through route tests, local PostgreSQL integration tests, authenticated local SSR inspection, and headless Chrome 1280px and 390px screenshots with no detected horizontal overflow elements
+- Member review CRUD verified through route tests, PostgreSQL integration tests, authenticated local SSR checks, and headless Chrome screenshots for `/account`, `/account/reviews/new`, `/account/reviews/1/edit`, and `/account/reviews/1`
+- Headless Chrome computed layout metrics reported no horizontal overflow elements for the changed review screens. Chrome headless reported a 500px inner width during metric capture, so final 390px browser-plugin verification remains worth repeating when the in-app browser connection is stable.
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
 - Production Owner login reaches `/admin/screenings`, and the live Owner schedule renders CSRF-protected forms, active-booking disabled action, and completed-screening no-action states
@@ -241,7 +249,7 @@ Completed fifth vertical slice:
 
 Next implementation slice:
 
-- Continue Step 7 with Member review CRUD, including completed-booking eligibility and ownership failure states
+- Continue Step 7 with Staff review moderation and contact message workflow
 
 Cross-stage delivery infrastructure now available:
 
@@ -313,13 +321,32 @@ Completed first vertical slice:
 - PostgreSQL integration tests cover Staff transition history from `confirmed` to `checked_in` to `completed`
 - Local browser checks confirmed desktop and 390px mobile no-overflow behavior for the Staff booking status controls
 
+Completed second vertical slice:
+
+- `/staff` now groups operational bookings by screening before individual booking actions
+- Each screening group shows program label, film title, screening time, booking count, staff action count, and screening status
+- Existing Staff and Owner status actions keep the same CSRF-protected mutation route and transition rules
+- Automated tests cover roster context and the existing Staff status transition failure paths
+- Local SSR and headless Chrome checks confirmed the grouped roster and mobile header reflow without detected horizontal overflow elements
+
+Completed third vertical slice:
+
+- `/account` now renders Member-owned review cards beside booking history
+- `/account/reviews/new` lists completed-booking films and disables already reviewed films
+- `POST /account/reviews` requires Member role, CSRF validation, completed-booking eligibility, rating validation, nonblank body, and one review per Member per film
+- `/account/reviews/:reviewId/edit` and `POST /account/reviews/:reviewId` allow only the review owner to edit rating and body
+- `POST /account/reviews/:reviewId/delete` deletes only the review owner's review and leaves later direct access as not found
+- Automated route tests cover invalid CSRF, invalid input, ineligible film, duplicate review, create, detail, edit, wrong-owner update, update, delete, and deleted-detail `404`
+- PostgreSQL integration tests cover completed-booking eligibility, duplicate review conflict, update ownership, and delete behavior
+- Authenticated local SSR and headless Chrome screenshots covered `/account`, `/account/reviews/new`, `/account/reviews/1/edit`, and `/account/reviews/1`
+
 ## Following Stages
 
 | Step | Focus | Main Outcome |
 | --- | --- | --- |
 | 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
 | 6 | Booking and Member experience | Implemented and ready for nonblocking Director frontend review |
-| 7 | Reviews and operations | In progress: Staff booking status controls implemented; roster, reviews, moderation, messages, and Owner user management remain |
+| 7 | Reviews and operations | In progress: Staff booking operations, roster grouping, and Member review CRUD implemented; moderation, messages, and Owner user management remain |
 | 8 | Frontend refinement | Responsive design system and reference-level interface review |
 | 9 | Security and deployment | Regression testing, Render deployment, and submission documentation |
 
@@ -332,7 +359,7 @@ Completed first vertical slice:
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Production seed screening dates can age out, which can block read-only verification of future-screening workflows until the next production seed or schedule refresh.
-- Staff screening roster grouping, review CRUD, moderation, contact processing, and Owner user management remain Step 7 work.
+- Staff review moderation, contact processing, and Owner user management remain Step 7 work.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
 
 ## Working Checkpoints

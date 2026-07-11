@@ -17,6 +17,15 @@ import {
   transitionStaffBookingStatus,
 } from "../src/models/bookingModel.js";
 import { closeDatabase } from "../src/config/database.js";
+import {
+  ReviewDuplicateConflictError,
+  ReviewEligibilityConflictError,
+  createMemberReview,
+  deleteMemberReview,
+  findReviewableFilmsByUserId,
+  findReviewsByUserId,
+  updateMemberReview,
+} from "../src/models/reviewModel.js";
 
 const { Pool } = pg;
 const databaseUrl = process.env.DATABASE_URL;
@@ -224,6 +233,106 @@ integrationTest("member booking creation writes initial history and protects cap
     await pool.query("DELETE FROM bookings WHERE user_id IN ($1, $2)", [userId, otherUserId]);
     await pool.query("DELETE FROM screenings WHERE screening_id IN ($1, $2)", [openScreeningId, fullScreeningId]);
     await pool.query("DELETE FROM users WHERE user_id IN ($1, $2)", [userId, otherUserId]);
+  }
+});
+
+integrationTest("member reviews require completed bookings and preserve ownership", async () => {
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const email = `review-${suffix}@cinema.test`;
+  const userResult = await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, last_name, role)
+     VALUES ($1, $2, $3, $4, 'member')
+     RETURNING user_id`,
+    [email, "hash", "Review", "Member"],
+  );
+  const userId = userResult.rows[0].user_id;
+  const filmResult = await pool.query("SELECT film_id FROM films WHERE is_archived = FALSE ORDER BY film_id LIMIT 1");
+  const filmId = filmResult.rows[0].film_id;
+  const otherFilmResult = await pool.query(
+    "SELECT film_id FROM films WHERE is_archived = FALSE AND film_id <> $1 ORDER BY film_id DESC LIMIT 1",
+    [filmId],
+  );
+  const otherFilmId = otherFilmResult.rows[0].film_id;
+  const screeningResult = await pool.query(
+    `INSERT INTO screenings (film_id, starts_at, capacity, ticket_price_cents, status)
+     VALUES ($1, CURRENT_TIMESTAMP - INTERVAL '2 days', 60, 1200, 'completed')
+     RETURNING screening_id`,
+    [filmId],
+  );
+  const screeningId = screeningResult.rows[0].screening_id;
+  const bookingResult = await pool.query(
+    `INSERT INTO bookings (user_id, screening_id, status, booked_at)
+     VALUES ($1, $2, 'completed', CURRENT_TIMESTAMP - INTERVAL '3 days')
+     RETURNING booking_id`,
+    [userId, screeningId],
+  );
+  const bookingId = bookingResult.rows[0].booking_id;
+
+  try {
+    const reviewableFilms = await findReviewableFilmsByUserId(userId);
+    assert.equal(reviewableFilms.some((film) => film.film_id === filmId && film.review_id === null), true);
+
+    await assert.rejects(
+      createMemberReview({
+        body: "This should be blocked.",
+        filmId: otherFilmId,
+        rating: 4,
+        userId,
+      }),
+      ReviewEligibilityConflictError,
+    );
+
+    const review = await createMemberReview({
+      body: "A measured review after a completed booking.",
+      filmId,
+      rating: 5,
+      userId,
+    });
+    assert.equal(review.user_id, userId);
+    assert.equal(review.film_id, filmId);
+    assert.equal(review.rating, 5);
+
+    const memberReviews = await findReviewsByUserId(userId);
+    assert.equal(memberReviews.length, 1);
+    assert.equal(memberReviews[0].body, "A measured review after a completed booking.");
+
+    await assert.rejects(
+      createMemberReview({
+        body: "Duplicate review attempt.",
+        filmId,
+        rating: 4,
+        userId,
+      }),
+      ReviewDuplicateConflictError,
+    );
+
+    const updated = await updateMemberReview({
+      body: "Updated after a second look.",
+      rating: 4,
+      reviewId: review.review_id,
+      userId,
+    });
+    assert.equal(updated.rating, 4);
+    assert.equal(updated.body, "Updated after a second look.");
+
+    const wrongOwnerUpdate = await updateMemberReview({
+      body: "Wrong owner update.",
+      rating: 1,
+      reviewId: review.review_id,
+      userId: userId + 9999,
+    });
+    assert.equal(wrongOwnerUpdate, null);
+
+    const deleted = await deleteMemberReview({ reviewId: review.review_id, userId });
+    assert.equal(deleted.review_id, review.review_id);
+
+    const missingAfterDelete = await findReviewsByUserId(userId);
+    assert.equal(missingAfterDelete.length, 0);
+  } finally {
+    await pool.query("DELETE FROM reviews WHERE user_id = $1", [userId]);
+    await pool.query("DELETE FROM bookings WHERE booking_id = $1", [bookingId]);
+    await pool.query("DELETE FROM screenings WHERE screening_id = $1", [screeningId]);
+    await pool.query("DELETE FROM users WHERE user_id = $1", [userId]);
   }
 });
 

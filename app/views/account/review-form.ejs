@@ -1,0 +1,94 @@
+<%- include("../partials/document-head") %>
+
+<% const filmErrorId = errors.filmId ? "review-film-error" : ""; %>
+<% const ratingErrorId = errors.rating ? "review-rating-error" : ""; %>
+<% const bodyErrorId = errors.body ? "review-body-error" : ""; %>
+<% const bodyDescribedBy = [bodyErrorId, "review-body-hint"].filter(Boolean).join(" "); %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading">
+    <p class="eyebrow">Member reviews</p>
+    <h1><%= mode === "edit" ? "Edit your review." : "Write a film review." %></h1>
+    <p>Reviews are available after a completed booking and remain tied to your Member account.</p>
+  </header>
+
+  <form class="auth-form owner-form" action="<%= formAction %>" method="post" novalidate>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+
+    <% if (errorSummary.length) { %>
+      <div class="error-summary" role="alert" aria-labelledby="review-errors-title" tabindex="-1">
+        <h2 id="review-errors-title">Please correct the following:</h2>
+        <ul>
+          <% errorSummary.forEach((message) => { %>
+            <li><%= message %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <% if (mode === "new") { %>
+      <label for="filmId">Film</label>
+      <select
+        id="filmId"
+        name="filmId"
+        aria-invalid="<%= errors.filmId ? 'true' : 'false' %>"
+        <%- filmErrorId ? `aria-describedby="${filmErrorId}"` : "" %>
+      >
+        <option value="">Choose a completed film</option>
+        <% reviewableFilms.forEach((film) => { %>
+          <option
+            value="<%= film.film_id %>"
+            <%= String(film.film_id) === String(form.filmId) ? "selected" : "" %>
+            <%= film.hasReview ? "disabled" : "" %>
+          >
+            <%= film.film_title %><%= film.hasReview ? " (already reviewed)" : "" %>
+          </option>
+        <% }) %>
+      </select>
+      <% if (errors.filmId) { %>
+        <p class="field-error" id="<%= filmErrorId %>"><%= errors.filmId[0] %></p>
+      <% } %>
+    <% } else { %>
+      <div class="form-readonly-summary">
+        <p class="eyebrow">Film</p>
+        <h2><%= review.film_title %></h2>
+      </div>
+    <% } %>
+
+    <label for="rating">Rating</label>
+    <select
+      id="rating"
+      name="rating"
+      aria-invalid="<%= errors.rating ? 'true' : 'false' %>"
+      <%- ratingErrorId ? `aria-describedby="${ratingErrorId}"` : "" %>
+    >
+      <option value="">Choose a rating</option>
+      <% [5, 4, 3, 2, 1].forEach((rating) => { %>
+        <option value="<%= rating %>" <%= String(rating) === String(form.rating) ? "selected" : "" %>><%= rating %>/5</option>
+      <% }) %>
+    </select>
+    <% if (errors.rating) { %>
+      <p class="field-error" id="<%= ratingErrorId %>"><%= errors.rating[0] %></p>
+    <% } %>
+
+    <label for="body">Review</label>
+    <textarea
+      id="body"
+      name="body"
+      rows="7"
+      aria-invalid="<%= errors.body ? 'true' : 'false' %>"
+      aria-describedby="<%= bodyDescribedBy %>"
+    ><%= form.body %></textarea>
+    <p class="field-hint" id="review-body-hint">Write 1 to 2000 characters. Your review is escaped before display.</p>
+    <% if (errors.body) { %>
+      <p class="field-error" id="<%= bodyErrorId %>"><%= errors.body[0] %></p>
+    <% } %>
+
+    <div class="form-actions">
+      <button class="button button-primary" type="submit"><%= mode === "edit" ? "Save Review" : "Create Review" %></button>
+      <a class="button button-secondary" href="/account">Back to Account</a>
+    </div>
+  </form>
+</main>
+
+<%- include("../partials/document-end") %>
