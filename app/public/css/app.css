@@ -46,6 +46,15 @@ a {
   transform: translateY(0);
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .site-shell {
   min-height: 100vh;
 }
@@ -590,6 +599,11 @@ h3 {
   grid-template-columns: minmax(260px, 1.25fr) minmax(180px, 0.75fr) minmax(120px, 0.45fr) minmax(220px, 0.9fr);
 }
 
+.staff-review-row,
+.staff-message-row {
+  grid-template-columns: minmax(280px, 1.3fr) minmax(180px, 0.7fr) minmax(160px, 0.65fr) minmax(240px, 0.95fr);
+}
+
 .staff-screening-roster {
   display: grid;
   gap: 2rem;
@@ -668,6 +682,22 @@ h3 {
 .owner-actions form {
   justify-self: auto;
   margin: 0;
+}
+
+.staff-note-action {
+  display: grid;
+  gap: 0.6rem;
+  min-width: min(100%, 240px);
+}
+
+.staff-note-action input {
+  width: 100%;
+  min-height: 2.8rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.65rem;
+  color: var(--ink);
+  font: inherit;
 }
 
 .owner-row button:disabled {
@@ -1232,6 +1262,8 @@ h3 {
 
   .owner-row,
   .staff-booking-row,
+  .staff-review-row,
+  .staff-message-row,
   .owner-table .status-header {
     grid-template-columns: 1fr;
   }

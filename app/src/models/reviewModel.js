@@ -63,6 +63,36 @@ export async function findReviewsByUserId(userId) {
   return result.rows;
 }
 
+export async function findStaffReviewModerationQueue() {
+  const result = await query(
+    `SELECT
+      r.review_id,
+      r.user_id,
+      r.film_id,
+      r.rating,
+      r.body,
+      r.is_visible,
+      r.moderated_by_user_id,
+      r.moderation_note,
+      r.created_at,
+      r.updated_at,
+      f.title AS film_title,
+      u.email AS member_email,
+      u.first_name AS member_first_name,
+      u.last_name AS member_last_name,
+      moderator.email AS moderator_email,
+      moderator.first_name AS moderator_first_name,
+      moderator.last_name AS moderator_last_name
+    FROM reviews r
+    JOIN films f ON f.film_id = r.film_id
+    JOIN users u ON u.user_id = r.user_id
+    LEFT JOIN users moderator ON moderator.user_id = r.moderated_by_user_id
+    ORDER BY r.is_visible DESC, r.updated_at DESC, r.review_id DESC`,
+  );
+
+  return result.rows;
+}
+
 export async function findReviewableFilmsByUserId(userId) {
   const result = await query(
     `SELECT DISTINCT
@@ -139,6 +169,25 @@ export async function deleteMemberReview({ reviewId, userId }) {
        AND user_id = $2
      RETURNING review_id`,
     [reviewId, userId],
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function setReviewVisibility({
+  isVisible,
+  moderationNote,
+  moderatedByUserId,
+  reviewId,
+}) {
+  const result = await query(
+    `UPDATE reviews
+     SET is_visible = $2,
+       moderated_by_user_id = $3,
+       moderation_note = $4
+     WHERE review_id = $1
+     RETURNING review_id, user_id, film_id, rating, body, is_visible, moderated_by_user_id, moderation_note, created_at, updated_at`,
+    [reviewId, isVisible, moderatedByUserId, moderationNote],
   );
 
   return result.rows[0] || null;

@@ -24,8 +24,14 @@ import {
   deleteMemberReview,
   findReviewableFilmsByUserId,
   findReviewsByUserId,
+  findStaffReviewModerationQueue,
+  setReviewVisibility,
   updateMemberReview,
 } from "../src/models/reviewModel.js";
+import {
+  findStaffContactMessages,
+  updateContactMessageStatus,
+} from "../src/models/contactMessageModel.js";
 
 const { Pool } = pg;
 const databaseUrl = process.env.DATABASE_URL;
@@ -332,6 +338,90 @@ integrationTest("member reviews require completed bookings and preserve ownershi
     await pool.query("DELETE FROM reviews WHERE user_id = $1", [userId]);
     await pool.query("DELETE FROM bookings WHERE booking_id = $1", [bookingId]);
     await pool.query("DELETE FROM screenings WHERE screening_id = $1", [screeningId]);
+    await pool.query("DELETE FROM users WHERE user_id = $1", [userId]);
+  }
+});
+
+integrationTest("staff review moderation and contact message processing update operational fields", async () => {
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const memberEmail = `moderation-member-${suffix}@cinema.test`;
+  const staffResult = await pool.query("SELECT user_id FROM users WHERE role = 'staff' ORDER BY user_id LIMIT 1");
+  const ownerResult = await pool.query("SELECT user_id FROM users WHERE role = 'owner' ORDER BY user_id LIMIT 1");
+  const staffUserId = staffResult.rows[0].user_id;
+  const ownerUserId = ownerResult.rows[0].user_id;
+  const userResult = await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, last_name, role)
+     VALUES ($1, $2, $3, $4, 'member')
+     RETURNING user_id`,
+    [memberEmail, "hash", "Moderation", "Member"],
+  );
+  const userId = userResult.rows[0].user_id;
+  const filmResult = await pool.query("SELECT film_id FROM films WHERE is_archived = FALSE ORDER BY film_id LIMIT 1");
+  const filmId = filmResult.rows[0].film_id;
+  const reviewResult = await pool.query(
+    `INSERT INTO reviews (user_id, film_id, rating, body)
+     VALUES ($1, $2, 4, $3)
+     RETURNING review_id`,
+    [userId, filmId, "Needs a staff visibility decision."],
+  );
+  const reviewId = reviewResult.rows[0].review_id;
+  const messageResult = await pool.query(
+    `INSERT INTO contact_messages (user_id, name, email, subject, body)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING message_id`,
+    [userId, "Moderation Member", memberEmail, "Private screening", "Can staff confirm a private screening option?"],
+  );
+  const messageId = messageResult.rows[0].message_id;
+
+  try {
+    const queue = await findStaffReviewModerationQueue();
+    assert.equal(queue.some((review) => review.review_id === reviewId && review.member_email === memberEmail), true);
+
+    const hidden = await setReviewVisibility({
+      isVisible: false,
+      moderatedByUserId: staffUserId,
+      moderationNote: "Hidden while staff reviews tone.",
+      reviewId,
+    });
+    assert.equal(hidden.is_visible, false);
+    assert.equal(hidden.moderated_by_user_id, staffUserId);
+    assert.equal(hidden.moderation_note, "Hidden while staff reviews tone.");
+
+    const restored = await setReviewVisibility({
+      isVisible: true,
+      moderatedByUserId: ownerUserId,
+      moderationNote: "Restored after review.",
+      reviewId,
+    });
+    assert.equal(restored.is_visible, true);
+    assert.equal(restored.moderated_by_user_id, ownerUserId);
+    assert.equal(restored.moderation_note, "Restored after review.");
+
+    const messages = await findStaffContactMessages();
+    assert.equal(messages.some((message) => message.message_id === messageId && message.status === "new"), true);
+
+    const inProgress = await updateContactMessageStatus({
+      assignedToUserId: staffUserId,
+      messageId,
+      staffNote: "Checking the request.",
+      status: "in_progress",
+    });
+    assert.equal(inProgress.status, "in_progress");
+    assert.equal(inProgress.assigned_to_user_id, staffUserId);
+    assert.equal(inProgress.staff_note, "Checking the request.");
+
+    const closed = await updateContactMessageStatus({
+      assignedToUserId: ownerUserId,
+      messageId,
+      staffNote: "Reply sent.",
+      status: "closed",
+    });
+    assert.equal(closed.status, "closed");
+    assert.equal(closed.assigned_to_user_id, ownerUserId);
+    assert.equal(closed.staff_note, "Reply sent.");
+  } finally {
+    await pool.query("DELETE FROM contact_messages WHERE message_id = $1", [messageId]);
+    await pool.query("DELETE FROM reviews WHERE review_id = $1", [reviewId]);
     await pool.query("DELETE FROM users WHERE user_id = $1", [userId]);
   }
 });

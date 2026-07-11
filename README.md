@@ -82,7 +82,7 @@ pnpm test
 
 ## Current Stage
 
-Steps 1 through 6 are complete for Phase A handoff and Step 7 operations are in progress. Public discovery, contact intake, Owner film and screening management, transaction-safe Member booking creation, Member booking history, Member-owned cancellation, Member booking status timeline, Staff booking operations, and Member review CRUD now render PostgreSQL-backed behavior with stable not-found, empty, validation, success, authorization, conflict, and error states. See [Current Status](docs/current-status.md) for the exact next slice and verification baseline.
+Steps 1 through 6 are complete for Phase A handoff and Step 7 operations are in progress. Public discovery, contact intake, Owner film and screening management, transaction-safe Member booking creation, Member booking history, Member-owned cancellation, Member booking status timeline, Staff booking operations, Member review CRUD, Staff review moderation, and Staff contact message processing now render PostgreSQL-backed behavior with stable not-found, empty, validation, success, authorization, conflict, and error states. See [Current Status](docs/current-status.md) for the exact next slice and verification baseline.
 
 ## Deployment
 

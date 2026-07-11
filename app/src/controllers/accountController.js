@@ -16,6 +16,10 @@ import {
   transitionStaffBookingStatus,
 } from "../models/bookingModel.js";
 import {
+  findStaffContactMessages,
+  updateContactMessageStatus,
+} from "../models/contactMessageModel.js";
+import {
   createScreening,
   findOwnerScreeningById,
   findOwnerScreeningFilmOptions,
@@ -33,6 +37,8 @@ import {
   deleteMemberReview,
   findReviewableFilmsByUserId,
   findReviewsByUserId,
+  findStaffReviewModerationQueue,
+  setReviewVisibility,
   updateMemberReview,
 } from "../models/reviewModel.js";
 
@@ -385,6 +391,16 @@ function reviewFormFromRecord(review = {}) {
   };
 }
 
+function moderationNoteFromBody(body = {}, isVisible) {
+  const note = normalizeText(body.moderationNote);
+
+  if (note) {
+    return note;
+  }
+
+  return isVisible ? "Restored by staff moderation." : "Hidden by staff moderation.";
+}
+
 function validateReviewForm(form, { requireFilm = true } = {}) {
   const errors = {};
 
@@ -424,6 +440,60 @@ function presentMemberReview(review) {
     ratingDisplay: `${review.rating}/5`,
     updatedAtDisplay: formatDateTime(review.updated_at),
     visibilityDisplay: review.is_visible ? "Visible" : "Hidden",
+  };
+}
+
+function presentStaffReview(review) {
+  const memberName = [review.member_first_name, review.member_last_name].filter(Boolean).join(" ");
+  const moderatorName = [review.moderator_first_name, review.moderator_last_name].filter(Boolean).join(" ");
+
+  return {
+    ...review,
+    createdAtDisplay: formatDateTime(review.created_at),
+    memberDisplay: memberName || review.member_email || "Member account",
+    moderatorDisplay: moderatorName || review.moderator_email || null,
+    ratingDisplay: `${review.rating}/5`,
+    updatedAtDisplay: formatDateTime(review.updated_at),
+    visibilityActionLabel: review.is_visible ? "Hide Review" : "Restore Review",
+    visibilityDisplay: review.is_visible ? "Visible" : "Hidden",
+    visibilityValue: review.is_visible ? "false" : "true",
+  };
+}
+
+function isAllowedContactMessageStatus(value) {
+  return value === "new" || value === "in_progress" || value === "closed";
+}
+
+function contactMessageActions(status) {
+  if (status === "new") {
+    return [
+      ["in_progress", "Start"],
+      ["closed", "Close"],
+    ];
+  }
+
+  if (status === "in_progress") {
+    return [
+      ["closed", "Close"],
+      ["new", "Reopen"],
+    ];
+  }
+
+  return [
+    ["in_progress", "Reopen"],
+  ];
+}
+
+function presentContactMessage(message) {
+  const assigneeName = [message.assignee_first_name, message.assignee_last_name].filter(Boolean).join(" ");
+
+  return {
+    ...message,
+    actions: contactMessageActions(message.status),
+    assigneeDisplay: assigneeName || message.assignee_email || "Unassigned",
+    createdAtDisplay: formatDateTime(message.created_at),
+    statusDisplay: formatStatus(message.status),
+    updatedAtDisplay: formatDateTime(message.updated_at),
   };
 }
 
@@ -715,18 +785,26 @@ export function createMemberAccountController(options = {}) {
 
 export function createStaffOperationsController(options = {}) {
   const loadBookings = options.findStaffOperationalBookings || findStaffOperationalBookings;
+  const loadContactMessages = options.findStaffContactMessages || findStaffContactMessages;
+  const loadReviews = options.findStaffReviewModerationQueue || findStaffReviewModerationQueue;
+  const saveContactMessageStatus = options.updateContactMessageStatus || updateContactMessageStatus;
+  const saveReviewVisibility = options.setReviewVisibility || setReviewVisibility;
   const transitionBookingStatus = options.transitionStaffBookingStatus || transitionStaffBookingStatus;
 
   return {
     async showDashboard(req, res, next) {
       try {
         const bookings = (await loadBookings()).map(presentStaffBooking);
+        const contactMessages = (await loadContactMessages()).map(presentContactMessage);
+        const reviews = (await loadReviews()).map(presentStaffReview);
         const screeningGroups = groupStaffBookingsByScreening(bookings);
 
         return res.render("account/staff-dashboard", {
           bookings,
-          pageDescription: "Manage booking check-in and operational status.",
+          contactMessages,
+          pageDescription: "Manage booking check-in, review moderation, and contact messages.",
           pageTitle: "Staff Operations",
+          reviews,
           screeningGroups,
           staffName: req.currentUser.first_name,
         });
@@ -760,6 +838,59 @@ export function createStaffOperationsController(options = {}) {
           return next(error);
         }
 
+        return next(error);
+      }
+    },
+
+    async updateReviewVisibility(req, res, next) {
+      const reviewId = parsePositiveInteger(req.params?.reviewId);
+      const isVisibleValue = normalizeText(req.body?.isVisible);
+
+      if (!reviewId || (isVisibleValue !== "true" && isVisibleValue !== "false")) {
+        return next(createNotFoundError("Review not found."));
+      }
+
+      try {
+        const review = await saveReviewVisibility({
+          isVisible: toBoolean(isVisibleValue),
+          moderatedByUserId: req.currentUser.user_id,
+          moderationNote: moderationNoteFromBody(req.body, toBoolean(isVisibleValue)),
+          reviewId,
+        });
+
+        if (!review) {
+          return next(createNotFoundError("Review not found."));
+        }
+
+        return res.redirect(303, "/staff");
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async updateContactMessage(req, res, next) {
+      const messageId = parsePositiveInteger(req.params?.messageId);
+      const status = normalizeText(req.body?.status);
+      const staffNote = normalizeText(req.body?.staffNote) || null;
+
+      if (!messageId || !isAllowedContactMessageStatus(status)) {
+        return next(createNotFoundError("Contact message not found."));
+      }
+
+      try {
+        const message = await saveContactMessageStatus({
+          assignedToUserId: status === "new" ? null : req.currentUser.user_id,
+          messageId,
+          staffNote,
+          status,
+        });
+
+        if (!message) {
+          return next(createNotFoundError("Contact message not found."));
+        }
+
+        return res.redirect(303, "/staff");
+      } catch (error) {
         return next(error);
       }
     },

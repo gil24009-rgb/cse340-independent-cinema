@@ -109,6 +109,8 @@ const reviews = [
     film_id: 3,
     film_title: "Microhabitat",
     is_visible: true,
+    moderated_by_user_id: null,
+    moderation_note: null,
     rating: 5,
     review_id: 1,
     updated_at: "2026-06-09T18:30:00.000Z",
@@ -120,10 +122,42 @@ const reviews = [
     film_id: 2,
     film_title: "Little Forest",
     is_visible: true,
+    moderated_by_user_id: null,
+    moderation_note: null,
     rating: 4,
     review_id: 2,
     updated_at: "2026-06-11T18:30:00.000Z",
     user_id: 4,
+  },
+];
+const contactMessages = [
+  {
+    assigned_to_user_id: null,
+    body: "Is it possible to reserve a future screening for a student group?",
+    created_at: "2026-06-12T18:30:00.000Z",
+    email: "daniel@example.com",
+    message_id: 1,
+    name: "Daniel Cho",
+    requester_email: null,
+    staff_note: null,
+    status: "new",
+    subject: "Group screening question",
+    updated_at: "2026-06-12T18:30:00.000Z",
+    user_id: null,
+  },
+  {
+    assigned_to_user_id: 2,
+    body: "I would like more information about accessible seating and arrival time.",
+    created_at: "2026-06-13T18:30:00.000Z",
+    email: "member@cinema.test",
+    message_id: 2,
+    name: "Sora Kim",
+    requester_email: "member@cinema.test",
+    staff_note: "Confirming current accessibility guidance before replying.",
+    status: "in_progress",
+    subject: "Accessibility information",
+    updated_at: "2026-06-13T19:30:00.000Z",
+    user_id: 1,
   },
 ];
 const films = [
@@ -468,6 +502,74 @@ async function deleteMemberReview({ reviewId, userId }) {
   return deleted;
 }
 
+async function findStaffReviewModerationQueue() {
+  return reviews.map((review) => {
+    const member = users.find((user) => user.user_id === review.user_id);
+    const moderator = users.find((user) => user.user_id === review.moderated_by_user_id);
+
+    return {
+      ...review,
+      member_email: member?.email || "other@cinema.test",
+      member_first_name: member?.first_name || "Other",
+      member_last_name: member?.last_name || "Member",
+      moderator_email: moderator?.email || null,
+      moderator_first_name: moderator?.first_name || null,
+      moderator_last_name: moderator?.last_name || null,
+    };
+  });
+}
+
+async function setReviewVisibility({
+  isVisible,
+  moderatedByUserId,
+  moderationNote,
+  reviewId,
+}) {
+  const review = reviews.find((candidate) => candidate.review_id === reviewId);
+
+  if (!review) {
+    return null;
+  }
+
+  review.is_visible = isVisible;
+  review.moderated_by_user_id = moderatedByUserId;
+  review.moderation_note = moderationNote;
+  review.updated_at = "2026-07-11T21:00:00.000Z";
+  return review;
+}
+
+async function findStaffContactMessages() {
+  return contactMessages.map((message) => {
+    const assignee = users.find((user) => user.user_id === message.assigned_to_user_id);
+
+    return {
+      ...message,
+      assignee_email: assignee?.email || null,
+      assignee_first_name: assignee?.first_name || null,
+      assignee_last_name: assignee?.last_name || null,
+    };
+  });
+}
+
+async function updateContactMessageStatus({
+  assignedToUserId,
+  messageId,
+  staffNote,
+  status,
+}) {
+  const message = contactMessages.find((candidate) => candidate.message_id === messageId);
+
+  if (!message) {
+    return null;
+  }
+
+  message.assigned_to_user_id = assignedToUserId;
+  message.staff_note = staffNote;
+  message.status = status;
+  message.updated_at = "2026-07-11T21:05:00.000Z";
+  return message;
+}
+
 async function findOwnerFilms() {
   return films;
 }
@@ -756,7 +858,9 @@ before(async () => {
       findBookingById,
       findBookingStatusHistoryByBookingId,
       findBookingsByUserId,
+      findStaffContactMessages,
       findStaffOperationalBookings,
+      findStaffReviewModerationQueue,
       findOwnerFilmById,
       findOwnerFilms,
       findOwnerScreeningById,
@@ -766,8 +870,10 @@ before(async () => {
       findReviewableFilmsByUserId,
       findReviewsByUserId,
       setFilmArchived,
+      setReviewVisibility,
       setScreeningStatus,
       transitionStaffBookingStatus,
+      updateContactMessageStatus,
       updateFilm,
       updateMemberReview,
       updateScreening,
@@ -1091,6 +1197,146 @@ test("staff dashboard updates booking status with CSRF and appends history", asy
       bookingStatusHistory.splice(index, 1);
     }
   }
+});
+
+test("staff dashboard moderates reviews and processes contact messages", async () => {
+  const memberLogin = await login("member@cinema.test");
+  const memberReviewPost = await request("/staff/reviews/1/visibility", {
+    body: new URLSearchParams({ csrfToken: "invalid", isVisible: "false" }),
+    headers: {
+      cookie: memberLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(memberReviewPost.status, 403);
+
+  const staffLogin = await login("staff@cinema.test");
+  const dashboard = await request("/staff", { headers: { cookie: staffLogin.cookie } });
+  const dashboardBody = await dashboard.text();
+  const csrfToken = csrfFrom(dashboardBody);
+  assert.equal(dashboard.status, 200);
+  assert.match(dashboardBody, /Member reviews/);
+  assert.match(dashboardBody, /Review moderation queue/);
+  assert.match(dashboardBody, /A precise and quietly moving film/);
+  assert.match(dashboardBody, /Message queue/);
+  assert.match(dashboardBody, /Group screening question/);
+  assert.match(dashboardBody, /Accessibility information/);
+  assert.ok(csrfToken);
+
+  const invalidReviewCsrf = await request("/staff/reviews/1/visibility", {
+    body: new URLSearchParams({ csrfToken: "invalid", isVisible: "false" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidReviewCsrf.status, 403);
+
+  const invalidReviewAction = await request("/staff/reviews/1/visibility", {
+    body: new URLSearchParams({ csrfToken, isVisible: "maybe" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidReviewAction.status, 404);
+
+  const hideReview = await request("/staff/reviews/1/visibility", {
+    body: new URLSearchParams({ csrfToken, isVisible: "false", moderationNote: "Contains a spoiler." }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(hideReview.status, 303);
+  assert.equal(hideReview.headers.get("location"), "/staff");
+  assert.equal(reviews[0].is_visible, false);
+  assert.equal(reviews[0].moderated_by_user_id, 2);
+  assert.equal(reviews[0].moderation_note, "Contains a spoiler.");
+
+  const missingReview = await request("/staff/reviews/999/visibility", {
+    body: new URLSearchParams({ csrfToken, isVisible: "true" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(missingReview.status, 404);
+
+  const memberMessagePost = await request("/staff/messages/1/status", {
+    body: new URLSearchParams({ csrfToken: "invalid", status: "in_progress" }),
+    headers: {
+      cookie: memberLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(memberMessagePost.status, 403);
+
+  const invalidMessageStatus = await request("/staff/messages/1/status", {
+    body: new URLSearchParams({ csrfToken, status: "waiting" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidMessageStatus.status, 404);
+
+  const startMessage = await request("/staff/messages/1/status", {
+    body: new URLSearchParams({ csrfToken, status: "in_progress", staffNote: "Checking group availability." }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(startMessage.status, 303);
+  assert.equal(startMessage.headers.get("location"), "/staff");
+  assert.equal(contactMessages[0].status, "in_progress");
+  assert.equal(contactMessages[0].assigned_to_user_id, 2);
+  assert.equal(contactMessages[0].staff_note, "Checking group availability.");
+
+  const ownerLogin = await login("owner@cinema.test");
+  const ownerDashboard = await request("/staff", { headers: { cookie: ownerLogin.cookie } });
+  const ownerCsrfToken = csrfFrom(await ownerDashboard.text());
+  const restoreReview = await request("/staff/reviews/1/visibility", {
+    body: new URLSearchParams({ csrfToken: ownerCsrfToken, isVisible: "true", moderationNote: "Spoiler removed." }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(restoreReview.status, 303);
+  assert.equal(reviews[0].is_visible, true);
+  assert.equal(reviews[0].moderated_by_user_id, 3);
+  assert.equal(reviews[0].moderation_note, "Spoiler removed.");
+
+  const closeMessage = await request("/staff/messages/1/status", {
+    body: new URLSearchParams({ csrfToken: ownerCsrfToken, status: "closed", staffNote: "Reply sent." }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(closeMessage.status, 303);
+  assert.equal(contactMessages[0].status, "closed");
+  assert.equal(contactMessages[0].assigned_to_user_id, 3);
+  assert.equal(contactMessages[0].staff_note, "Reply sent.");
+
+  reviews[0].is_visible = true;
+  reviews[0].moderated_by_user_id = null;
+  reviews[0].moderation_note = null;
+  contactMessages[0].status = "new";
+  contactMessages[0].assigned_to_user_id = null;
+  contactMessages[0].staff_note = null;
 });
 
 test("owner film create and edit forms validate input and preserve public catalog data", async () => {

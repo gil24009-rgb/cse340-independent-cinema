@@ -20,11 +20,17 @@ import {
   transitionStaffBookingStatus,
 } from "../models/bookingModel.js";
 import {
+  findStaffContactMessages,
+  updateContactMessageStatus,
+} from "../models/contactMessageModel.js";
+import {
   createMemberReview,
   deleteMemberReview,
   findReviewById,
   findReviewableFilmsByUserId,
   findReviewsByUserId,
+  findStaffReviewModerationQueue,
+  setReviewVisibility,
   updateMemberReview,
 } from "../models/reviewModel.js";
 
@@ -42,8 +48,12 @@ export function createAccountRoutes(options = {}) {
     updateMemberReview: options.updateMemberReview || updateMemberReview,
   });
   const staffOperationsController = createStaffOperationsController({
+    findStaffContactMessages: options.findStaffContactMessages || findStaffContactMessages,
     findStaffOperationalBookings: options.findStaffOperationalBookings || findStaffOperationalBookings,
+    findStaffReviewModerationQueue: options.findStaffReviewModerationQueue || findStaffReviewModerationQueue,
+    setReviewVisibility: options.setReviewVisibility || setReviewVisibility,
     transitionStaffBookingStatus: options.transitionStaffBookingStatus || transitionStaffBookingStatus,
+    updateContactMessageStatus: options.updateContactMessageStatus || updateContactMessageStatus,
   });
   const ownerFilmController = createOwnerFilmController(options);
   const ownerScreeningController = createOwnerScreeningController(options);
@@ -93,6 +103,18 @@ export function createAccountRoutes(options = {}) {
     requireRole("staff", "owner"),
     verifyCsrfToken,
     staffOperationsController.updateBookingStatus,
+  );
+  router.post(
+    "/staff/reviews/:reviewId/visibility",
+    requireRole("staff", "owner"),
+    verifyCsrfToken,
+    staffOperationsController.updateReviewVisibility,
+  );
+  router.post(
+    "/staff/messages/:messageId/status",
+    requireRole("staff", "owner"),
+    verifyCsrfToken,
+    staffOperationsController.updateContactMessage,
   );
   router.get("/admin", requireRole("owner"), showOwnerAccount);
   router.get("/admin/films", requireRole("owner"), ownerFilmController.showFilms);

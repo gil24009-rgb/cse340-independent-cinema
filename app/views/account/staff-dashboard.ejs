@@ -4,7 +4,7 @@
   <section class="page-heading">
     <p class="eyebrow">Staff operations</p>
     <h1>Welcome, <%= staffName %>.</h1>
-    <p>Check in Members and keep booking status history current for the front desk workflow.</p>
+    <p>Check in Members, moderate public reviews, and keep contact messages moving from the same operational desk.</p>
   </section>
 
   <section class="page-section" aria-labelledby="staff-bookings-heading">
@@ -80,6 +80,123 @@
         <p class="eyebrow">No operational bookings</p>
         <h3>No bookings need staff action.</h3>
         <p>Confirmed and checked-in bookings will appear here when there is work for the front desk.</p>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="page-section" aria-labelledby="staff-reviews-heading">
+    <div class="section-heading section-heading-stack">
+      <div>
+        <p class="eyebrow">Review moderation</p>
+        <h2 id="staff-reviews-heading">Member reviews</h2>
+      </div>
+    </div>
+
+    <% if (reviews.length > 0) { %>
+      <div class="status-table staff-review-table" role="table" aria-label="Review moderation queue">
+        <div class="status-row status-header staff-review-row" role="row">
+          <span role="columnheader">Review</span>
+          <span role="columnheader">Member</span>
+          <span role="columnheader">Visibility</span>
+          <span role="columnheader">Actions</span>
+        </div>
+        <% reviews.forEach((review) => { %>
+          <div class="status-row staff-review-row" role="row">
+            <div role="cell">
+              <h3><%= review.film_title %></h3>
+              <p class="owner-row-note"><%= review.ratingDisplay %> · Updated <%= review.updatedAtDisplay %></p>
+              <p><%= review.body %></p>
+            </div>
+            <div role="cell">
+              <strong><%= review.memberDisplay %></strong>
+              <p class="owner-row-note"><%= review.member_email %></p>
+            </div>
+            <div role="cell">
+              <span class="status-badge"><%= review.visibilityDisplay %></span>
+              <% if (review.moderation_note) { %>
+                <p class="owner-row-note"><%= review.moderation_note %></p>
+              <% } %>
+              <% if (review.moderatorDisplay) { %>
+                <p class="owner-row-note">Last moderated by <%= review.moderatorDisplay %></p>
+              <% } %>
+            </div>
+            <div class="owner-actions" role="cell">
+              <form class="staff-note-action" action="/staff/reviews/<%= review.review_id %>/visibility" method="post">
+                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                <input type="hidden" name="isVisible" value="<%= review.visibilityValue %>" />
+                <label class="visually-hidden" for="review-note-<%= review.review_id %>">Moderation note for review <%= review.review_id %></label>
+                <input id="review-note-<%= review.review_id %>" name="moderationNote" type="text" maxlength="500" placeholder="Optional note" />
+                <button class="button button-secondary" type="submit"><%= review.visibilityActionLabel %></button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="inline-empty-state">
+        <p class="eyebrow">No reviews</p>
+        <h3>No Member reviews are waiting in the moderation queue.</h3>
+        <p>Reviews will appear here after Members complete bookings and publish feedback.</p>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="page-section" aria-labelledby="staff-messages-heading">
+    <div class="section-heading section-heading-stack">
+      <div>
+        <p class="eyebrow">Contact messages</p>
+        <h2 id="staff-messages-heading">Message queue</h2>
+      </div>
+    </div>
+
+    <% if (contactMessages.length > 0) { %>
+      <div class="status-table staff-message-table" role="table" aria-label="Contact message queue">
+        <div class="status-row status-header staff-message-row" role="row">
+          <span role="columnheader">Message</span>
+          <span role="columnheader">Sender</span>
+          <span role="columnheader">Status</span>
+          <span role="columnheader">Actions</span>
+        </div>
+        <% contactMessages.forEach((message) => { %>
+          <div class="status-row staff-message-row" role="row">
+            <div role="cell">
+              <h3><%= message.subject %></h3>
+              <p class="owner-row-note">Received <%= message.createdAtDisplay %></p>
+              <p><%= message.body %></p>
+            </div>
+            <div role="cell">
+              <strong><%= message.name %></strong>
+              <p class="owner-row-note"><%= message.email %></p>
+              <% if (message.requester_email) { %>
+                <p class="owner-row-note">Signed-in account: <%= message.requester_email %></p>
+              <% } %>
+            </div>
+            <div role="cell">
+              <span class="status-badge"><%= message.statusDisplay %></span>
+              <p class="owner-row-note">Assigned to <%= message.assigneeDisplay %></p>
+              <% if (message.staff_note) { %>
+                <p class="owner-row-note"><%= message.staff_note %></p>
+              <% } %>
+            </div>
+            <div class="owner-actions" role="cell">
+              <% message.actions.forEach(([status, label]) => { %>
+                <form class="staff-note-action" action="/staff/messages/<%= message.message_id %>/status" method="post">
+                  <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                  <input type="hidden" name="status" value="<%= status %>" />
+                  <label class="visually-hidden" for="message-note-<%= message.message_id %>-<%= status %>">Staff note for message <%= message.message_id %></label>
+                  <input id="message-note-<%= message.message_id %>-<%= status %>" name="staffNote" type="text" placeholder="Optional note" />
+                  <button class="button button-secondary" type="submit"><%= label %></button>
+                </form>
+              <% }) %>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="inline-empty-state">
+        <p class="eyebrow">No messages</p>
+        <h3>No contact messages need staff processing.</h3>
+        <p>Public contact submissions will appear here with new, in progress, and closed states.</p>
       </div>
     <% } %>
   </section>

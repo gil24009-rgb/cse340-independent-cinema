@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: July 10, 2026
+Last updated: July 11, 2026
 
 ## Current Stage
 
@@ -42,12 +42,14 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the first Step 7 vertical slice: Staff and Owner booking status controls with CSRF protection, valid transition enforcement, and status-history append in one transaction
 - Added the second Step 7 vertical slice: Staff screening roster grouping with screening context, per-screening work summaries, preserved status actions, and mobile header reflow correction
 - Added the third Step 7 vertical slice: Member review CRUD with completed-booking eligibility, duplicate-review conflict handling, ownership-protected edit and delete, validation feedback, and Member account review list
+- Added the fourth Step 7 vertical slice: Staff and Owner review moderation plus contact message processing on `/staff`, with CSRF-protected visibility and message status actions
 
 ## Verified Baseline
 
-- Automated tests with local PostgreSQL: 46 passing and 1 environment-specific skip
-- Automated tests without `DATABASE_URL`: 43 passing and 4 database integration skips
-- Latest local `pnpm db:migrate` recheck passed before Step 6 handoff
+- Targeted Staff, review, and PostgreSQL tests: 29 passing
+- Automated tests with local PostgreSQL: 50 passing and 1 environment-specific skip
+- Automated tests without `DATABASE_URL`: 45 passing and 6 database integration skips
+- Latest local `pnpm db:migrate` recheck passed during the Step 7 Staff moderation and contact processing slice
 - Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -82,7 +84,12 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Member review deletion removes only the signed-in Member's own review and returns deleted review detail routes to `404`
 - Staff `/staff` renders operational booking rows with status controls for confirmed and checked-in bookings
 - Staff `/staff` groups operational booking rows by screening with program label, film title, screening time, booking count, action count, and screening status before individual booking actions
+- Staff `/staff` renders Member review moderation and contact message queues alongside the booking roster
+- Staff and Owner can hide and restore reviews without changing review ownership
+- Staff and Owner can move contact messages between new, in progress, and closed states with optional staff notes and assignment updates
 - Staff booking status updates reject unauthenticated, Member, invalid-CSRF, missing-booking, and invalid-transition cases with stable responses
+- Staff review moderation rejects unauthenticated, Member, invalid-CSRF, missing-review, and invalid-visibility cases with stable responses
+- Staff contact message processing rejects unauthenticated, Member, invalid-CSRF, missing-message, and invalid-status cases with stable responses
 - Staff booking status updates change current booking status and append a `booking_status_history` row in one PostgreSQL transaction
 - Public `/` renders PostgreSQL-backed next-screening and program highlights with stable database-error handling
 - Public `/visit` renders visit information and a CSRF-protected contact form with validation, success, and database-error states
@@ -111,6 +118,8 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Staff operational booking dashboard verified at 1280px and 390px without horizontal overflow, including CSRF-protected check-in controls and post-action state
 - Staff roster grouping verified through route tests, local PostgreSQL integration tests, authenticated local SSR inspection, and headless Chrome 1280px and 390px screenshots with no detected horizontal overflow elements
 - Member review CRUD verified through route tests, PostgreSQL integration tests, authenticated local SSR checks, and headless Chrome screenshots for `/account`, `/account/reviews/new`, `/account/reviews/1/edit`, and `/account/reviews/1`
+- Staff moderation and contact processing verified through route tests, PostgreSQL integration tests, authenticated local browser checks for `/staff` at 1280px and 390px, and database verification queries
+- Local browser `/staff` checks confirmed Operational bookings, Member reviews, Message queue, CSRF forms, review action forms, and message action forms at 1280px and 390px. Overflow detection only reported intentionally visually hidden labels.
 - Headless Chrome computed layout metrics reported no horizontal overflow elements for the changed review screens. Chrome headless reported a 500px inner width during metric capture, so final 390px browser-plugin verification remains worth repeating when the in-app browser connection is stable.
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
@@ -249,7 +258,7 @@ Completed fifth vertical slice:
 
 Next implementation slice:
 
-- Continue Step 7 with Staff review moderation and contact message workflow
+- Continue Step 7 with Owner user management and role activation controls
 
 Cross-stage delivery infrastructure now available:
 
@@ -340,13 +349,24 @@ Completed third vertical slice:
 - PostgreSQL integration tests cover completed-booking eligibility, duplicate review conflict, update ownership, and delete behavior
 - Authenticated local SSR and headless Chrome screenshots covered `/account`, `/account/reviews/new`, `/account/reviews/1/edit`, and `/account/reviews/1`
 
+Completed fourth vertical slice:
+
+- `/staff` now renders review moderation and contact message queues below the operational booking roster
+- Staff and Owner can hide or restore reviews without changing review ownership
+- Review moderation records the acting staff or owner account and a moderation note
+- Staff and Owner can move contact messages through `new`, `in_progress`, and `closed`
+- Contact message processing assigns in-progress or closed messages to the acting Staff or Owner account and preserves optional staff notes
+- Automated route tests cover Staff and Owner access, Member denial, invalid CSRF, invalid visibility, invalid status, missing records, and successful mutations
+- PostgreSQL integration tests cover review visibility updates and contact message status, assignment, and note updates
+- Authenticated local browser checks covered `/staff` at 1280px and 390px with the booking, review, and message sections present and no real content overflow
+
 ## Following Stages
 
 | Step | Focus | Main Outcome |
 | --- | --- | --- |
 | 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
 | 6 | Booking and Member experience | Implemented and ready for nonblocking Director frontend review |
-| 7 | Reviews and operations | In progress: Staff booking operations, roster grouping, and Member review CRUD implemented; moderation, messages, and Owner user management remain |
+| 7 | Reviews and operations | In progress: Staff booking operations, roster grouping, Member review CRUD, review moderation, and contact message processing implemented; Owner user management remains |
 | 8 | Frontend refinement | Responsive design system and reference-level interface review |
 | 9 | Security and deployment | Regression testing, Render deployment, and submission documentation |
 
@@ -359,7 +379,7 @@ Completed third vertical slice:
 - The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
 - Render free services can spin down after inactivity and delay the first request.
 - Production seed screening dates can age out, which can block read-only verification of future-screening workflows until the next production seed or schedule refresh.
-- Staff review moderation, contact processing, and Owner user management remain Step 7 work.
+- Owner user management remains Step 7 work.
 - Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
 
 ## Working Checkpoints
