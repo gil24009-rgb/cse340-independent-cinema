@@ -24,6 +24,7 @@
 - Owner가 다른 계정의 role과 activation state를 변경할 수 있는 CSRF-protected mutation 추가
 - Owner self-change conflict를 추가해 자기 자신의 role downgrade 또는 deactivation으로 잠기는 상황 차단
 - Role downgrade와 deactivation 후 기존 session이 다음 request에서 권한을 유지하지 못하는지 route test로 검증
+- `user_sessions` table을 project schema와 migration으로 명시해 CI 병렬 테스트가 session-store table creation race에 의존하지 않도록 수정
 - Step 7 completion approval packet 작성
 
 ## 관련 문서
@@ -46,7 +47,7 @@
 - PostgreSQL 사용 시 `pnpm test`에서 52 passed, 1 environment-specific skip
 - `DATABASE_URL` 없이 `pnpm test`에서 46 passed, 7 database integration skips
 - `pnpm db:migrate` 재실행 성공
-- `psql "$DATABASE_URL" -f ../database/verify.sql`에서 expected seed counts, status history, screening capacity, and migration record 확인
+- `psql "$DATABASE_URL" -f ../database/verify.sql`에서 expected seed counts, status history, screening capacity, and `0002_user_sessions_table.sql` migration record 확인
 - Authenticated browser check에서 `/staff` 1280px와 390px 모두 Operational bookings, Member reviews, Message queue heading 확인
 - Browser check에서 review action form 1개, message action form 4개, CSRF form 8개 확인
 - Browser overflow check에서 실제 콘텐츠 overflow는 없고, intentionally visually hidden labels만 false positive로 감지됨
@@ -61,6 +62,7 @@
 - Owner user management는 Staff moderation/contact workflow와 섞지 않고 다음 slice로 분리한다.
 - Owner는 자기 자신의 role이나 activation state를 직접 바꿀 수 없다. accidental lockout을 막기 위한 Phase A 안전장치다.
 - Role 또는 activation 변경 후 별도 session purge 없이도 current-user reload가 다음 request에서 stale privileges를 제거한다.
+- Session table은 런타임 자동 생성에 맡기지 않고 schema와 migration이 소유한다. CI처럼 테스트 프로세스가 병렬로 앱을 만들 때도 같은 DB 구조를 사용하기 위한 결정이다.
 
 ## 남은 위험 또는 Blocker
 

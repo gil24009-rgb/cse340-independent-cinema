@@ -154,6 +154,13 @@ CREATE TABLE contact_messages (
   )
 );
 
+CREATE TABLE user_sessions (
+  sid VARCHAR NOT NULL COLLATE "default",
+  sess JSON NOT NULL,
+  expire TIMESTAMP(6) NOT NULL,
+  CONSTRAINT user_sessions_pkey PRIMARY KEY (sid)
+);
+
 CREATE INDEX screenings_film_starts_at_idx
   ON screenings (film_id, starts_at);
 
@@ -171,6 +178,9 @@ CREATE INDEX reviews_film_visibility_created_at_idx
 
 CREATE INDEX contact_messages_status_created_at_idx
   ON contact_messages (status, created_at);
+
+CREATE INDEX user_sessions_expire_idx
+  ON user_sessions (expire);
 
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER

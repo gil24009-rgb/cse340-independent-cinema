@@ -489,7 +489,7 @@ integrationTest("owner user management updates roles and activation for current-
 integrationTest("PostgreSQL session store creates, reads, and destroys a session", async () => {
   const PostgreSqlStore = connectPgSimple(session);
   const store = new PostgreSqlStore({
-    createTableIfMissing: true,
+    createTableIfMissing: false,
     pool,
     tableName: "user_sessions",
   });

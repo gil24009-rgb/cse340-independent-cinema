@@ -50,8 +50,8 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Targeted Step 7 route and PostgreSQL tests: 31 passing
 - Automated tests with local PostgreSQL: 52 passing and 1 environment-specific skip
 - Automated tests without `DATABASE_URL`: 46 passing and 7 database integration skips
-- Latest local `pnpm db:migrate` recheck passed during the Step 7 Owner user management slice
-- Database integration tests: migration idempotency, database constraints, and PostgreSQL session-store lifecycle verified locally
+- Latest local `pnpm db:migrate` recheck applied `0002_user_sessions_table.sql` and passed after the Step 7 Owner user management slice
+- Database integration tests: migration idempotency, database constraints, PostgreSQL session-table schema, and session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
 - Database constraints: role, duplicate booking, delete policy, and no-op status transition checks verified
@@ -271,7 +271,8 @@ Cross-stage delivery infrastructure now available:
 
 - Ordered SQL migrations apply through `app/scripts/run-migrations.js`
 - Migration filenames are recorded in `schema_migrations`
-- PostgreSQL integration tests cover migration idempotency, database constraints, and session-store lifecycle
+- The base schema now owns the `user_sessions` table so CI and clean database setup do not depend on concurrent session-store table creation
+- PostgreSQL integration tests cover migration idempotency, database constraints, and session-store lifecycle against the project schema
 - GitHub Actions CI provisions PostgreSQL 17 and runs database and application verification on pushes and pull requests
 - A Step 5 frontend direction review packet records the approved reference and review criteria before implementation
 
