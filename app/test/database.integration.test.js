@@ -32,6 +32,12 @@ import {
   findStaffContactMessages,
   updateContactMessageStatus,
 } from "../src/models/contactMessageModel.js";
+import {
+  OwnerUserAccessConflictError,
+  findActiveUserById,
+  findOwnerUsers,
+  updateOwnerUserAccess,
+} from "../src/models/userModel.js";
 
 const { Pool } = pg;
 const databaseUrl = process.env.DATABASE_URL;
@@ -423,6 +429,60 @@ integrationTest("staff review moderation and contact message processing update o
     await pool.query("DELETE FROM contact_messages WHERE message_id = $1", [messageId]);
     await pool.query("DELETE FROM reviews WHERE review_id = $1", [reviewId]);
     await pool.query("DELETE FROM users WHERE user_id = $1", [userId]);
+  }
+});
+
+integrationTest("owner user management updates roles and activation for current-user reload", async () => {
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const email = `owner-user-${suffix}@cinema.test`;
+  const ownerResult = await pool.query("SELECT user_id FROM users WHERE role = 'owner' ORDER BY user_id LIMIT 1");
+  const ownerUserId = ownerResult.rows[0].user_id;
+  const userResult = await pool.query(
+    `INSERT INTO users (email, password_hash, first_name, last_name, role)
+     VALUES ($1, $2, $3, $4, 'staff')
+     RETURNING user_id`,
+    [email, "hash", "Owner", "Managed"],
+  );
+  const managedUserId = userResult.rows[0].user_id;
+
+  try {
+    const ownerUsers = await findOwnerUsers();
+    assert.equal(ownerUsers.some((user) => user.user_id === managedUserId && user.role === "staff"), true);
+
+    await assert.rejects(
+      updateOwnerUserAccess({
+        actingUserId: ownerUserId,
+        isActive: false,
+        role: "member",
+        userId: ownerUserId,
+      }),
+      OwnerUserAccessConflictError,
+    );
+
+    const demoted = await updateOwnerUserAccess({
+      actingUserId: ownerUserId,
+      isActive: true,
+      role: "member",
+      userId: managedUserId,
+    });
+    assert.equal(demoted.role, "member");
+    assert.equal(demoted.is_active, true);
+
+    const reloadedDemotedUser = await findActiveUserById(managedUserId);
+    assert.equal(reloadedDemotedUser.role, "member");
+
+    const deactivated = await updateOwnerUserAccess({
+      actingUserId: ownerUserId,
+      isActive: false,
+      role: "member",
+      userId: managedUserId,
+    });
+    assert.equal(deactivated.is_active, false);
+
+    const inactiveReload = await findActiveUserById(managedUserId);
+    assert.equal(inactiveReload, null);
+  } finally {
+    await pool.query("DELETE FROM users WHERE user_id = $1", [managedUserId]);
   }
 });
 

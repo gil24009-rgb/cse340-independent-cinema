@@ -268,6 +268,46 @@ function findActiveUserById(userId) {
   return users.find((user) => user.user_id === userId && user.is_active) || null;
 }
 
+async function findOwnerUsers() {
+  return users.map((user) => ({
+    ...user,
+    booking_count: bookings.filter((booking) => booking.user_id === user.user_id).length,
+    contact_message_count: contactMessages.filter((message) => message.user_id === user.user_id).length,
+    created_at: user.created_at || "2026-06-01T18:00:00.000Z",
+    review_count: reviews.filter((review) => review.user_id === user.user_id).length,
+    updated_at: user.updated_at || "2026-06-01T18:00:00.000Z",
+  }));
+}
+
+async function updateOwnerUserAccess({
+  actingUserId,
+  isActive,
+  role,
+  userId,
+}) {
+  const user = users.find((candidate) => candidate.user_id === userId);
+
+  if (!["member", "staff", "owner"].includes(role)) {
+    return null;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (userId === actingUserId) {
+    const error = new Error("Owners cannot change their own role or activation state.");
+    error.name = "OwnerUserAccessConflictError";
+    error.status = 409;
+    throw error;
+  }
+
+  user.role = role;
+  user.is_active = isActive;
+  user.updated_at = "2026-07-12T21:00:00.000Z";
+  return user;
+}
+
 async function createMemberUser({ email, firstName, lastName, passwordHash }) {
   if (findUserByEmail(email)) {
     const error = new Error("duplicate email");
@@ -866,6 +906,7 @@ before(async () => {
       findOwnerScreeningById,
       findOwnerScreeningFilmOptions,
       findOwnerScreenings,
+      findOwnerUsers,
       findReviewById,
       findReviewableFilmsByUserId,
       findReviewsByUserId,
@@ -876,6 +917,7 @@ before(async () => {
       updateContactMessageStatus,
       updateFilm,
       updateMemberReview,
+      updateOwnerUserAccess,
       updateScreening,
     },
     auth: {
@@ -906,7 +948,7 @@ after(async () => {
 });
 
 test("protected routes redirect unauthenticated direct access", async () => {
-  for (const route of ["/account", "/account/bookings/1", "/account/reviews/new", "/account/reviews/1", "/account/reviews/1/edit", "/staff", "/admin", "/admin/films", "/admin/films/new", "/admin/films/1/edit", "/admin/screenings", "/admin/screenings/new", "/admin/screenings/1/edit"]) {
+  for (const route of ["/account", "/account/bookings/1", "/account/reviews/new", "/account/reviews/1", "/account/reviews/1/edit", "/staff", "/admin", "/admin/users", "/admin/films", "/admin/films/new", "/admin/films/1/edit", "/admin/screenings", "/admin/screenings/new", "/admin/screenings/1/edit"]) {
     const response = await request(route);
 
     assert.equal(response.status, 303);
@@ -1041,6 +1083,7 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["member@cinema.test", "/account/reviews/1", 200],
     ["member@cinema.test", "/staff", 403],
     ["member@cinema.test", "/admin", 403],
+    ["member@cinema.test", "/admin/users", 403],
     ["member@cinema.test", "/admin/films", 403],
     ["member@cinema.test", "/admin/films/new", 403],
     ["member@cinema.test", "/admin/films/1/edit", 403],
@@ -1051,6 +1094,7 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["staff@cinema.test", "/account/bookings/1", 403],
     ["staff@cinema.test", "/staff", 200],
     ["staff@cinema.test", "/admin", 403],
+    ["staff@cinema.test", "/admin/users", 403],
     ["staff@cinema.test", "/admin/films", 403],
     ["staff@cinema.test", "/admin/films/new", 403],
     ["staff@cinema.test", "/admin/films/1/edit", 403],
@@ -1061,6 +1105,7 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     ["owner@cinema.test", "/account/reviews/1", 403],
     ["owner@cinema.test", "/staff", 200],
     ["owner@cinema.test", "/admin", 200],
+    ["owner@cinema.test", "/admin/users", 200],
     ["owner@cinema.test", "/admin/films", 200],
     ["owner@cinema.test", "/admin/films/new", 200],
     ["owner@cinema.test", "/admin/films/1/edit", 200],
@@ -1076,6 +1121,112 @@ test("role guards enforce Member, Staff, and Owner direct URL access", async () 
     assert.equal(loginResponse.status, 303);
     assert.equal(response.status, expectedStatus, `${email} ${route}`);
   }
+});
+
+test("owner user management changes roles and activation without stale session access", async () => {
+  const member = findUserByEmail("member@cinema.test");
+  const staff = findUserByEmail("staff@cinema.test");
+  const owner = findUserByEmail("owner@cinema.test");
+  const memberLogin = await login(member.email);
+  const staffLogin = await login(staff.email);
+
+  const staffPost = await request(`/admin/users/${member.user_id}/access`, {
+    body: new URLSearchParams({ csrfToken: "invalid", isActive: "true", role: "staff" }),
+    headers: {
+      cookie: staffLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(staffPost.status, 403);
+
+  const ownerLogin = await login(owner.email);
+  const usersPage = await request("/admin/users", { headers: { cookie: ownerLogin.cookie } });
+  const usersBody = await usersPage.text();
+  const csrfToken = csrfFrom(usersBody);
+  assert.equal(usersPage.status, 200);
+  assert.match(usersBody, /Manage user access/);
+  assert.match(usersBody, /Sora Kim/);
+  assert.match(usersBody, /Joon Lee/);
+  assert.match(usersBody, /Current Owner account cannot change itself/);
+  assert.ok(csrfToken);
+
+  const invalidCsrf = await request(`/admin/users/${staff.user_id}/access`, {
+    body: new URLSearchParams({ csrfToken: "invalid", isActive: "true", role: "member" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidCsrf.status, 403);
+
+  const invalidRole = await request(`/admin/users/${staff.user_id}/access`, {
+    body: new URLSearchParams({ csrfToken, isActive: "true", role: "admin" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(invalidRole.status, 404);
+
+  const missingUser = await request("/admin/users/999/access", {
+    body: new URLSearchParams({ csrfToken, isActive: "true", role: "staff" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(missingUser.status, 404);
+
+  const selfChange = await request(`/admin/users/${owner.user_id}/access`, {
+    body: new URLSearchParams({ csrfToken, isActive: "false", role: "member" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(selfChange.status, 409);
+  assert.equal(owner.role, "owner");
+  assert.equal(owner.is_active, true);
+
+  const demoteStaff = await request(`/admin/users/${staff.user_id}/access`, {
+    body: new URLSearchParams({ csrfToken, isActive: "true", role: "member" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(demoteStaff.status, 303);
+  assert.equal(demoteStaff.headers.get("location"), "/admin/users");
+  assert.equal(staff.role, "member");
+
+  const staleStaffAccess = await request("/staff", { headers: { cookie: staffLogin.cookie } });
+  assert.equal(staleStaffAccess.status, 403);
+
+  const deactivateMember = await request(`/admin/users/${member.user_id}/access`, {
+    body: new URLSearchParams({ csrfToken, isActive: "false", role: "member" }),
+    headers: {
+      cookie: ownerLogin.cookie,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    method: "POST",
+  });
+  assert.equal(deactivateMember.status, 303);
+  assert.equal(member.is_active, false);
+
+  const staleMemberAccess = await request("/account", { headers: { cookie: memberLogin.cookie } });
+  assert.equal(staleMemberAccess.status, 303);
+  assert.equal(staleMemberAccess.headers.get("location"), "/login");
+
+  staff.role = "staff";
+  staff.is_active = true;
+  member.role = "member";
+  member.is_active = true;
 });
 
 test("staff dashboard updates booking status with CSRF and appends history", async () => {

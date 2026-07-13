@@ -1,0 +1,70 @@
+<%- include("../partials/document-head") %>
+
+<main id="main-content" class="page-content">
+  <header class="page-heading">
+    <p class="eyebrow">Owner operations</p>
+    <h1>Manage user access.</h1>
+    <p>Change roles or activation state without deleting accounts or their operational history.</p>
+  </header>
+
+  <% if (users.length > 0) { %>
+    <div class="status-table owner-table" role="table" aria-label="Owner user access management">
+      <div class="status-row status-header owner-user-row" role="row">
+        <span role="columnheader">User</span>
+        <span role="columnheader">Access</span>
+        <span role="columnheader">Activity</span>
+        <span role="columnheader">Action</span>
+      </div>
+
+      <% users.forEach((user) => { %>
+        <article class="status-row owner-row owner-user-row" role="row">
+          <div role="cell">
+            <h2><%= user.nameDisplay %></h2>
+            <p><%= user.email %></p>
+            <p class="owner-row-note">Created <%= user.createdAtDisplay %></p>
+          </div>
+          <div role="cell">
+            <span class="status-badge"><%= user.roleDisplay %></span>
+            <p class="owner-row-note"><%= user.accountStateDisplay %></p>
+          </div>
+          <p role="cell">
+            <%= user.bookingSummary %> · <%= user.reviewSummary %> · <%= user.contactMessageSummary %>
+          </p>
+          <div role="cell" class="owner-actions">
+            <% if (user.canManageAccess) { %>
+              <form class="owner-access-form" action="/admin/users/<%= user.user_id %>/access" method="post">
+                <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
+                <label for="role-<%= user.user_id %>">
+                  Role
+                  <select id="role-<%= user.user_id %>" name="role">
+                    <% ["member", "staff", "owner"].forEach((role) => { %>
+                      <option value="<%= role %>" <%= user.role === role ? "selected" : "" %>><%= role.charAt(0).toUpperCase() + role.slice(1) %></option>
+                    <% }) %>
+                  </select>
+                </label>
+                <label for="active-<%= user.user_id %>">
+                  Account state
+                  <select id="active-<%= user.user_id %>" name="isActive">
+                    <option value="true" <%= user.is_active ? "selected" : "" %>>Active</option>
+                    <option value="false" <%= !user.is_active ? "selected" : "" %>>Inactive</option>
+                  </select>
+                </label>
+                <button class="button button-secondary" type="submit">Save Access</button>
+              </form>
+            <% } else { %>
+              <p class="status-note">Current Owner account cannot change itself.</p>
+            <% } %>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <section class="inline-empty-state" aria-labelledby="owner-users-empty-title">
+      <p class="eyebrow">No users</p>
+      <h2 id="owner-users-empty-title">No user accounts are available.</h2>
+      <p>Seed or signup accounts will appear here when the database has users.</p>
+    </section>
+  <% } %>
+</main>
+
+<%- include("../partials/document-end") %>

@@ -595,6 +595,10 @@ h3 {
   grid-template-columns: minmax(240px, 1.4fr) minmax(120px, 0.45fr) minmax(220px, 1fr) minmax(170px, 0.7fr);
 }
 
+.owner-user-row {
+  grid-template-columns: minmax(240px, 1.2fr) minmax(140px, 0.5fr) minmax(220px, 0.75fr) minmax(260px, 1fr);
+}
+
 .staff-booking-row {
   grid-template-columns: minmax(260px, 1.25fr) minmax(180px, 0.75fr) minmax(120px, 0.45fr) minmax(220px, 0.9fr);
 }
@@ -691,6 +695,32 @@ h3 {
 }
 
 .staff-note-action input {
+  width: 100%;
+  min-height: 2.8rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.65rem;
+  color: var(--ink);
+  font: inherit;
+}
+
+.owner-access-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 0.6rem;
+  align-items: end;
+}
+
+.owner-access-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.owner-access-form select {
   width: 100%;
   min-height: 2.8rem;
   border: 1px solid var(--line);
@@ -1261,6 +1291,7 @@ h3 {
   }
 
   .owner-row,
+  .owner-user-row,
   .staff-booking-row,
   .staff-review-row,
   .staff-message-row,
@@ -1281,6 +1312,11 @@ h3 {
 
   .owner-actions {
     justify-content: flex-start;
+  }
+
+  .owner-access-form {
+    grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .status-header {

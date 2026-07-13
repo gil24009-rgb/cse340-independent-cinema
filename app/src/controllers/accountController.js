@@ -41,6 +41,11 @@ import {
   setReviewVisibility,
   updateMemberReview,
 } from "../models/reviewModel.js";
+import {
+  OwnerUserAccessConflictError,
+  findOwnerUsers,
+  updateOwnerUserAccess,
+} from "../models/userModel.js";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "long",
@@ -247,6 +252,12 @@ function isReviewConflict(error) {
     || error instanceof ReviewDuplicateConflictError
     || error?.name === "ReviewEligibilityConflictError"
     || error?.name === "ReviewDuplicateConflictError";
+}
+
+function isOwnerUserAccessConflict(error) {
+  return error instanceof OwnerUserAccessConflictError
+    || error?.name === "OwnerUserAccessConflictError"
+    || error?.status === 409;
 }
 
 function ownerScreeningFormFromBody(body = {}) {
@@ -464,6 +475,10 @@ function isAllowedContactMessageStatus(value) {
   return value === "new" || value === "in_progress" || value === "closed";
 }
 
+function isAllowedManagedRole(value) {
+  return value === "member" || value === "staff" || value === "owner";
+}
+
 function contactMessageActions(status) {
   if (status === "new") {
     return [
@@ -494,6 +509,20 @@ function presentContactMessage(message) {
     createdAtDisplay: formatDateTime(message.created_at),
     statusDisplay: formatStatus(message.status),
     updatedAtDisplay: formatDateTime(message.updated_at),
+  };
+}
+
+function presentOwnerUser(user, currentUserId) {
+  return {
+    ...user,
+    accountStateDisplay: user.is_active ? "Active" : "Inactive",
+    canManageAccess: user.user_id !== currentUserId,
+    contactMessageSummary: user.contact_message_count === 1 ? "1 message" : `${user.contact_message_count} messages`,
+    createdAtDisplay: formatDateTime(user.created_at),
+    bookingSummary: user.booking_count === 1 ? "1 booking" : `${user.booking_count} bookings`,
+    nameDisplay: [user.first_name, user.last_name].filter(Boolean).join(" ") || user.email,
+    reviewSummary: user.review_count === 1 ? "1 review" : `${user.review_count} reviews`,
+    roleDisplay: formatStatus(user.role),
   };
 }
 
@@ -899,12 +928,69 @@ export function createStaffOperationsController(options = {}) {
 
 export function showOwnerAccount(req, res) {
   res.render("account/landing", {
+    actions: [
+      { href: "/admin/films", label: "Manage Films" },
+      { href: "/admin/screenings", label: "Manage Screenings" },
+      { href: "/admin/users", label: "Manage Users" },
+    ],
     eyebrow: "Owner operations",
     heading: `Welcome, ${req.currentUser.first_name}.`,
-    message: "Cinema management tools will appear here.",
+    message: "Use the Owner tools to manage films, screenings, users, and roles.",
     pageDescription: "Access cinema owner operations.",
     pageTitle: "Owner",
   });
+}
+
+export function createOwnerUserController(options = {}) {
+  const loadUsers = options.findOwnerUsers || findOwnerUsers;
+  const updateAccess = options.updateOwnerUserAccess || updateOwnerUserAccess;
+
+  return {
+    async showUsers(req, res, next) {
+      try {
+        const users = (await loadUsers()).map((user) => presentOwnerUser(user, req.currentUser.user_id));
+
+        return res.render("account/owner-users", {
+          pageDescription: "Manage user activation and role access.",
+          pageTitle: "Owner Users",
+          users,
+        });
+      } catch (error) {
+        return next(error);
+      }
+    },
+
+    async updateUserAccess(req, res, next) {
+      const userId = parsePositiveInteger(req.params?.userId);
+      const role = normalizeText(req.body?.role);
+      const isActiveValue = normalizeText(req.body?.isActive);
+
+      if (!userId || !isAllowedManagedRole(role) || (isActiveValue !== "true" && isActiveValue !== "false")) {
+        return next(createNotFoundError("User account not found."));
+      }
+
+      try {
+        const user = await updateAccess({
+          actingUserId: req.currentUser.user_id,
+          isActive: toBoolean(isActiveValue),
+          role,
+          userId,
+        });
+
+        if (!user) {
+          return next(createNotFoundError("User account not found."));
+        }
+
+        return res.redirect(303, "/admin/users");
+      } catch (error) {
+        if (isOwnerUserAccessConflict(error)) {
+          return next(error);
+        }
+
+        return next(error);
+      }
+    },
+  };
 }
 
 export function createOwnerFilmController(options = {}) {

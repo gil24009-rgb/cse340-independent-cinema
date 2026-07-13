@@ -4,6 +4,13 @@
   <p class="eyebrow"><%= eyebrow %></p>
   <h1><%= heading %></h1>
   <p><%= message %></p>
+  <% if (typeof actions !== "undefined" && actions.length > 0) { %>
+    <div class="hero-actions">
+      <% actions.forEach((action) => { %>
+        <a class="button button-secondary" href="<%= action.href %>"><%= action.label %></a>
+      <% }) %>
+    </div>
+  <% } %>
 </main>
 
 <%- include("../partials/document-end") %>

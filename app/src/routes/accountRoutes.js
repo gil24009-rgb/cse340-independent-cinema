@@ -4,6 +4,7 @@ import {
   createMemberAccountController,
   createOwnerFilmController,
   createOwnerScreeningController,
+  createOwnerUserController,
   createStaffOperationsController,
   showMemberReviewDetail,
   showOwnerAccount,
@@ -33,6 +34,10 @@ import {
   setReviewVisibility,
   updateMemberReview,
 } from "../models/reviewModel.js";
+import {
+  findOwnerUsers,
+  updateOwnerUserAccess,
+} from "../models/userModel.js";
 
 export function createAccountRoutes(options = {}) {
   const router = express.Router();
@@ -57,6 +62,10 @@ export function createAccountRoutes(options = {}) {
   });
   const ownerFilmController = createOwnerFilmController(options);
   const ownerScreeningController = createOwnerScreeningController(options);
+  const ownerUserController = createOwnerUserController({
+    findOwnerUsers: options.findOwnerUsers || findOwnerUsers,
+    updateOwnerUserAccess: options.updateOwnerUserAccess || updateOwnerUserAccess,
+  });
   const loadOwnedBooking = createOwnedResourceLoader({
     findResourceById: options.findBookingById || findBookingById,
     paramName: "bookingId",
@@ -117,6 +126,8 @@ export function createAccountRoutes(options = {}) {
     staffOperationsController.updateContactMessage,
   );
   router.get("/admin", requireRole("owner"), showOwnerAccount);
+  router.get("/admin/users", requireRole("owner"), ownerUserController.showUsers);
+  router.post("/admin/users/:userId/access", requireRole("owner"), verifyCsrfToken, ownerUserController.updateUserAccess);
   router.get("/admin/films", requireRole("owner"), ownerFilmController.showFilms);
   router.get("/admin/films/new", requireRole("owner"), ownerFilmController.showNewFilm);
   router.post("/admin/films", requireRole("owner"), verifyCsrfToken, ownerFilmController.createFilm);
