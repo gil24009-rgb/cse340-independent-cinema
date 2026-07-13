@@ -146,6 +146,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Latest GitHub Actions CI run passed for the Owner film visibility slice
 - Latest GitHub Actions CI run passed for the Owner screening cancellation slice
 - Latest GitHub Actions CI run passed for the Owner film create and edit slice
+- Latest GitHub Actions CI run passed for the Step 7 Owner user management and session-table schema fix
 - Latest GitHub Actions CI run passed for the Owner screening create and edit slice
 
 ## Current Implementation Stage

@@ -48,6 +48,7 @@
 - `DATABASE_URL` 없이 `pnpm test`에서 46 passed, 7 database integration skips
 - `pnpm db:migrate` 재실행 성공
 - `psql "$DATABASE_URL" -f ../database/verify.sql`에서 expected seed counts, status history, screening capacity, and `0002_user_sessions_table.sql` migration record 확인
+- GitHub Actions CI passed after the Owner user management and session-table schema fix
 - Authenticated browser check에서 `/staff` 1280px와 390px 모두 Operational bookings, Member reviews, Message queue heading 확인
 - Browser check에서 review action form 1개, message action form 4개, CSRF form 8개 확인
 - Browser overflow check에서 실제 콘텐츠 overflow는 없고, intentionally visually hidden labels만 false positive로 감지됨
