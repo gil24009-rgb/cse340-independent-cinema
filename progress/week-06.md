@@ -58,6 +58,7 @@
 - Browser overflow check에서 `/admin/users` 실제 콘텐츠 overflow 0개 확인
 - Browser check에서 `/staff`, `/admin/films`, `/admin/screenings`, `/admin/users` 390px mobile cell labels 표시와 1280px label 숨김 확인
 - Step 8 browser overflow check에서 Owner 운영 화면은 실제 overflow 0개, Staff 화면은 visually hidden labels만 false positive로 감지됨
+- GitHub Actions CI passed for the Step 8 operational mobile row label slice
 
 ## 새로 결정한 사항
 
