@@ -43,20 +43,24 @@
               <% screeningGroup.bookings.forEach((booking) => { %>
                 <div class="status-row staff-booking-row" role="row">
                   <div role="cell">
+                    <span class="status-cell-label">Booking</span>
                     <h4>Booking #<%= booking.booking_id %></h4>
                     <p class="owner-row-note">Booked <%= booking.bookedAtDisplay %></p>
                   </div>
                   <div role="cell">
+                    <span class="status-cell-label">Member</span>
                     <strong><%= booking.memberDisplay %></strong>
                     <p class="owner-row-note"><%= booking.member_email %></p>
                   </div>
                   <div role="cell">
+                    <span class="status-cell-label">Status</span>
                     <span class="status-badge"><%= booking.statusDisplay %></span>
                     <% if (booking.cancelledAtDisplay) { %>
                       <p class="owner-row-note">Cancelled <%= booking.cancelledAtDisplay %></p>
                     <% } %>
                   </div>
                   <div class="owner-actions" role="cell">
+                    <span class="status-cell-label">Actions</span>
                     <% if (booking.transitions.length > 0) { %>
                       <% booking.transitions.forEach(([toStatus, label]) => { %>
                         <form action="/staff/bookings/<%= booking.booking_id %>/status" method="post">
@@ -103,15 +107,18 @@
         <% reviews.forEach((review) => { %>
           <div class="status-row staff-review-row" role="row">
             <div role="cell">
+              <span class="status-cell-label">Review</span>
               <h3><%= review.film_title %></h3>
               <p class="owner-row-note"><%= review.ratingDisplay %> · Updated <%= review.updatedAtDisplay %></p>
               <p><%= review.body %></p>
             </div>
             <div role="cell">
+              <span class="status-cell-label">Member</span>
               <strong><%= review.memberDisplay %></strong>
               <p class="owner-row-note"><%= review.member_email %></p>
             </div>
             <div role="cell">
+              <span class="status-cell-label">Visibility</span>
               <span class="status-badge"><%= review.visibilityDisplay %></span>
               <% if (review.moderation_note) { %>
                 <p class="owner-row-note"><%= review.moderation_note %></p>
@@ -121,6 +128,7 @@
               <% } %>
             </div>
             <div class="owner-actions" role="cell">
+              <span class="status-cell-label">Actions</span>
               <form class="staff-note-action" action="/staff/reviews/<%= review.review_id %>/visibility" method="post">
                 <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
                 <input type="hidden" name="isVisible" value="<%= review.visibilityValue %>" />
@@ -160,11 +168,13 @@
         <% contactMessages.forEach((message) => { %>
           <div class="status-row staff-message-row" role="row">
             <div role="cell">
+              <span class="status-cell-label">Message</span>
               <h3><%= message.subject %></h3>
               <p class="owner-row-note">Received <%= message.createdAtDisplay %></p>
               <p><%= message.body %></p>
             </div>
             <div role="cell">
+              <span class="status-cell-label">Sender</span>
               <strong><%= message.name %></strong>
               <p class="owner-row-note"><%= message.email %></p>
               <% if (message.requester_email) { %>
@@ -172,6 +182,7 @@
               <% } %>
             </div>
             <div role="cell">
+              <span class="status-cell-label">Status</span>
               <span class="status-badge"><%= message.statusDisplay %></span>
               <p class="owner-row-note">Assigned to <%= message.assigneeDisplay %></p>
               <% if (message.staff_note) { %>
@@ -179,6 +190,7 @@
               <% } %>
             </div>
             <div class="owner-actions" role="cell">
+              <span class="status-cell-label">Actions</span>
               <% message.actions.forEach(([status, label]) => { %>
                 <form class="staff-note-action" action="/staff/messages/<%= message.message_id %>/status" method="post">
                   <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />

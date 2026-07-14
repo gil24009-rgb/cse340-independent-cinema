@@ -1,10 +1,10 @@
 # Current Status
 
-Last updated: July 12, 2026
+Last updated: July 13, 2026
 
 ## Current Stage
 
-Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is implemented and ready for nonblocking Director frontend review. Step 7, Reviews, Staff Operations, and Admin Dashboard, is complete and ready for nonblocking Director frontend review. Step 8, Frontend Refinement, is next.
+Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is implemented and ready for nonblocking Director frontend review. Step 7, Reviews, Staff Operations, and Admin Dashboard, is complete and ready for nonblocking Director frontend review. Step 8, Frontend Refinement, is in progress.
 
 ## Completed Work
 
@@ -44,10 +44,11 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the third Step 7 vertical slice: Member review CRUD with completed-booking eligibility, duplicate-review conflict handling, ownership-protected edit and delete, validation feedback, and Member account review list
 - Added the fourth Step 7 vertical slice: Staff and Owner review moderation plus contact message processing on `/staff`, with CSRF-protected visibility and message status actions
 - Added the fifth Step 7 vertical slice: Owner user management with account list, role changes, activation controls, self-lockout protection, and stale-session rejection
+- Added the first Step 8 frontend refinement slice: mobile-only cell labels for Staff and Owner operational rows so hidden mobile table headers do not remove row meaning
 
 ## Verified Baseline
 
-- Targeted Step 7 route and PostgreSQL tests: 31 passing
+- Targeted Step 8 route rendering test: 24 passing
 - Automated tests with local PostgreSQL: 52 passing and 1 environment-specific skip
 - Automated tests without `DATABASE_URL`: 46 passing and 7 database integration skips
 - Latest local `pnpm db:migrate` recheck applied `0002_user_sessions_table.sql` and passed after the Step 7 Owner user management slice
@@ -127,6 +128,8 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Local browser `/staff` checks confirmed Operational bookings, Member reviews, Message queue, CSRF forms, review action forms, and message action forms at 1280px and 390px. Overflow detection only reported intentionally visually hidden labels.
 - Owner user management verified through route tests, PostgreSQL integration tests, authenticated local browser checks for `/admin` and `/admin/users` at 1280px and 390px, and database verification queries
 - Local browser `/admin/users` checks confirmed account headings, CSRF forms, role and activation selects, self-change copy, and no detected content overflow at 1280px and 390px
+- Step 8 operational mobile label check confirmed `/staff`, `/admin/films`, `/admin/screenings`, and `/admin/users` show row-level cell labels at 390px and hide them at 1280px
+- Step 8 operational browser checks reported no real content overflow for `/admin/films`, `/admin/screenings`, and `/admin/users`; `/staff` overflow detection reported only intentionally visually hidden labels
 - Headless Chrome computed layout metrics reported no horizontal overflow elements for the changed review screens. Chrome headless reported a 500px inner width during metric capture, so final 390px browser-plugin verification remains worth repeating when the in-app browser connection is stable.
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
@@ -266,7 +269,7 @@ Completed fifth vertical slice:
 
 Next implementation slice:
 
-- Start Step 8 with frontend refinement triage across public, Member, Staff, and Owner screens
+- Continue Step 8 with Staff dashboard section hierarchy or Member account hierarchy refinement, depending on which screen has the highest submission-readiness risk after review
 
 Cross-stage delivery infrastructure now available:
 
@@ -387,7 +390,7 @@ Completed fifth vertical slice:
 | 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
 | 6 | Booking and Member experience | Implemented and ready for nonblocking Director frontend review |
 | 7 | Reviews and operations | Complete and ready for nonblocking Director frontend review |
-| 8 | Frontend refinement | Next: responsive design system and reference-level interface review |
+| 8 | Frontend refinement | In progress: operational mobile labels implemented; section hierarchy refinement next |
 | 9 | Security and deployment | Regression testing, Render deployment, and submission documentation |
 
 ## Current Risks and Open Decisions

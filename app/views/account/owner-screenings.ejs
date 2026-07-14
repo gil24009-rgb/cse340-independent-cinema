@@ -20,15 +20,21 @@
       <% screenings.forEach((screening) => { %>
         <article class="status-row owner-row owner-screening-row" role="row">
           <div role="cell">
+            <span class="status-cell-label">Screening</span>
             <h2><%= screening.film_title %></h2>
             <p><%= screening.startsAtDisplay %> · <%= screening.program_label || "Regular screening" %></p>
           </div>
           <div role="cell">
+            <span class="status-cell-label">Status</span>
             <span class="status-badge"><%= screening.statusDisplay %></span>
           </div>
-          <p role="cell"><%= screening.activeBookingLabel %> bookings · Capacity <%= screening.capacity %></p>
+          <p role="cell">
+            <span class="status-cell-label">Bookings</span>
+            <%= screening.activeBookingLabel %> bookings · Capacity <%= screening.capacity %>
+          </p>
           <% if (screening.canManageStatus) { %>
             <div role="cell" class="owner-actions">
+              <span class="status-cell-label">Action</span>
               <a class="button button-secondary" href="/admin/screenings/<%= screening.screening_id %>/edit">Edit Screening</a>
               <form action="/admin/screenings/<%= screening.screening_id %>/status" method="post">
                 <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
@@ -43,7 +49,10 @@
               </form>
             </div>
           <% } else { %>
-            <p class="owner-row-note" role="cell">No management action</p>
+            <p class="owner-row-note" role="cell">
+              <span class="status-cell-label">Action</span>
+              No management action
+            </p>
           <% } %>
         </article>
       <% }) %>

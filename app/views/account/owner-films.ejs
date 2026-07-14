@@ -20,14 +20,20 @@
       <% films.forEach((film) => { %>
         <article class="status-row owner-row" role="row">
           <div role="cell">
+            <span class="status-cell-label">Film</span>
             <h2><%= film.title %></h2>
             <p><%= film.director %> · <%= film.release_year %> · <%= film.runtime_minutes %> min</p>
           </div>
           <div role="cell">
+            <span class="status-cell-label">Public state</span>
             <span class="status-badge"><%= film.publicState %></span>
           </div>
-          <p role="cell"><%= film.upcoming_screening_count %> upcoming · <%= film.nextScreeningDisplay %></p>
+          <p role="cell">
+            <span class="status-cell-label">Schedule</span>
+            <%= film.upcoming_screening_count %> upcoming · <%= film.nextScreeningDisplay %>
+          </p>
           <div role="cell" class="owner-actions">
+            <span class="status-cell-label">Action</span>
             <a class="button button-secondary" href="/admin/films/<%= film.film_id %>/edit">Edit Film</a>
             <form action="/admin/films/<%= film.film_id %>/archive" method="post">
               <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />

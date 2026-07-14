@@ -25,6 +25,7 @@
 - Owner self-change conflict를 추가해 자기 자신의 role downgrade 또는 deactivation으로 잠기는 상황 차단
 - Role downgrade와 deactivation 후 기존 session이 다음 request에서 권한을 유지하지 못하는지 route test로 검증
 - `user_sessions` table을 project schema와 migration으로 명시해 CI 병렬 테스트가 session-store table creation race에 의존하지 않도록 수정
+- Step 8 첫 slice로 Staff와 Owner 운영 row에 mobile-only cell labels 추가
 - Step 7 completion approval packet 작성
 
 ## 관련 문서
@@ -55,6 +56,8 @@
 - Authenticated browser check에서 `/admin` landing의 Manage Films, Manage Screenings, Manage Users 링크 확인
 - Authenticated browser check에서 `/admin/users` 1280px와 390px 모두 user headings, CSRF forms, role selects, activation selects, self-change copy 확인
 - Browser overflow check에서 `/admin/users` 실제 콘텐츠 overflow 0개 확인
+- Browser check에서 `/staff`, `/admin/films`, `/admin/screenings`, `/admin/users` 390px mobile cell labels 표시와 1280px label 숨김 확인
+- Step 8 browser overflow check에서 Owner 운영 화면은 실제 overflow 0개, Staff 화면은 visually hidden labels만 false positive로 감지됨
 
 ## 새로 결정한 사항
 
@@ -64,12 +67,14 @@
 - Owner는 자기 자신의 role이나 activation state를 직접 바꿀 수 없다. accidental lockout을 막기 위한 Phase A 안전장치다.
 - Role 또는 activation 변경 후 별도 session purge 없이도 current-user reload가 다음 request에서 stale privileges를 제거한다.
 - Session table은 런타임 자동 생성에 맡기지 않고 schema와 migration이 소유한다. CI처럼 테스트 프로세스가 병렬로 앱을 만들 때도 같은 DB 구조를 사용하기 위한 결정이다.
+- Mobile에서 운영 table header가 숨겨지는 화면은 row-level label을 제공한다. 기능 변경 없이 mobile scan clarity를 보완하기 위한 Step 8 frontend rule이다.
 
 ## 남은 위험 또는 Blocker
 
 - Production Staff booking controls, roster grouping, Member review CRUD, review moderation, and contact processing verification remains pending until deployment.
 - Production Owner user management verification remains pending until deployment.
 - Production future-screening booking CTA verification remains limited by aged-out seed screening dates.
+- Step 8 다음 slice에서는 Staff dashboard section hierarchy 또는 Member account hierarchy 중 submission-readiness risk가 큰 쪽을 먼저 정리해야 한다.
 
 ## 다음 목표
 

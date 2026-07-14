@@ -19,18 +19,22 @@
       <% users.forEach((user) => { %>
         <article class="status-row owner-row owner-user-row" role="row">
           <div role="cell">
+            <span class="status-cell-label">User</span>
             <h2><%= user.nameDisplay %></h2>
             <p><%= user.email %></p>
             <p class="owner-row-note">Created <%= user.createdAtDisplay %></p>
           </div>
           <div role="cell">
+            <span class="status-cell-label">Access</span>
             <span class="status-badge"><%= user.roleDisplay %></span>
             <p class="owner-row-note"><%= user.accountStateDisplay %></p>
           </div>
           <p role="cell">
+            <span class="status-cell-label">Activity</span>
             <%= user.bookingSummary %> · <%= user.reviewSummary %> · <%= user.contactMessageSummary %>
           </p>
           <div role="cell" class="owner-actions">
+            <span class="status-cell-label">Action</span>
             <% if (user.canManageAccess) { %>
               <form class="owner-access-form" action="/admin/users/<%= user.user_id %>/access" method="post">
                 <input type="hidden" name="csrfToken" value="<%= csrfToken %>" />
