@@ -61,6 +61,7 @@
 - Step 8 browser overflow check에서 Owner 운영 화면은 실제 overflow 0개, Staff 화면은 visually hidden labels만 false positive로 감지됨
 - GitHub Actions CI passed for the Step 8 operational mobile row label slice
 - Browser check에서 `/staff` overview가 390px에서는 1-column, 1280px에서는 3-column으로 표시되고 section anchor와 no-overflow 상태 확인
+- GitHub Actions CI passed for the Step 8 Staff operations overview slice
 
 ## 새로 결정한 사항
 
