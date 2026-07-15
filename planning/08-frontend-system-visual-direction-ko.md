@@ -66,11 +66,33 @@ Staff and Owner:
 - Browser check `/admin/users` at 390px: 12 labels visible, no overflow.
 - Browser check `/admin/users` at 1280px: labels hidden.
 
+## Slice 2: Staff Operations Overview
+
+상태: Implemented and locally verified.
+
+문제:
+
+- `/staff`는 booking operations, review moderation, message queue가 모두 한 화면에 이어진다.
+- 기능적으로는 완성됐지만, 처음 화면을 열었을 때 오늘 처리할 업무의 총량과 다음 섹션 위치를 빠르게 파악하기 어렵다.
+
+변경:
+
+- Staff page heading 아래에 `Staff operations overview` navigation을 추가했다.
+- Overview는 booking action count, review queue count, message queue count를 보여준다.
+- 각 overview card는 같은 페이지의 해당 section heading으로 이동한다.
+- Route, mutation, permission, data relationship은 변경하지 않았다.
+
+검증:
+
+- `node --test test/authentication.test.js`: overview navigation, counts, existing Staff moderation and message workflow assertions passed.
+- Browser check `/staff` at 390px: overview rendered as one column, three cards linked to section headings, no real content overflow.
+- Browser check `/staff` at 1280px: overview rendered as three columns, three cards linked to section headings, no real content overflow.
+
 ## 다음 Slice 후보
 
-- Staff dashboard section hierarchy: booking operations, review moderation, and message queue remain on one page but need clearer visual grouping.
 - Member account hierarchy: booking history, review cards, and review prompts may need stronger section rhythm before final submission.
 - Public route polish: confirm home, film, screening, and visit pages still match the restrained cinema direction after operational work.
+- Staff dashboard visual polish: action groups and note inputs may need finer spacing after the overview structure is stable.
 
 ## 완료 조건
 

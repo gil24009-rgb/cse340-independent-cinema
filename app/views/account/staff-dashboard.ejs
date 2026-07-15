@@ -7,6 +7,16 @@
     <p>Check in Members, moderate public reviews, and keep contact messages moving from the same operational desk.</p>
   </section>
 
+  <nav class="staff-overview" aria-label="Staff operations overview">
+    <% staffDashboardSummary.forEach((item) => { %>
+      <a class="staff-overview-card" href="<%= item.href %>">
+        <span class="eyebrow"><%= item.label %></span>
+        <strong><%= item.value %></strong>
+        <span><%= item.detail %></span>
+      </a>
+    <% }) %>
+  </nav>
+
   <section class="page-section" aria-labelledby="staff-bookings-heading">
     <div class="section-heading section-heading-stack">
       <div>

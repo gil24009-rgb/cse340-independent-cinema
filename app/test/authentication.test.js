@@ -1367,10 +1367,16 @@ test("staff dashboard moderates reviews and processes contact messages", async (
   const dashboardBody = await dashboard.text();
   const csrfToken = csrfFrom(dashboardBody);
   assert.equal(dashboard.status, 200);
+  assert.match(dashboardBody, /Staff operations overview/);
+  assert.match(dashboardBody, /Booking actions/);
+  assert.match(dashboardBody, /1 action/);
+  assert.match(dashboardBody, /Review queue/);
+  assert.match(dashboardBody, /2 reviews/);
   assert.match(dashboardBody, /Member reviews/);
   assert.match(dashboardBody, /Review moderation queue/);
   assert.match(dashboardBody, /A precise and quietly moving film/);
   assert.match(dashboardBody, /Message queue/);
+  assert.match(dashboardBody, /2 messages/);
   assert.match(dashboardBody, /Group screening question/);
   assert.match(dashboardBody, /Accessibility information/);
   assert.ok(csrfToken);

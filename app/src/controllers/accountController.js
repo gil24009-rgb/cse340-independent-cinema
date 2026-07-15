@@ -600,6 +600,37 @@ function groupStaffBookingsByScreening(bookings) {
   }));
 }
 
+function pluralizeCount(count, singular, plural = `${singular}s`) {
+  return count === 1 ? `1 ${singular}` : `${count} ${plural}`;
+}
+
+function buildStaffDashboardSummary({ contactMessages, reviews, screeningGroups }) {
+  const bookingCount = screeningGroups.reduce((total, group) => total + group.bookingCount, 0);
+  const bookingActionCount = screeningGroups.reduce((total, group) => total + group.activeActionCount, 0);
+  const screeningCount = screeningGroups.length;
+
+  return [
+    {
+      detail: `${pluralizeCount(bookingCount, "booking")} across ${pluralizeCount(screeningCount, "screening")}`,
+      href: "#staff-bookings-heading",
+      label: "Booking actions",
+      value: pluralizeCount(bookingActionCount, "action"),
+    },
+    {
+      detail: "Visibility and moderation notes",
+      href: "#staff-reviews-heading",
+      label: "Review queue",
+      value: pluralizeCount(reviews.length, "review"),
+    },
+    {
+      detail: "New, in progress, and closed requests",
+      href: "#staff-messages-heading",
+      label: "Message queue",
+      value: pluralizeCount(contactMessages.length, "message"),
+    },
+  ];
+}
+
 export function createMemberAccountController(options = {}) {
   const cancelBooking = options.cancelMemberBooking || cancelMemberBooking;
   const createReview = options.createMemberReview || createMemberReview;
@@ -827,6 +858,7 @@ export function createStaffOperationsController(options = {}) {
         const contactMessages = (await loadContactMessages()).map(presentContactMessage);
         const reviews = (await loadReviews()).map(presentStaffReview);
         const screeningGroups = groupStaffBookingsByScreening(bookings);
+        const staffDashboardSummary = buildStaffDashboardSummary({ contactMessages, reviews, screeningGroups });
 
         return res.render("account/staff-dashboard", {
           bookings,
@@ -835,6 +867,7 @@ export function createStaffOperationsController(options = {}) {
           pageTitle: "Staff Operations",
           reviews,
           screeningGroups,
+          staffDashboardSummary,
           staffName: req.currentUser.first_name,
         });
       } catch (error) {
