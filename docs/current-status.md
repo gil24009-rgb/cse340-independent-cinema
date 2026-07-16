@@ -157,6 +157,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Latest GitHub Actions CI run passed for the Owner screening create and edit slice
 - Latest GitHub Actions CI run passed for the Step 8 operational mobile row label slice
 - Latest GitHub Actions CI run passed for the Step 8 Staff operations overview slice
+- Latest GitHub Actions CI run passed for the Step 8 Member account overview slice
 
 ## Current Implementation Stage
 

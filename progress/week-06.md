@@ -64,6 +64,7 @@
 - Browser check에서 `/staff` overview가 390px에서는 1-column, 1280px에서는 3-column으로 표시되고 section anchor와 no-overflow 상태 확인
 - GitHub Actions CI passed for the Step 8 Staff operations overview slice
 - Browser check에서 `/account` overview가 390px에서는 1-column, 1280px에서는 3-column으로 표시되고 section anchor와 no-overflow 상태 확인
+- GitHub Actions CI passed for the Step 8 Member account overview slice
 
 ## 새로 결정한 사항
 
