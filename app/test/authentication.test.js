@@ -1962,7 +1962,11 @@ test("member account lists only the signed-in member bookings", async () => {
   const body = await response.text();
 
   assert.equal(response.status, 200);
+  assert.match(body, /Member account overview/);
   assert.match(body, /Booking history/);
+  assert.match(body, /2 bookings/);
+  assert.match(body, /Review list/);
+  assert.match(body, /1 review/);
   assert.match(body, /House of Hummingbird/);
   assert.match(body, /Microhabitat/);
   assert.match(body, /Confirmed/);
@@ -2205,6 +2209,8 @@ test("member review CRUD requires a completed booking and preserves ownership", 
   const accountBody = await account.text();
   assert.equal(account.status, 200);
   assert.match(accountBody, /Film reviews/);
+  assert.match(accountBody, /Ready to review/);
+  assert.match(accountBody, /1 film/);
   assert.match(accountBody, /Write a Review/);
   assert.match(accountBody, /Microhabitat/);
 

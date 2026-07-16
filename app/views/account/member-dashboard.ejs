@@ -7,6 +7,16 @@
     <p>Track your bookings, screening times, and current booking status from one place.</p>
   </section>
 
+  <nav class="account-overview" aria-label="Member account overview">
+    <% memberAccountSummary.forEach((item) => { %>
+      <a class="account-overview-card" href="<%= item.href %>">
+        <span class="eyebrow"><%= item.label %></span>
+        <strong><%= item.value %></strong>
+        <span><%= item.detail %></span>
+      </a>
+    <% }) %>
+  </nav>
+
   <section class="page-section" aria-labelledby="member-bookings-heading">
     <div class="section-heading section-heading-stack">
       <div>

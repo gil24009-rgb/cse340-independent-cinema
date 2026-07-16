@@ -631,6 +631,31 @@ function buildStaffDashboardSummary({ contactMessages, reviews, screeningGroups 
   ];
 }
 
+function buildMemberAccountSummary({ bookings, reviewableFilms, reviews }) {
+  const availableReviewCount = reviewableFilms.filter((film) => !film.hasReview).length;
+
+  return [
+    {
+      detail: "Current status, screening time, and booking detail links",
+      href: "#member-bookings-heading",
+      label: "Booking history",
+      value: pluralizeCount(bookings.length, "booking"),
+    },
+    {
+      detail: "Published reviews you can view or edit",
+      href: "#member-reviews-heading",
+      label: "Review list",
+      value: pluralizeCount(reviews.length, "review"),
+    },
+    {
+      detail: "Completed films still open for review",
+      href: "#member-reviews-heading",
+      label: "Ready to review",
+      value: pluralizeCount(availableReviewCount, "film"),
+    },
+  ];
+}
+
 export function createMemberAccountController(options = {}) {
   const cancelBooking = options.cancelMemberBooking || cancelMemberBooking;
   const createReview = options.createMemberReview || createMemberReview;
@@ -670,9 +695,11 @@ export function createMemberAccountController(options = {}) {
         const bookings = (await loadBookings(req.currentUser.user_id)).map(presentMemberBooking);
         const reviews = (await loadReviews(req.currentUser.user_id)).map(presentMemberReview);
         const reviewableFilms = (await loadReviewableFilms(req.currentUser.user_id)).map(presentReviewableFilm);
+        const memberAccountSummary = buildMemberAccountSummary({ bookings, reviewableFilms, reviews });
 
         return res.render("account/member-dashboard", {
           bookings,
+          memberAccountSummary,
           memberName: req.currentUser.first_name,
           pageDescription: "View your cinema account and bookings.",
           pageTitle: "My Account",

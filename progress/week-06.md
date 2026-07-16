@@ -27,6 +27,7 @@
 - `user_sessions` table을 project schema와 migration으로 명시해 CI 병렬 테스트가 session-store table creation race에 의존하지 않도록 수정
 - Step 8 첫 slice로 Staff와 Owner 운영 row에 mobile-only cell labels 추가
 - Step 8 두 번째 slice로 `/staff` heading 아래 Staff operations overview cards와 section anchors 추가
+- Step 8 세 번째 slice로 `/account` heading 아래 Member account overview cards와 section anchors 추가
 - Step 7 completion approval packet 작성
 
 ## 관련 문서
@@ -62,6 +63,7 @@
 - GitHub Actions CI passed for the Step 8 operational mobile row label slice
 - Browser check에서 `/staff` overview가 390px에서는 1-column, 1280px에서는 3-column으로 표시되고 section anchor와 no-overflow 상태 확인
 - GitHub Actions CI passed for the Step 8 Staff operations overview slice
+- Browser check에서 `/account` overview가 390px에서는 1-column, 1280px에서는 3-column으로 표시되고 section anchor와 no-overflow 상태 확인
 
 ## 새로 결정한 사항
 
@@ -73,13 +75,14 @@
 - Session table은 런타임 자동 생성에 맡기지 않고 schema와 migration이 소유한다. CI처럼 테스트 프로세스가 병렬로 앱을 만들 때도 같은 DB 구조를 사용하기 위한 결정이다.
 - Mobile에서 운영 table header가 숨겨지는 화면은 row-level label을 제공한다. 기능 변경 없이 mobile scan clarity를 보완하기 위한 Step 8 frontend rule이다.
 - Staff dashboard는 한 페이지를 유지하되 overview cards로 booking, review, message 업무량과 section 이동을 먼저 보여준다. Route split 없이 scan clarity를 높이기 위한 Phase A 결정이다.
+- Member account도 한 페이지를 유지하되 overview cards로 booking history, review list, ready-to-review 상태를 먼저 보여준다. Member가 구현 세부보다 자신의 상태와 다음 행동을 빠르게 확인하게 하기 위한 Step 8 결정이다.
 
 ## 남은 위험 또는 Blocker
 
 - Production Staff booking controls, roster grouping, Member review CRUD, review moderation, and contact processing verification remains pending until deployment.
 - Production Owner user management verification remains pending until deployment.
 - Production future-screening booking CTA verification remains limited by aged-out seed screening dates.
-- Step 8 다음 slice에서는 Member account hierarchy 또는 public route polish 중 submission-readiness risk가 큰 쪽을 먼저 정리해야 한다.
+- Step 8 다음 slice에서는 public route polish 또는 Staff action group spacing 중 submission-readiness risk가 큰 쪽을 먼저 정리해야 한다.
 
 ## 다음 목표
 

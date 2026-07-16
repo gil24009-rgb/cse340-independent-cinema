@@ -572,6 +572,7 @@ h3 {
   border-bottom: 1px solid var(--ink);
 }
 
+.account-overview,
 .staff-overview {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -579,6 +580,7 @@ h3 {
   margin-top: 3rem;
 }
 
+.account-overview-card,
 .staff-overview-card {
   display: grid;
   gap: 0.5rem;
@@ -588,17 +590,21 @@ h3 {
   text-decoration: none;
 }
 
+.account-overview-card:focus,
+.account-overview-card:hover,
 .staff-overview-card:focus,
 .staff-overview-card:hover {
   border-top-color: var(--accent);
 }
 
+.account-overview-card strong,
 .staff-overview-card strong {
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(1.7rem, 3vw, 2.4rem);
   font-weight: 500;
 }
 
+.account-overview-card span:last-child,
 .staff-overview-card span:last-child {
   color: var(--muted);
   line-height: 1.5;
@@ -1267,6 +1273,7 @@ h3 {
   .foundation-grid,
   .information-list,
   .contact-panel,
+  .account-overview,
   .staff-overview {
     grid-template-columns: 1fr;
   }

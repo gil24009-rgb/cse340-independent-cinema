@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: July 14, 2026
+Last updated: July 15, 2026
 
 ## Current Stage
 
@@ -46,6 +46,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the fifth Step 7 vertical slice: Owner user management with account list, role changes, activation controls, self-lockout protection, and stale-session rejection
 - Added the first Step 8 frontend refinement slice: mobile-only cell labels for Staff and Owner operational rows so hidden mobile table headers do not remove row meaning
 - Added the second Step 8 frontend refinement slice: Staff operations overview cards with section anchors and work counts for booking actions, review queue, and message queue
+- Added the third Step 8 frontend refinement slice: Member account overview cards with booking, review, and ready-to-review counts plus same-page section anchors
 
 ## Verified Baseline
 
@@ -132,6 +133,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Step 8 operational mobile label check confirmed `/staff`, `/admin/films`, `/admin/screenings`, and `/admin/users` show row-level cell labels at 390px and hide them at 1280px
 - Step 8 operational browser checks reported no real content overflow for `/admin/films`, `/admin/screenings`, and `/admin/users`; `/staff` overflow detection reported only intentionally visually hidden labels
 - Step 8 Staff overview browser check confirmed `/staff` shows three overview cards, same-page anchors, 390px one-column layout, 1280px three-column layout, and no real content overflow
+- Step 8 Member account overview browser check confirmed `/account` shows three overview cards, same-page anchors, 390px one-column layout, 1280px three-column layout, and no real content overflow
 - Headless Chrome computed layout metrics reported no horizontal overflow elements for the changed review screens. Chrome headless reported a 500px inner width during metric capture, so final 390px browser-plugin verification remains worth repeating when the in-app browser connection is stable.
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
@@ -394,7 +396,7 @@ Completed fifth vertical slice:
 | 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
 | 6 | Booking and Member experience | Implemented and ready for nonblocking Director frontend review |
 | 7 | Reviews and operations | Complete and ready for nonblocking Director frontend review |
-| 8 | Frontend refinement | In progress: operational mobile labels and Staff overview implemented; Member account or public route refinement next |
+| 8 | Frontend refinement | In progress: operational mobile labels, Staff overview, and Member account overview implemented; public route refinement next |
 | 9 | Security and deployment | Regression testing, Render deployment, and submission documentation |
 
 ## Current Risks and Open Decisions

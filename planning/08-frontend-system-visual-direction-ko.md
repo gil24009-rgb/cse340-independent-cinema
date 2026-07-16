@@ -88,9 +88,30 @@ Staff and Owner:
 - Browser check `/staff` at 390px: overview rendered as one column, three cards linked to section headings, no real content overflow.
 - Browser check `/staff` at 1280px: overview rendered as three columns, three cards linked to section headings, no real content overflow.
 
+## Slice 3: Member Account Overview
+
+상태: Implemented and locally verified.
+
+문제:
+
+- `/account`는 booking history, review list, ready-to-review prompt가 모두 연결되어 있지만, 화면 첫 진입 시 현재 계정에서 무엇을 확인해야 하는지 한눈에 요약되지 않았다.
+- Member는 운영자처럼 반복 업무를 처리하지는 않지만, 자신의 booking 상태와 review 가능 여부를 빠르게 파악해야 한다.
+
+변경:
+
+- Member page heading 아래에 `Member account overview` navigation을 추가했다.
+- Overview는 booking history count, review list count, ready-to-review film count를 보여준다.
+- 각 overview card는 같은 페이지의 booking 또는 review section heading으로 이동한다.
+- Route, mutation, permission, data relationship은 변경하지 않았다.
+
+검증:
+
+- `node --test test/authentication.test.js`: Member account overview label, booking count, review count, ready-to-review count, and existing ownership assertions passed.
+- Browser check `/account` at 390px: overview rendered as one column, three cards linked to section headings, no content overflow.
+- Browser check `/account` at 1280px: overview rendered as three columns, three cards linked to section headings, no content overflow.
+
 ## 다음 Slice 후보
 
-- Member account hierarchy: booking history, review cards, and review prompts may need stronger section rhythm before final submission.
 - Public route polish: confirm home, film, screening, and visit pages still match the restrained cinema direction after operational work.
 - Staff dashboard visual polish: action groups and note inputs may need finer spacing after the overview structure is stable.
 
