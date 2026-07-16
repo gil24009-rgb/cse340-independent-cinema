@@ -110,9 +110,31 @@ Staff and Owner:
 - Browser check `/account` at 390px: overview rendered as one column, three cards linked to section headings, no content overflow.
 - Browser check `/account` at 1280px: overview rendered as three columns, three cards linked to section headings, no content overflow.
 
+## Slice 4: Public Home Visitor Pathway
+
+상태: Implemented and locally verified.
+
+문제:
+
+- Home은 hero action, weekly schedule, program section을 갖고 있지만, first-time public visitor가 `films -> screenings -> visit` 순서를 빠르게 읽을 수 있는 별도 안내 구조가 약했다.
+- Step 8의 public refinement는 새 기능보다 film discovery, schedule clarity, visit planning의 연결을 먼저 명확하게 해야 한다.
+
+변경:
+
+- Home hero 아래에 `Visitor path` section을 추가했다.
+- `Films`, `Screenings`, `Visit` 세 card가 각각 `/films`, `/screenings`, `/visit`으로 연결된다.
+- Desktop에서는 세 card가 한 줄로 표시되고, mobile에서는 한 열로 접힌다.
+- Route, data query, booking workflow, permission은 변경하지 않았다.
+
+검증:
+
+- `node --test test/publicRoutes.test.js`: public pathway label, heading, and route links passed with existing public route assertions.
+- Browser check `/` at 390px: pathway rendered as one column, three cards linked to public routes, no content overflow.
+- Browser check `/` at 1280px: pathway rendered as three columns, three cards linked to public routes, no content overflow.
+
 ## 다음 Slice 후보
 
-- Public route polish: confirm home, film, screening, and visit pages still match the restrained cinema direction after operational work.
+- Public detail polish: confirm film detail, screening detail, and visit page hierarchy still match the restrained cinema direction after the home pathway update.
 - Staff dashboard visual polish: action groups and note inputs may need finer spacing after the overview structure is stable.
 
 ## 완료 조건

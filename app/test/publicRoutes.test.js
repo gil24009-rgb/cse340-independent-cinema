@@ -158,6 +158,11 @@ test("public film and screening routes render data-backed normal states", async 
     assert.match(homeBody, /Next screening/);
     assert.match(homeBody, /House of Hummingbird/);
     assert.match(homeBody, /57 seats available/);
+    assert.match(homeBody, /Public cinema path/);
+    assert.match(homeBody, /Start with the film, then choose the night/);
+    assert.match(homeBody, /href="\/films"/);
+    assert.match(homeBody, /href="\/screenings"/);
+    assert.match(homeBody, /href="\/visit"/);
 
     const filmsResponse = await fetch(`${baseUrl}/films`);
     const filmsBody = await filmsResponse.text();
