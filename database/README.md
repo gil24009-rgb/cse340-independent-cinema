@@ -39,11 +39,7 @@ The runner records applied filenames in `schema_migrations`, applies each pendin
 
 ## Test Accounts
 
-All test accounts use the course-required password:
-
-```text
-P@$$w0rd!
-```
+All test accounts use the same course-required shared test password.
 
 Emails:
 

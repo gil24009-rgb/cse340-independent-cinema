@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="840" viewBox="0 0 1280 840" role="img" aria-labelledby="title desc">
+  <title id="title">Independent Cinema Platform database ERD</title>
+  <desc id="desc">Entity relationship diagram for users, films, screenings, bookings, booking status history, reviews, contact messages, and user sessions.</desc>
+  <style>
+    .page { fill: #f2f0ea; }
+    .table { fill: #fbfaf6; stroke: #181817; stroke-width: 2; }
+    .head { fill: #181817; }
+    .head-text { fill: #ffffff; font: 700 18px Arial, sans-serif; }
+    .field { fill: #181817; font: 14px Arial, sans-serif; }
+    .muted { fill: #66635d; font: 13px Arial, sans-serif; }
+    .rel { fill: none; stroke: #a4382d; stroke-width: 2.5; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#a4382d" />
+    </marker>
+  </defs>
+  <rect class="page" width="1280" height="840" />
+
+  <g transform="translate(40 40)">
+    <rect class="table" width="250" height="235" rx="10" />
+    <rect class="head" width="250" height="42" rx="10" />
+    <text class="head-text" x="18" y="27">users</text>
+    <text class="field" x="18" y="70">PK user_id</text>
+    <text class="field" x="18" y="96">email</text>
+    <text class="field" x="18" y="122">password_hash</text>
+    <text class="field" x="18" y="148">first_name, last_name</text>
+    <text class="field" x="18" y="174">role</text>
+    <text class="field" x="18" y="200">is_active</text>
+    <text class="muted" x="18" y="224">owner, staff, member</text>
+  </g>
+
+  <g transform="translate(515 40)">
+    <rect class="table" width="250" height="250" rx="10" />
+    <rect class="head" width="250" height="42" rx="10" />
+    <text class="head-text" x="18" y="27">films</text>
+    <text class="field" x="18" y="70">PK film_id</text>
+    <text class="field" x="18" y="96">title, slug</text>
+    <text class="field" x="18" y="122">director</text>
+    <text class="field" x="18" y="148">release_year</text>
+    <text class="field" x="18" y="174">runtime_minutes</text>
+    <text class="field" x="18" y="200">is_featured</text>
+    <text class="field" x="18" y="226">is_archived</text>
+  </g>
+
+  <g transform="translate(990 40)">
+    <rect class="table" width="250" height="235" rx="10" />
+    <rect class="head" width="250" height="42" rx="10" />
+    <text class="head-text" x="18" y="27">screenings</text>
+    <text class="field" x="18" y="70">PK screening_id</text>
+    <text class="field" x="18" y="96">FK film_id</text>
+    <text class="field" x="18" y="122">starts_at</text>
+    <text class="field" x="18" y="148">capacity</text>
+    <text class="field" x="18" y="174">ticket_price_cents</text>
+    <text class="field" x="18" y="200">status</text>
+    <text class="muted" x="18" y="224">scheduled, cancelled, completed</text>
+  </g>
+
+  <g transform="translate(515 335)">
+    <rect class="table" width="250" height="235" rx="10" />
+    <rect class="head" width="250" height="42" rx="10" />
+    <text class="head-text" x="18" y="27">bookings</text>
+    <text class="field" x="18" y="70">PK booking_id</text>
+    <text class="field" x="18" y="96">FK user_id</text>
+    <text class="field" x="18" y="122">FK screening_id</text>
+    <text class="field" x="18" y="148">status</text>
+    <text class="field" x="18" y="174">booked_at</text>
+    <text class="field" x="18" y="200">cancelled_at</text>
+    <text class="muted" x="18" y="224">unique user and screening</text>
+  </g>
+
+  <g transform="translate(990 335)">
+    <rect class="table" width="250" height="235" rx="10" />
+    <rect class="head" width="250" height="42" rx="10" />
+    <text class="head-text" x="18" y="27">booking_status_history</text>
+    <text class="field" x="18" y="70">PK history_id</text>
+    <text class="field" x="18" y="96">FK booking_id</text>
+    <text class="field" x="18" y="122">from_status</text>
+    <text class="field" x="18" y="148">to_status</text>
+    <text class="field" x="18" y="174">FK changed_by_user_id</text>
+    <text class="field" x="18" y="200">note</text>
+    <text class="field" x="18" y="226">changed_at</text>
+  </g>
+
+  <g transform="translate(40 335)">
+    <rect class="table" width="250" height="235" rx="10" />
+    <rect class="head" width="250" height="42" rx="10" />
+    <text class="head-text" x="18" y="27">reviews</text>
+    <text class="field" x="18" y="70">PK review_id</text>
+    <text class="field" x="18" y="96">FK user_id</text>
+    <text class="field" x="18" y="122">FK film_id</text>
+    <text class="field" x="18" y="148">rating</text>
+    <text class="field" x="18" y="174">body</text>
+    <text class="field" x="18" y="200">is_visible</text>
+    <text class="muted" x="18" y="224">unique user and film</text>
+  </g>
+
+  <g transform="translate(40 635)">
+    <rect class="table" width="250" height="165" rx="10" />
+    <rect class="head" width="250" height="42" rx="10" />
+    <text class="head-text" x="18" y="27">contact_messages</text>
+    <text class="field" x="18" y="70">PK message_id</text>
+    <text class="field" x="18" y="96">FK user_id</text>
+    <text class="field" x="18" y="122">FK assigned_to_user_id</text>
+    <text class="field" x="18" y="148">status, staff_note</text>
+  </g>
+
+  <g transform="translate(515 635)">
+    <rect class="table" width="250" height="140" rx="10" />
+    <rect class="head" width="250" height="42" rx="10" />
+    <text class="head-text" x="18" y="27">user_sessions</text>
+    <text class="field" x="18" y="70">PK sid</text>
+    <text class="field" x="18" y="96">sess</text>
+    <text class="field" x="18" y="122">expire</text>
+  </g>
+
+  <path class="rel" d="M765 165 C845 165 910 165 990 165" />
+  <path class="rel" d="M990 455 C900 455 855 455 765 455" />
+  <path class="rel" d="M290 155 C395 185 425 380 515 440" />
+  <path class="rel" d="M290 455 C390 455 415 455 515 455" />
+  <path class="rel" d="M765 455 C855 455 900 455 990 455" />
+  <path class="rel" d="M515 160 C410 210 385 375 290 430" />
+  <path class="rel" d="M290 720 C390 700 420 520 515 470" />
+  <path class="rel" d="M290 730 C535 710 785 585 990 470" />
+</svg>

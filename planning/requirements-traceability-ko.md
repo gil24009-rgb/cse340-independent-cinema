@@ -29,8 +29,8 @@
 | Sanitization | Review and message inputs sanitized | Input processing | Safe content output | Injection tests | Planned |
 | Secure sessions | Production session settings | Session configuration and project-owned PostgreSQL session table | Stable login state | Production review, direct session-table checks, migration check, integration test | Verified |
 | Render deployment | Live server and DB | Environment variables | Production application | Private browser test | In Progress |
-| README | Required project documentation | README and ERD image | Repository review | Requirement checklist | Planned |
-| 15 substantial commits | Meaningful progress history | Git history | Repository review | `git log` review | In Progress |
+| README | Required project documentation | README and ERD image | Repository review | Requirement checklist | Verified |
+| 15 substantial commits | Meaningful progress history | Git history | Repository review | `git log` review confirmed 65 non-merge commits | Verified |
 
 ## 상태 정의
 

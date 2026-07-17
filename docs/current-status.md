@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: July 16, 2026
+Last updated: July 17, 2026
 
 ## Current Stage
 
@@ -48,6 +48,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the second Step 8 frontend refinement slice: Staff operations overview cards with section anchors and work counts for booking actions, review queue, and message queue
 - Added the third Step 8 frontend refinement slice: Member account overview cards with booking, review, and ready-to-review counts plus same-page section anchors
 - Added the fourth Step 8 frontend refinement slice: public home visitor pathway cards that link visitors from films to screenings to visit planning
+- Added the final submission README pass with project description, ERD image, role accounts, setup, verification, and known limitations
 
 ## Verified Baseline
 
@@ -136,6 +137,8 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Step 8 Staff overview browser check confirmed `/staff` shows three overview cards, same-page anchors, 390px one-column layout, 1280px three-column layout, and no real content overflow
 - Step 8 Member account overview browser check confirmed `/account` shows three overview cards, same-page anchors, 390px one-column layout, 1280px three-column layout, and no real content overflow
 - Step 8 public pathway browser check confirmed `/` shows three visitor pathway cards linking to `/films`, `/screenings`, and `/visit`, with 390px one-column layout, 1280px three-column layout, and no content overflow
+- Root README now includes the final project description, ERD image, role descriptions, test account emails, shared test password guidance, setup, verification commands, live URL, and known limitations
+- Git history review confirmed 65 non-merge commits, which is above the 15 substantial commit requirement
 - Headless Chrome computed layout metrics reported no horizontal overflow elements for the changed review screens. Chrome headless reported a 500px inner width during metric capture, so final 390px browser-plugin verification remains worth repeating when the in-app browser connection is stable.
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
@@ -400,19 +403,19 @@ Completed fifth vertical slice:
 | 6 | Booking and Member experience | Implemented and ready for nonblocking Director frontend review |
 | 7 | Reviews and operations | Complete and ready for nonblocking Director frontend review |
 | 8 | Frontend refinement | In progress: operational mobile labels, Staff overview, Member account overview, and public home pathway implemented; public detail polish or Staff action spacing next |
-| 9 | Security and deployment | Regression testing, Render deployment, and submission documentation |
+| 9 | Security and deployment | In progress: README and Git history are submission-ready; production database health is currently blocking final deployment verification |
 
 ## Current Risks and Open Decisions
 
 - Final cinema brand name is not selected.
 - Final poster and film image sources are not selected.
 - Course deadline should be added once confirmed.
-- Full production workflows beyond authentication, public routes, Owner read-only route checks, and Member read-only booking checks remain incomplete until later stage verification.
-- The Render URL is an early submission deployment. Its current public pages and role landing pages are structural placeholders, not the finished visual experience.
+- Production database-backed routes currently return `500`, including `/health/database`, `/`, `/films`, `/screenings`, login, and protected role routes. `/health` and public `/visit` still return `200`, so the service is up but the production database path is blocked.
+- Full production workflow verification is blocked until the Render database connection or database instance is repaired.
+- The Render URL is an early submission deployment. It cannot be called final while database-backed routes return `500`.
 - Render free services can spin down after inactivity and delay the first request.
 - Production seed screening dates can age out, which can block read-only verification of future-screening workflows until the next production seed or schedule refresh.
-- Step 7 production verification remains pending until deployment.
-- Git history has passed 15 total commits, but the final review must still confirm that at least 15 are substantial and coherent.
+- Step 7 and Step 8 production verification remain pending until the production database blocker is resolved.
 
 ## Working Checkpoints
 

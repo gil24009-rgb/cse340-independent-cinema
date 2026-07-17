@@ -1,55 +1,75 @@
 # Independent Cinema Platform
 
-A server-rendered cinema operations platform for a single-screen independent theater. The project combines a public film and screening experience with role-specific booking, staff, and owner workflows.
+A server-rendered cinema operations platform for a single-screen independent theater. Public visitors can browse films, check screenings, plan a visit, and send contact messages. Members can book screenings, track booking status history, and manage their own reviews. Staff and Owners use protected dashboards for check-in, booking status changes, review moderation, contact message processing, and cinema management.
 
-## Start Here
-
-Read these documents in order before making a structural or product decision:
-
-1. [Project Context](docs/project-context.md)
-2. [Current Status](docs/current-status.md)
-3. [Decision Log](docs/decision-log.md)
-4. [Master Roadmap](planning/00-master-roadmap-ko.md)
-5. [Requirements Traceability](planning/requirements-traceability-ko.md)
-
-The context and status documents provide the shortest path into the project. The planning directory contains the detailed reasoning, data contracts, and implementation sequence.
-
-## Product Direction
-
-The platform serves four user contexts:
-
-- Public visitors browse films, view screenings, read theater information, and send contact messages.
-- Members book screenings, track booking history, and manage their own reviews.
-- Staff operate check-in, booking statuses, review moderation, and contact messages.
-- Owners manage all staff operations plus films, screenings, users, and roles.
-
-The main workflow is booking status management with an immutable status history. Payment, seat selection, multiple auditoriums, external APIs, recommendations, and social login are intentionally outside the project scope.
-
-## Technical Direction
-
-- Node.js 20+
-- Express 5
-- EJS server-side rendering
-- PostgreSQL
-- ESM modules
-- Session authentication
-- Render deployment
-
-The implementation follows an MVC-oriented structure with shared middleware, server-side validation, centralized error handling, and role-aware navigation.
-
-## Repository Map
+Live deployment:
 
 ```text
-app/              Express application, views, styles, and tests
-database/         PostgreSQL schema, seed data, and verification queries
-docs/             Concise project context, status, and decisions
-planning/         Detailed roadmap, architecture, and requirements mapping
-progress/         Weekly progress records
-quality-reviews/  Reference and interface quality reviews
-requirements/     Original assignment requirements and summary
+https://cse340-independent-cinema.onrender.com
 ```
 
-## Run Locally
+## Project Scope
+
+The project is designed for the CSE 340 final project requirements. It demonstrates PostgreSQL relationships, session authentication, role-based authorization, server-side rendering, dynamic content management, user-generated content, and a multi-stage booking workflow.
+
+The core workflow is booking status management:
+
+1. A Member books an upcoming screening.
+2. The booking starts as `confirmed`.
+3. Staff or Owner can move the booking through valid operational statuses.
+4. Each status change writes an append-only history row.
+5. The Member can view the current status and status timeline.
+6. Completed bookings make the related film available for Member review.
+
+Out of scope: payment, seat selection, multiple auditoriums, external movie APIs, external booking APIs, recommendations, and social login.
+
+## Technology
+
+- Node.js with Express 5
+- EJS server-side rendering
+- ESM modules
+- PostgreSQL
+- `express-session` with a PostgreSQL session table
+- bcrypt password hashing
+- Render deployment
+
+## Database Schema
+
+The database uses normalized tables for users, films, screenings, bookings, booking status history, reviews, contact messages, and PostgreSQL-backed sessions.
+
+![Independent Cinema Platform ERD](docs/erd.svg)
+
+Important relationships:
+
+- A booking belongs to one Member and one screening.
+- A Member can have only one booking per screening.
+- Booking status history belongs to a booking and is append-only.
+- A review belongs to one Member and one film.
+- A review is allowed only after the Member has a completed booking for that film.
+- Contact messages can be public or tied to a signed-in user.
+- Operational records are preserved through archive, cancellation, hidden, or inactive states instead of casual deletion.
+
+## Roles and Test Accounts
+
+All test accounts use the same course-provided shared test password. The password is not repeated here so the README can stay safe for public review.
+
+| Role | Email | Main access |
+| --- | --- | --- |
+| Owner | `owner@cinema.test` | Film management, screening management, user management, Staff operations |
+| Staff | `staff@cinema.test` | Booking status operations, review moderation, contact message processing |
+| Member | `member@cinema.test` | Booking history, booking detail, cancellation when eligible, own reviews |
+
+## Main Routes
+
+| Area | Routes |
+| --- | --- |
+| Public | `/`, `/films`, `/films/:filmSlug`, `/screenings`, `/screenings/:screeningId`, `/visit` |
+| Authentication | `/login`, `/signup`, `/logout` |
+| Member | `/account`, `/account/bookings/:bookingId`, `/account/reviews/new`, `/account/reviews/:reviewId`, `/account/reviews/:reviewId/edit` |
+| Staff | `/staff` |
+| Owner | `/admin`, `/admin/films`, `/admin/films/new`, `/admin/films/:filmId/edit`, `/admin/screenings`, `/admin/screenings/new`, `/admin/screenings/:screeningId/edit`, `/admin/users` |
+
+## Local Setup
 
 ```bash
 cd app
@@ -57,11 +77,12 @@ pnpm install
 cp .env.example .env
 ```
 
-Configure `DATABASE_URL`, then run:
+Set `DATABASE_URL` and `SESSION_SECRET` in `app/.env`, then initialize the database from the repository root:
 
 ```bash
-psql "$DATABASE_URL" -f ../database/schema.sql
-psql "$DATABASE_URL" -f ../database/seed.sql
+psql "$DATABASE_URL" -f database/schema.sql
+psql "$DATABASE_URL" -f database/seed.sql
+cd app
 pnpm db:migrate
 psql "$DATABASE_URL" -f ../database/verify.sql
 pnpm dev
@@ -73,23 +94,28 @@ Default local URL:
 http://localhost:3400
 ```
 
-Run automated tests:
+## Verification
+
+Run the automated test suite:
 
 ```bash
 cd app
 pnpm test
 ```
 
-## Current Stage
+Useful database checks:
 
-Steps 1 through 7 are complete for Phase A handoff. Public discovery, contact intake, Owner film, screening, and user management, transaction-safe Member booking creation, Member booking history, Member-owned cancellation, Member booking status timeline, Staff booking operations, Member review CRUD, Staff review moderation, and Staff contact message processing now render PostgreSQL-backed behavior with stable not-found, empty, validation, success, authorization, conflict, and error states. See [Current Status](docs/current-status.md) for the exact next slice and verification baseline.
-
-## Deployment
-
-Render deployment is defined in `render.yaml`. The Blueprint creates the Node.js web service, PostgreSQL database, generated session secret, and initial schema and seed setup.
-
-Live URL:
-
-```text
-https://cse340-independent-cinema.onrender.com
+```bash
+cd app
+pnpm db:migrate
+psql "$DATABASE_URL" -f ../database/verify.sql
 ```
+
+GitHub Actions runs the PostgreSQL schema, seed, migrations, verification queries, automated tests, and tracked-file checks on push.
+
+## Known Limitations
+
+- The seed screening dates can age out, which may limit production verification of future-screening booking actions until the schedule is refreshed.
+- The deployment uses Render free services, so the first request after inactivity may be delayed.
+- The visual direction is Phase A submission-ready. Portfolio-level branding, original poster assets, motion, and user research synthesis are future improvements.
+- Payment, seat selection, multiple auditoriums, external APIs, recommendations, and social login are intentionally excluded from scope.

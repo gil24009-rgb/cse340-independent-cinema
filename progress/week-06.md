@@ -29,6 +29,8 @@
 - Step 8 두 번째 slice로 `/staff` heading 아래 Staff operations overview cards와 section anchors 추가
 - Step 8 세 번째 slice로 `/account` heading 아래 Member account overview cards와 section anchors 추가
 - Step 8 네 번째 slice로 home hero 아래 public visitor pathway cards 추가
+- Final submission README에 project description, ERD image, role account emails, shared test password guidance, setup, verification, live URL, and known limitations 정리
+- 현재 schema 기반 ERD SVG 추가
 - Step 7 completion approval packet 작성
 
 ## 관련 문서
@@ -67,6 +69,8 @@
 - Browser check에서 `/account` overview가 390px에서는 1-column, 1280px에서는 3-column으로 표시되고 section anchor와 no-overflow 상태 확인
 - GitHub Actions CI passed for the Step 8 Member account overview slice
 - Browser check에서 `/` visitor pathway가 390px에서는 1-column, 1280px에서는 3-column으로 표시되고 `/films`, `/screenings`, `/visit` 링크와 no-overflow 상태 확인
+- Git history review에서 65 non-merge commits 확인
+- Production smoke check에서 `/health`와 `/visit`은 `200`, `/health/database`와 DB-backed routes는 `500` 확인
 
 ## 새로 결정한 사항
 
@@ -86,6 +90,7 @@
 - Production Staff booking controls, roster grouping, Member review CRUD, review moderation, and contact processing verification remains pending until deployment.
 - Production Owner user management verification remains pending until deployment.
 - Production future-screening booking CTA verification remains limited by aged-out seed screening dates.
+- Production database-backed routes currently return `500`; Render database connection or database instance must be repaired before final submission can be called complete.
 - Step 8 다음 slice에서는 public detail polish 또는 Staff action group spacing 중 submission-readiness risk가 큰 쪽을 먼저 정리해야 한다.
 
 ## 다음 목표
