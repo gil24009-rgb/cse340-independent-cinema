@@ -1,6 +1,6 @@
 # Current Status
 
-Last updated: July 17, 2026
+Last updated: July 20, 2026
 
 ## Current Stage
 
@@ -63,7 +63,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Browser widths: 1280px desktop and 390px mobile checked without horizontal overflow
 - Shared layout: public shell, navigation, empty state, 404, and server error rendering available
 - Render deployment: `https://cse340-independent-cinema.onrender.com`
-- Production health and PostgreSQL health routes return `200`
+- Production health and PostgreSQL health routes return `200` after the July 20 Render database recovery
 - Owner, Staff, and Member seed logins work in production with secure session cookies
 - Production role guards and logout session invalidation verified
 - Production signup creates a Member account, redirects to `/account`, and returns a duplicate-email conflict on repeat submission
@@ -139,6 +139,8 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Step 8 public pathway browser check confirmed `/` shows three visitor pathway cards linking to `/films`, `/screenings`, and `/visit`, with 390px one-column layout, 1280px three-column layout, and no content overflow
 - Root README now includes the final project description, ERD image, role descriptions, test account emails, shared test password guidance, setup, verification commands, live URL, and known limitations
 - Git history review confirmed 65 non-merge commits, which is above the 15 substantial commit requirement
+- Production smoke verification on July 20 confirmed `/health`, `/health/database`, `/`, `/films`, `/screenings`, and `/visit` return `200` after replacing the expired Render database with `cse340-independent-cinema-db-2`
+- Production role-route verification on July 20 confirmed Member login redirects to `/account`, Member `/account`, `/account/bookings/1`, and `/account/reviews/1` return `200`, Staff `/staff` returns `200`, Staff `/admin` returns `403`, and Owner `/admin`, `/admin/films`, `/admin/screenings`, `/admin/users`, and `/staff` return `200`
 - Headless Chrome computed layout metrics reported no horizontal overflow elements for the changed review screens. Chrome headless reported a 500px inner width during metric capture, so final 390px browser-plugin verification remains worth repeating when the in-app browser connection is stable.
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
@@ -403,19 +405,18 @@ Completed fifth vertical slice:
 | 6 | Booking and Member experience | Implemented and ready for nonblocking Director frontend review |
 | 7 | Reviews and operations | Complete and ready for nonblocking Director frontend review |
 | 8 | Frontend refinement | In progress: operational mobile labels, Staff overview, Member account overview, and public home pathway implemented; public detail polish or Staff action spacing next |
-| 9 | Security and deployment | In progress: README and Git history are submission-ready; production database health is currently blocking final deployment verification |
+| 9 | Security and deployment | In progress: README, Git history, production database health, public production routes, and core role-route smoke checks are verified; final mutation and aged-out schedule checks remain |
 
 ## Current Risks and Open Decisions
 
 - Final cinema brand name is not selected.
 - Final poster and film image sources are not selected.
 - Course deadline should be added once confirmed.
-- Production database-backed routes currently return `500`, including `/health/database`, `/`, `/films`, `/screenings`, login, and protected role routes. `/health` and public `/visit` still return `200`, so the service is up but the production database path is blocked.
-- Full production workflow verification is blocked until the Render database connection or database instance is repaired.
-- The Render URL is an early submission deployment. It cannot be called final while database-backed routes return `500`.
+- The expired Render database was replaced with a new free PostgreSQL instance on July 20, and database-backed production routes now return `200`.
+- The new free Render PostgreSQL instance is expected to expire on August 17, 2026 unless it is upgraded or replaced again.
 - Render free services can spin down after inactivity and delay the first request.
 - Production seed screening dates can age out, which can block read-only verification of future-screening workflows until the next production seed or schedule refresh.
-- Step 7 and Step 8 production verification remain pending until the production database blocker is resolved.
+- Production mutation checks for Staff booking controls, review moderation, contact processing, and Owner user management remain limited to local automated and PostgreSQL verification unless production data is refreshed and mutation risk is approved.
 
 ## Working Checkpoints
 

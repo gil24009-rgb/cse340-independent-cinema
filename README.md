@@ -117,5 +117,6 @@ GitHub Actions runs the PostgreSQL schema, seed, migrations, verification querie
 
 - The seed screening dates can age out, which may limit production verification of future-screening booking actions until the schedule is refreshed.
 - The deployment uses Render free services, so the first request after inactivity may be delayed.
+- The current free Render PostgreSQL instance can expire unless it is upgraded or replaced.
 - The visual direction is Phase A submission-ready. Portfolio-level branding, original poster assets, motion, and user research synthesis are future improvements.
 - Payment, seat selection, multiple auditoriums, external APIs, recommendations, and social login are intentionally excluded from scope.
