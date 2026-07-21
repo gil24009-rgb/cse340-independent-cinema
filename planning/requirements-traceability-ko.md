@@ -13,7 +13,7 @@
 | Dynamic routes | Film, screening, booking, review detail | Resource lookup by id | Detail pages | Valid/invalid id tests and ownership route tests | Verified |
 | Layouts and partials | Shared navigation and components | EJS partial structure | Consistent global UI | Template review | Verified |
 | MVC organization | Models, controllers, routes, views | Folder structure | Predictable data presentation | Code review | Verified |
-| Middleware | Auth, roles, validation, errors | Shared middleware | Form and error feedback | Failure-path tests | In Progress |
+| Middleware | Auth, roles, validation, errors | Shared middleware | Form and error feedback | Failure-path tests and middleware unit tests | Verified |
 | Global error handler | Central error response | Error middleware | 404 and error pages | Forced error tests | Verified |
 | Admin content management | Owner film create, edit, visibility controls, and Owner screening create, edit, cancel, and restore controls | Owner controllers and models | Owner film catalog, Owner film forms, Owner screening schedule, and Owner screening forms | Owner route, validation, conflict, public reflection tests, and production read-only route checks | Verified |
 | User-generated content | Film reviews | reviews table and completed-booking eligibility | Member review list, create form, detail, and editor | Route tests and PostgreSQL integration tests | Verified |
@@ -24,9 +24,9 @@
 | Manage users and roles | Owner changes roles and activation state | users role and is_active update | User management table | Owner-only route tests, PostgreSQL integration test, stale-session test | Verified |
 | Respond to submissions | Public contact message intake and Staff processing | contact_messages | Visit contact form and Staff message queue | Route insert test, status workflow test, and PostgreSQL integration test | Verified |
 | Moderate content | Hide and restore reviews | review visibility state | Staff moderation controls | Staff/Owner route tests and PostgreSQL integration test | Verified |
-| Parameterized queries | All SQL inputs parameterized | PostgreSQL query layer | No direct UI difference | Query review | In Progress |
-| Input validation | All forms validated server-side | Validation middleware | Inline errors and summaries | Invalid form tests | In Progress |
-| Sanitization | Review and message inputs sanitized | Input processing | Safe content output | Injection tests | Planned |
+| Parameterized queries | All SQL inputs parameterized | PostgreSQL query layer | No direct UI difference | Query review across models and migration scripts | Verified |
+| Input validation | All forms validated server-side | Validation middleware | Inline errors and summaries | Invalid form, conflict, and mutation tests | Verified |
+| Sanitization | Review and message inputs normalized and rendered through escaped EJS output | Input processing and EJS templates | Safe review, message, and form output | Input normalization review, EJS escaped-output review, and route tests | Verified |
 | Secure sessions | Production session settings | Session configuration and project-owned PostgreSQL session table | Stable login state | Production review, direct session-table checks, migration check, integration test | Verified |
 | Render deployment | Live server and DB | Environment variables | Production application | Production smoke test for public routes, database health, and role-protected account routes | Verified |
 | README | Required project documentation | README and ERD image | Repository review | Requirement checklist | Verified |

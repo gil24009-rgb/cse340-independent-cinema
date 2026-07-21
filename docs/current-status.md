@@ -4,7 +4,7 @@ Last updated: July 20, 2026
 
 ## Current Stage
 
-Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is implemented and ready for nonblocking Director frontend review. Step 7, Reviews, Staff Operations, and Admin Dashboard, is complete and ready for nonblocking Director frontend review. Step 8, Frontend Refinement, is in progress.
+Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Experience, is implemented and ready for nonblocking Director frontend review. Step 6, Booking Workflow and Member Experience, is implemented and ready for nonblocking Director frontend review. Step 7, Reviews, Staff Operations, and Admin Dashboard, is complete and ready for nonblocking Director frontend review. Step 8, Frontend Refinement, is implemented enough for Phase A submission. Step 9, Security, Testing, Deployment, and Submission, is in final submission review.
 
 ## Completed Work
 
@@ -49,13 +49,14 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Added the third Step 8 frontend refinement slice: Member account overview cards with booking, review, and ready-to-review counts plus same-page section anchors
 - Added the fourth Step 8 frontend refinement slice: public home visitor pathway cards that link visitors from films to screenings to visit planning
 - Added the final submission README pass with project description, ERD image, role accounts, setup, verification, and known limitations
+- Added the Step 9 final submission approval packet with production evidence, release scorecard, remaining debt, and nonblocking Director review questions
 
 ## Verified Baseline
 
 - Targeted Step 8 route rendering test: 24 passing
 - Automated tests with local PostgreSQL: 52 passing and 1 environment-specific skip
 - Automated tests without `DATABASE_URL`: 46 passing and 7 database integration skips
-- Latest local `pnpm db:migrate` recheck applied `0002_user_sessions_table.sql` and passed after the Step 7 Owner user management slice
+- Latest local `pnpm db:migrate` recheck passed on July 20 after the production recovery documentation slice
 - Database integration tests: migration idempotency, database constraints, PostgreSQL session-table schema, and session-store lifecycle verified locally
 - Clean PostgreSQL database pipeline: schema, seed, migration, verification queries, and full test suite verified locally
 - PostgreSQL schema and seed: verified on PostgreSQL 17.10
@@ -141,6 +142,7 @@ Step 4, Authentication and Authorization, is complete. Step 5, Public Cinema Exp
 - Git history review confirmed 65 non-merge commits, which is above the 15 substantial commit requirement
 - Production smoke verification on July 20 confirmed `/health`, `/health/database`, `/`, `/films`, `/screenings`, and `/visit` return `200` after replacing the expired Render database with `cse340-independent-cinema-db-2`
 - Production role-route verification on July 20 confirmed Member login redirects to `/account`, Member `/account`, `/account/bookings/1`, and `/account/reviews/1` return `200`, Staff `/staff` returns `200`, Staff `/admin` returns `403`, and Owner `/admin`, `/admin/films`, `/admin/screenings`, `/admin/users`, and `/staff` return `200`
+- Step 9 final submission approval packet is recorded at `quality-reviews/step-09-final-submission-approval-packet-ko.md`
 - Headless Chrome computed layout metrics reported no horizontal overflow elements for the changed review screens. Chrome headless reported a 500px inner width during metric capture, so final 390px browser-plugin verification remains worth repeating when the in-app browser connection is stable.
 - Production Owner login reaches `/admin/films`, and the live Owner catalog renders film rows and CSRF-protected archive forms
 - Production Owner login reaches `/admin/films/new` and a live Owner film edit route, and both render the expected form headings, CSRF tokens, and submit actions
@@ -404,8 +406,8 @@ Completed fifth vertical slice:
 | 5 | Public cinema experience | Implemented and ready for nonblocking Director frontend review |
 | 6 | Booking and Member experience | Implemented and ready for nonblocking Director frontend review |
 | 7 | Reviews and operations | Complete and ready for nonblocking Director frontend review |
-| 8 | Frontend refinement | In progress: operational mobile labels, Staff overview, Member account overview, and public home pathway implemented; public detail polish or Staff action spacing next |
-| 9 | Security and deployment | In progress: README, Git history, production database health, public production routes, and core role-route smoke checks are verified; final mutation and aged-out schedule checks remain |
+| 8 | Frontend refinement | Implemented enough for Phase A submission: operational mobile labels, Staff overview, Member account overview, and public home pathway verified |
+| 9 | Security and deployment | Final submission review in progress: README, ERD, Git history, production database health, public production routes, core role-route smoke checks, and final approval packet are verified |
 
 ## Current Risks and Open Decisions
 
