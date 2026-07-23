@@ -58,19 +58,20 @@
             <time datetime="<%= new Date(screening.starts_at).toISOString() %>" class="screening-date">
               <span><%= screening.dateLabel %></span>
               <strong><%= screening.timeLabel %></strong>
+              <span>Ends <%= screening.endTimeLabel %></span>
             </time>
             <div class="screening-film">
               <p class="eyebrow"><%= screening.program_label || "Regular screening" %></p>
               <h3><%= film.title %></h3>
-              <p><%= screening.availabilityLabel %> · <%= screening.priceLabel %></p>
+              <p><%= screening.timeRangeLabel %> · <%= screening.availabilityLabel %> · <%= screening.priceLabel %></p>
             </div>
             <div class="screening-availability">
               <% if (screening.has_guest_talk) { %>
                 <span class="status-badge">Guest talk</span>
               <% } %>
               <strong>Capacity <%= screening.capacity %></strong>
-              <span><%= screening.remaining_capacity %> seats remain</span>
-              <a class="text-link" href="/screenings/<%= screening.screening_id %>">Go to screening</a>
+              <span><%= screening.seatCountLabel %></span>
+              <a class="button button-secondary" href="/screenings/<%= screening.screening_id %>">Choose Screening</a>
             </div>
           </li>
         <% }) %>

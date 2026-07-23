@@ -4,9 +4,28 @@
   <header class="page-heading detail-heading">
     <p class="eyebrow"><%= screening.program_label || "Screening detail" %></p>
     <h1><%= screening.film_title %></h1>
-    <p><%= screening.dateLabel %> · <%= screening.timeLabel %> · <%= screening.priceLabel %></p>
+    <p><%= screening.dateLabel %> · <%= screening.timeRangeLabel %> · <%= screening.priceLabel %></p>
     <p><%= screening.director %> · <%= screening.country %> · <%= screening.release_year %> · <%= screening.runtime_minutes %> min · <%= screening.age_rating %></p>
   </header>
+
+  <section class="screening-decision-strip" aria-label="Screening decision details">
+    <div>
+      <span>Date</span>
+      <strong><%= screening.dateLabel %></strong>
+    </div>
+    <div>
+      <span>Time</span>
+      <strong><%= screening.timeRangeLabel %></strong>
+    </div>
+    <div>
+      <span>Seats</span>
+      <strong><%= screening.availabilityLabel %></strong>
+    </div>
+    <div>
+      <span>Price</span>
+      <strong><%= screening.priceLabel %></strong>
+    </div>
+  </section>
 
   <section class="detail-grid">
     <div class="detail-copy">
@@ -39,6 +58,10 @@
       <div>
         <dt>Availability</dt>
         <dd><%= screening.availabilityLabel %></dd>
+      </div>
+      <div>
+        <dt>Seats held</dt>
+        <dd><%= screening.seatCountLabel %></dd>
       </div>
       <div>
         <dt>Capacity</dt>

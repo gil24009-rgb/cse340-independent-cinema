@@ -61,14 +61,37 @@ function presentFilm(film) {
 }
 
 function presentScreening(screening) {
+  const endTime = new Date(
+    screening.starts_at.getTime() + (screening.runtime_minutes || 0) * 60 * 1000,
+  );
+
   return {
     ...screening,
     availabilityLabel: screening.remaining_capacity > 0
       ? `${screening.remaining_capacity} seats available`
       : "Sold out",
     dateLabel: dateFormatter.format(screening.starts_at),
+    endTimeLabel: timeFormatter.format(endTime),
     priceLabel: currencyFormatter.format(screening.ticket_price_cents / 100),
+    seatCountLabel: `${screening.active_booking_count} of ${screening.capacity} seats held`,
     timeLabel: timeFormatter.format(screening.starts_at),
+    timeRangeLabel: `${timeFormatter.format(screening.starts_at)} - ${timeFormatter.format(endTime)}`,
+  };
+}
+
+function buildScheduleSummary(screenings) {
+  const filmTitles = new Set(screenings.map((screening) => screening.film_title).filter(Boolean));
+  const totalRemainingSeats = screenings.reduce((sum, screening) => sum + screening.remaining_capacity, 0);
+  const guestTalkCount = screenings.filter((screening) => screening.has_guest_talk).length;
+
+  return {
+    filmCount: filmTitles.size,
+    guestTalkCount,
+    nextScreeningLabel: screenings[0]
+      ? `${screenings[0].dateLabel} · ${screenings[0].timeRangeLabel}`
+      : "Schedule update pending",
+    screeningCount: screenings.length,
+    totalRemainingSeats,
   };
 }
 
@@ -211,6 +234,7 @@ export function createPublicSiteController(options = {}) {
         res.render("screenings/index", {
           pageDescription: "View upcoming independent cinema screenings and availability.",
           pageTitle: "Screenings",
+          scheduleSummary: buildScheduleSummary(screenings),
           screenings,
         });
       } catch (error) {
@@ -232,7 +256,11 @@ export function createPublicSiteController(options = {}) {
           return next(createNotFoundError("Film not found."));
         }
 
-        const screenings = (await loadScreeningsByFilmId(film.film_id)).map(presentScreening);
+        const screenings = (await loadScreeningsByFilmId(film.film_id))
+          .map((screening) => presentScreening({
+            ...screening,
+            runtime_minutes: film.runtime_minutes,
+          }));
 
         return res.render("films/detail", {
           film: presentFilm(film),

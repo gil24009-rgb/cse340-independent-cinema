@@ -159,10 +159,38 @@ Staff and Owner:
 - Browser check `/staff` at 390px and 1280px: three overview cards, five operational table groups, and action buttons rendered with no horizontal overflow.
 - Browser check `/admin/users` at 390px and 1280px: user access table, selects, and action buttons rendered with no horizontal overflow.
 
+## Slice 6: Practical Screening Decision UI
+
+상태: Implemented and locally verified.
+
+문제:
+
+- 최종 visual polish 이후 화면은 더 정돈되었지만, public schedule은 실제 영화관 사이트처럼 빠른 선택에 필요한 decision facts를 충분히 압축해서 보여주지 못했다.
+- Cinecube 같은 cinema schedule UI는 film title, date, time, screen, seat count, movie detail link를 반복적으로 노출해 사용자가 상영을 비교하게 만든다.
+- 우리 프로젝트 범위에는 screen selection이나 payment가 없으므로, 실제로 필요한 선택 정보는 start time, end time, availability, held seats, price, direct screening action이다.
+
+변경:
+
+- `/screenings` 상단에 schedule summary panel을 추가해 next showtime, film count, screening count, total remaining seats를 한눈에 보이게 했다.
+- Public screening rows에 end time, time range, price, held-seat count, stronger `Choose Screening` action을 추가했다.
+- Film detail의 upcoming screenings row도 같은 decision facts를 사용해 film discovery에서 booking entry로 이어지는 흐름을 맞췄다.
+- Screening detail header와 detail body에 date, time range, seats, price decision strip을 추가했다.
+- Backend는 display-only presenter 값을 계산한다. Route, permission, mutation, database schema, booking rule은 변경하지 않았다.
+
+검증:
+
+- `node --test test/publicRoutes.test.js`: 6 passed.
+- `pnpm test`: 52 passed, 1 skipped.
+- `DATABASE_URL='' pnpm test`: 46 passed, 7 skipped.
+- Local PostgreSQL seed, migration, and verification query passed after confirming the database URL pointed to the local database.
+- Browser check `/screenings` at 390px and 1280px: schedule summary, three `Choose Screening` actions, end-time labels, and no horizontal overflow.
+- Browser check `/films/house-of-hummingbird` at 390px and 1280px: upcoming screening decision row, end-time label, `Choose Screening` action, and no horizontal overflow.
+- Browser check `/screenings/1` at 390px and 1280px: four decision-strip items and no horizontal overflow.
+
 ## 다음 Slice 후보
 
 - Direct final submission using README, live Render URL, and test account guidance.
-- Optional frontend detail review can focus on Owner user-management table spacing if the Director wants one more visual-only pass.
+- Optional production smoke check after this practical screening UI commit deploys.
 
 ## 완료 조건
 
