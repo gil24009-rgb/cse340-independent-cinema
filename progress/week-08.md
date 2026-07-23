@@ -18,8 +18,10 @@
 - `.owner-row-note`가 존재하지 않는 CSS variable을 참조하던 문제 수정
 - `/screenings`에 next showtime, film count, screening count, total remaining seats를 보여주는 schedule summary panel 추가
 - Public schedule, film detail, and screening detail에 end time, time range, held-seat count, price, stronger screening selection action 추가
+- Final simplification pass에서 schedule summary panel, duplicated decision strip, held-seat labels, internal route/path detail rows, and unused CSS 제거
 - Step 8 final UI polish review packet 작성
 - Step 8 practical screening decision UI review packet 작성
+- Step 8 simplification review packet 작성
 - Current status와 Step 8 planning 문서 동기화
 
 ## 관련 문서
@@ -28,6 +30,7 @@
 - `planning/08-frontend-system-visual-direction-ko.md`
 - `quality-reviews/step-08-final-ui-polish-review-ko.md`
 - `quality-reviews/step-08-practical-screening-decision-ui-review-ko.md`
+- `quality-reviews/step-08-simplification-review-ko.md`
 - `progress/week-08.md`
 
 ## 관련 Commit
@@ -52,6 +55,9 @@
 - Browser check `/screenings` at 390px and 1280px: schedule summary, `Choose Screening` actions, end-time labels, and no horizontal overflow
 - Browser check `/films/house-of-hummingbird` at 390px and 1280px: screening decision row and no horizontal overflow
 - Browser check `/screenings/1` at 390px and 1280px: decision strip and no horizontal overflow
+- Browser check `/screenings` at 390px and 1280px after simplification: summary panel removed, essential showtime rows still visible, no horizontal overflow
+- Browser check `/films/house-of-hummingbird` at 390px and 1280px after simplification: internal route row removed, upcoming screening action still visible, no horizontal overflow
+- Browser check `/screenings/1` at 390px and 1280px after simplification: duplicated decision strip and route/path rows removed, booking action still visible, no horizontal overflow
 
 ## 새로 결정한 사항
 
@@ -59,6 +65,7 @@
 - Course submission 안정성을 위해 route, role, permission, database relationship, and booking workflow는 변경하지 않았다.
 - Owner user-management table의 tighter text wrapping은 submission blocker가 아니라 optional visual debt로 분류했다.
 - 실제 cinema schedule UI에서 반복되는 showtime, runtime, availability, detail action 구조는 현재 프로젝트 범위 안의 user decision support로 적용했다.
+- 최종 public UI는 설명용 panel보다 실제 visitor task에 직접 필요한 상영 row 중심 구조가 더 적합하다고 판단했다.
 
 ## 남은 위험 또는 Blocker
 
@@ -68,4 +75,4 @@
 
 ## 다음 목표
 
-- Final hygiene checks, commit, push, CI confirmation, and production smoke check for the practical screening UI
+- Final hygiene checks, commit, push, CI confirmation, and production smoke check for the simplified public UI

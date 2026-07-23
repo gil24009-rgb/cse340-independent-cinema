@@ -15,32 +15,6 @@
       <a class="text-link" href="/films">Browse the film archive</a>
     </section>
   <% } else { %>
-    <section class="schedule-insight-panel" aria-labelledby="schedule-insight-title">
-      <div>
-        <p class="eyebrow">At a glance</p>
-        <h2 id="schedule-insight-title">Pick by time, film, or remaining seats.</h2>
-        <p>Independent cinema visitors usually compare the film, start time, finish time, and seat availability before choosing a screening.</p>
-      </div>
-      <dl class="schedule-insight-grid">
-        <div>
-          <dt>Next</dt>
-          <dd><%= scheduleSummary.nextScreeningLabel %></dd>
-        </div>
-        <div>
-          <dt>Program</dt>
-          <dd><%= scheduleSummary.filmCount %> films</dd>
-        </div>
-        <div>
-          <dt>Showtimes</dt>
-          <dd><%= scheduleSummary.screeningCount %> screenings</dd>
-        </div>
-        <div>
-          <dt>Availability</dt>
-          <dd><%= scheduleSummary.totalRemainingSeats %> seats open</dd>
-        </div>
-      </dl>
-    </section>
-
     <ol class="screening-list">
       <% screenings.forEach((screening) => { %>
         <li class="screening-row">
@@ -60,7 +34,6 @@
               <span class="status-badge">Guest talk</span>
             <% } %>
             <strong><%= screening.availabilityLabel %></strong>
-            <span><%= screening.seatCountLabel %></span>
             <a class="button button-secondary" href="/screenings/<%= screening.screening_id %>">Choose Screening</a>
           </div>
         </li>

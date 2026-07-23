@@ -30,7 +30,7 @@
 | Secure sessions | Production session settings | Session configuration and project-owned PostgreSQL session table | Stable login state | Production review, direct session-table checks, migration check, integration test | Verified |
 | Render deployment | Live server and DB | Environment variables | Production application | Production smoke test for public routes, database health, and role-protected account routes | Verified |
 | README | Required project documentation | README and ERD image | Repository review | Requirement checklist | Verified |
-| 15 substantial commits | Meaningful progress history | Git history | Repository review | `git log` review confirmed 65 non-merge commits | Verified |
+| 15 substantial commits | Meaningful progress history | Git history | Repository review | Git history review confirmed the repository is above the 15 substantial commit requirement | Verified |
 
 ## 상태 정의
 

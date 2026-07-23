@@ -187,10 +187,46 @@ Staff and Owner:
 - Browser check `/films/house-of-hummingbird` at 390px and 1280px: upcoming screening decision row, end-time label, `Choose Screening` action, and no horizontal overflow.
 - Browser check `/screenings/1` at 390px and 1280px: four decision-strip items and no horizontal overflow.
 
+## Slice 7: Essential UI Simplification
+
+상태: Implemented and locally verified.
+
+문제:
+
+- Slice 6에서 public schedule의 decision facts를 강화했지만, summary panel과 duplicated decision strip은 실제 선택 흐름보다 review-friendly 설명에 가까웠다.
+- 실제 cinema schedule UI는 상영 목록 안에서 film, runtime, rating, showtime, seat availability, and booking action을 반복해서 보여준다. 별도 dashboard-style summary는 public visitor에게 직접 필요한 정보가 아니다.
+- Public detail page에 route path를 노출하는 것은 구현 설명에는 유용하지만 visitor task에는 의미가 없다.
+
+제거:
+
+- `/screenings`의 schedule summary panel과 관련 CSS를 제거했다.
+- Screening detail의 duplicated decision strip과 관련 CSS를 제거했다.
+- Public list/detail에서 held-seat count를 제거하고, visitor-facing availability만 남겼다.
+- Film detail과 screening detail의 internal route/path rows를 제거했다.
+- Backend presenter에서 더 이상 쓰지 않는 summary builder와 held-seat label을 제거했다.
+
+남긴 정보:
+
+- Film title
+- Date
+- Start time and end time
+- Runtime and age rating
+- Guest talk badge
+- Price
+- Visitor-facing availability
+- Booking or screening selection action
+
+검증:
+
+- `node --test test/publicRoutes.test.js`: 6 passed.
+- Browser check `/screenings` at 390px and 1280px: essential showtime rows rendered, removed summary panel absent, no horizontal overflow.
+- Browser check `/films/house-of-hummingbird` at 390px and 1280px: film facts and upcoming screening action rendered, internal route row absent, no horizontal overflow.
+- Browser check `/screenings/1` at 390px and 1280px: header facts, availability, capacity, and booking action rendered, duplicated decision strip and route/path rows absent, no horizontal overflow.
+
 ## 다음 Slice 후보
 
 - Direct final submission using README, live Render URL, and test account guidance.
-- Optional production smoke check after this practical screening UI commit deploys.
+- Optional production smoke check after this simplification commit deploys.
 
 ## 완료 조건
 

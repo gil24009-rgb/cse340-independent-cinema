@@ -185,4 +185,4 @@ Recommended submission state:
 
 Actual next slice:
 
-- Run final hygiene checks, commit, push, and confirm CI after the final UI polish slice.
+- Run final hygiene checks, commit, push, and confirm CI after the final simplification pass.

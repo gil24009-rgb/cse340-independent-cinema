@@ -73,25 +73,8 @@ function presentScreening(screening) {
     dateLabel: dateFormatter.format(screening.starts_at),
     endTimeLabel: timeFormatter.format(endTime),
     priceLabel: currencyFormatter.format(screening.ticket_price_cents / 100),
-    seatCountLabel: `${screening.active_booking_count} of ${screening.capacity} seats held`,
     timeLabel: timeFormatter.format(screening.starts_at),
     timeRangeLabel: `${timeFormatter.format(screening.starts_at)} - ${timeFormatter.format(endTime)}`,
-  };
-}
-
-function buildScheduleSummary(screenings) {
-  const filmTitles = new Set(screenings.map((screening) => screening.film_title).filter(Boolean));
-  const totalRemainingSeats = screenings.reduce((sum, screening) => sum + screening.remaining_capacity, 0);
-  const guestTalkCount = screenings.filter((screening) => screening.has_guest_talk).length;
-
-  return {
-    filmCount: filmTitles.size,
-    guestTalkCount,
-    nextScreeningLabel: screenings[0]
-      ? `${screenings[0].dateLabel} · ${screenings[0].timeRangeLabel}`
-      : "Schedule update pending",
-    screeningCount: screenings.length,
-    totalRemainingSeats,
   };
 }
 
@@ -234,7 +217,6 @@ export function createPublicSiteController(options = {}) {
         res.render("screenings/index", {
           pageDescription: "View upcoming independent cinema screenings and availability.",
           pageTitle: "Screenings",
-          scheduleSummary: buildScheduleSummary(screenings),
           screenings,
         });
       } catch (error) {

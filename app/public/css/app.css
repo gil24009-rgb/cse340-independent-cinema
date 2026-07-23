@@ -531,63 +531,6 @@ h3 {
   list-style: none;
 }
 
-.schedule-insight-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
-  gap: 2rem;
-  align-items: stretch;
-  margin: 3rem 0 1rem;
-  border: 1px solid var(--line);
-  border-radius: 2rem;
-  background: linear-gradient(135deg, rgb(255 255 255 / 0.075), rgb(255 255 255 / 0.025));
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
-}
-
-.schedule-insight-panel h2 {
-  max-width: 620px;
-  margin-bottom: 1rem;
-  font-size: clamp(2rem, 4vw, 3.6rem);
-  line-height: 0.98;
-}
-
-.schedule-insight-panel p:not(.eyebrow) {
-  max-width: 560px;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.schedule-insight-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin: 0;
-}
-
-.schedule-insight-grid div {
-  display: grid;
-  gap: 0.45rem;
-  border: 1px solid var(--line);
-  border-radius: 1.25rem;
-  background: rgb(255 255 255 / 0.035);
-  padding: 1rem;
-}
-
-.schedule-insight-grid dt {
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.schedule-insight-grid dd {
-  margin: 0;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-  font-weight: 750;
-  letter-spacing: -0.035em;
-}
-
 .film-row,
 .screening-row {
   display: grid;
@@ -675,35 +618,6 @@ h3 {
 .screening-utility-line {
   margin-top: 0.7rem;
   font-weight: 700;
-}
-
-.screening-decision-strip {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-  padding-top: 3rem;
-}
-
-.screening-decision-strip div {
-  display: grid;
-  gap: 0.45rem;
-  border: 1px solid var(--line);
-  border-radius: 1.25rem;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.055), rgb(255 255 255 / 0.02));
-  padding: 1rem;
-}
-
-.screening-decision-strip span {
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.screening-decision-strip strong {
-  font-size: 1rem;
-  line-height: 1.35;
 }
 
 .inline-empty-state {
@@ -1452,8 +1366,7 @@ h3 {
   .contact-panel,
   .public-pathway-grid,
   .account-overview,
-  .staff-overview,
-  .schedule-insight-panel {
+  .staff-overview {
     grid-template-columns: 1fr;
   }
 
@@ -1539,8 +1452,6 @@ h3 {
   .booking-card,
   .review-card,
   .compact-detail-list,
-  .schedule-insight-grid,
-  .screening-decision-strip,
   .status-timeline-meta {
     grid-template-columns: 1fr;
   }

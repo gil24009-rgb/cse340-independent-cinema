@@ -178,11 +178,10 @@ test("public film and screening routes render data-backed normal states", async 
     assert.match(screeningsBody, /House of Hummingbird/);
     assert.match(screeningsBody, /57 seats available/);
     assert.match(screeningsBody, /Guest talk/);
-    assert.match(screeningsBody, /At a glance/);
-    assert.match(screeningsBody, /Pick by time, film, or remaining seats/);
     assert.match(screeningsBody, /Choose Screening/);
-    assert.match(screeningsBody, /57 seats open/);
-    assert.match(screeningsBody, /0 of 60 seats held|3 of 60 seats held/);
+    assert.match(screeningsBody, /Ends/);
+    assert.doesNotMatch(screeningsBody, /At a glance/);
+    assert.doesNotMatch(screeningsBody, /seats held/);
 
     const filmDetailResponse = await fetch(`${baseUrl}/films/house-of-hummingbird`);
     const filmDetailBody = await filmDetailResponse.text();
@@ -197,8 +196,9 @@ test("public film and screening routes render data-backed normal states", async 
     assert.equal(screeningDetailResponse.status, 200);
     assert.match(screeningDetailBody, /House of Hummingbird/);
     assert.match(screeningDetailBody, /\$12\.00/);
-    assert.match(screeningDetailBody, /Screening decision details/);
-    assert.match(screeningDetailBody, /Seats held/);
+    assert.match(screeningDetailBody, /Availability/);
+    assert.doesNotMatch(screeningDetailBody, /Screening decision details/);
+    assert.doesNotMatch(screeningDetailBody, /Seats held/);
     assert.match(screeningDetailBody, /View film detail/);
     assert.match(screeningDetailBody, /Sign in to book/);
   });

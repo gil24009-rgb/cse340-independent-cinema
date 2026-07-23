@@ -8,25 +8,6 @@
     <p><%= screening.director %> · <%= screening.country %> · <%= screening.release_year %> · <%= screening.runtime_minutes %> min · <%= screening.age_rating %></p>
   </header>
 
-  <section class="screening-decision-strip" aria-label="Screening decision details">
-    <div>
-      <span>Date</span>
-      <strong><%= screening.dateLabel %></strong>
-    </div>
-    <div>
-      <span>Time</span>
-      <strong><%= screening.timeRangeLabel %></strong>
-    </div>
-    <div>
-      <span>Seats</span>
-      <strong><%= screening.availabilityLabel %></strong>
-    </div>
-    <div>
-      <span>Price</span>
-      <strong><%= screening.priceLabel %></strong>
-    </div>
-  </section>
-
   <section class="detail-grid">
     <div class="detail-copy">
       <h2>Before the screening</h2>
@@ -60,20 +41,8 @@
         <dd><%= screening.availabilityLabel %></dd>
       </div>
       <div>
-        <dt>Seats held</dt>
-        <dd><%= screening.seatCountLabel %></dd>
-      </div>
-      <div>
         <dt>Capacity</dt>
         <dd><%= screening.capacity %></dd>
-      </div>
-      <div>
-        <dt>Route</dt>
-        <dd>/screenings/<%= screening.screening_id %></dd>
-      </div>
-      <div>
-        <dt>Film archive</dt>
-        <dd>/films/<%= screening.film_slug %></dd>
       </div>
     </dl>
   </section>

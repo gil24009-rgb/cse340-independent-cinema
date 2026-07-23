@@ -28,10 +28,6 @@
         <dt>Upcoming screenings</dt>
         <dd><%= film.upcoming_screening_count %></dd>
       </div>
-      <div>
-        <dt>Archive route</dt>
-        <dd>/films/<%= film.slug %></dd>
-      </div>
     </dl>
   </section>
 
@@ -69,8 +65,7 @@
               <% if (screening.has_guest_talk) { %>
                 <span class="status-badge">Guest talk</span>
               <% } %>
-              <strong>Capacity <%= screening.capacity %></strong>
-              <span><%= screening.seatCountLabel %></span>
+              <strong><%= screening.availabilityLabel %></strong>
               <a class="button button-secondary" href="/screenings/<%= screening.screening_id %>">Choose Screening</a>
             </div>
           </li>
