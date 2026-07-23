@@ -1,7 +1,5 @@
 BEGIN;
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 TRUNCATE TABLE
   booking_status_history,
   reviews,
@@ -22,21 +20,21 @@ INSERT INTO users (
 VALUES
   (
     'owner@cinema.test',
-    crypt('P@$$w0rd!', gen_salt('bf', 12)),
+    '$2b$12$VxYmbGdFgBbNXt3v4KbjCeTQZs1aVDFgfT1.a0kP4N1WWoirXH5Ve',
     'Mina',
     'Park',
     'owner'
   ),
   (
     'staff@cinema.test',
-    crypt('P@$$w0rd!', gen_salt('bf', 12)),
+    '$2b$12$VxYmbGdFgBbNXt3v4KbjCeTQZs1aVDFgfT1.a0kP4N1WWoirXH5Ve',
     'Joon',
     'Lee',
     'staff'
   ),
   (
     'member@cinema.test',
-    crypt('P@$$w0rd!', gen_salt('bf', 12)),
+    '$2b$12$VxYmbGdFgBbNXt3v4KbjCeTQZs1aVDFgfT1.a0kP4N1WWoirXH5Ve',
     'Sora',
     'Kim',
     'member'
