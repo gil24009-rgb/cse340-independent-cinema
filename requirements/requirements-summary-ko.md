@@ -131,7 +131,7 @@ repository root의 `README.md`에 다음 내용을 포함해야 합니다.
 - 데이터베이스 schema: pgAdmin에서 export한 ERD 이미지
 - 사용자 역할: 각 role과 가능한 행동 설명
 - 테스트 계정 정보: 각 role마다 하나의 username 또는 email
-- 테스트 계정 비밀번호는 README에 직접 쓰지 않되, 모든 계정에 `P@$$w0rd!` 사용
+- 테스트 계정 비밀번호는 README에 직접 쓰지 않되, 모든 계정에 course-provided shared password 사용
 - Known limitations: 완료하지 못한 기능 또는 알고 있는 bug
 
 ## GitHub repository 요구사항

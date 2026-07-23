@@ -363,11 +363,7 @@ Role별 test account:
 - staff@cinema.test
 - member@cinema.test
 
-모든 seed test account password:
-
-```text
-P@$$w0rd!
-```
+모든 seed test account는 course-provided shared password를 사용한다.
 
 README에는 email만 공개하고, password는 수업 요구사항에 따라 동일한 지정 password를 사용한다고 안내한다.
 
