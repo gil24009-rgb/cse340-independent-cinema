@@ -132,10 +132,37 @@ Staff and Owner:
 - Browser check `/` at 390px: pathway rendered as one column, three cards linked to public routes, no content overflow.
 - Browser check `/` at 1280px: pathway rendered as three columns, three cards linked to public routes, no content overflow.
 
+## Slice 5: Final Visual System Polish
+
+상태: Implemented and locally verified.
+
+문제:
+
+- 전체 화면 구조와 workflow는 제출 가능했지만, 기존 color token과 표면 처리는 "Apple built a cinema website" 방향보다 따뜻한 종이톤 독립영화관에 가까웠다.
+- 일부 카드와 운영 table은 기능적으로는 명확했지만, 최종 제출 화면으로 봤을 때 product surface로 보이는 완성도가 더 필요했다.
+- `.owner-row-note`가 존재하지 않는 CSS variable을 참조하고 있어 운영 화면 보조 텍스트 색상이 의도와 다르게 렌더링될 수 있었다.
+
+변경:
+
+- Global color tokens를 dark premium surface 중심으로 재정의했다.
+- Body, headings, wordmark, buttons, text links, form controls, status badges, cards, tables, and error states를 더 정돈된 product UI tone으로 맞췄다.
+- Public pathway, Member overview, Staff overview, booking cards, review cards, operational tables, and auth forms에 rounded elevated surfaces를 적용했다.
+- `.public-pathway` mobile width rule을 추가해 public home section이 다른 content width와 같은 responsive boundary를 사용하도록 했다.
+- `.owner-row-note`의 잘못된 CSS variable을 `--muted`로 수정했다.
+- Route, permission, mutation, database rule, booking workflow는 변경하지 않았다.
+
+검증:
+
+- `pnpm test`: 52 passed, 1 skipped
+- Browser check `/` at 390px and 1280px: no horizontal overflow.
+- Browser check `/account` at 390px and 1280px: three overview cards, booking list, and review list rendered with no horizontal overflow.
+- Browser check `/staff` at 390px and 1280px: three overview cards, five operational table groups, and action buttons rendered with no horizontal overflow.
+- Browser check `/admin/users` at 390px and 1280px: user access table, selects, and action buttons rendered with no horizontal overflow.
+
 ## 다음 Slice 후보
 
-- Public detail polish: confirm film detail, screening detail, and visit page hierarchy still match the restrained cinema direction after the home pathway update.
-- Staff dashboard visual polish: action groups and note inputs may need finer spacing after the overview structure is stable.
+- Direct final submission using README, live Render URL, and test account guidance.
+- Optional frontend detail review can focus on Owner user-management table spacing if the Director wants one more visual-only pass.
 
 ## 완료 조건
 

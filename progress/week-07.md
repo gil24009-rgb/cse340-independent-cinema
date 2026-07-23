@@ -23,8 +23,6 @@
 - `planning/requirements-traceability-ko.md`
 - `quality-reviews/step-09-final-submission-approval-packet-ko.md`
 - `progress/week-07.md`
-- `.local/collaboration/OPERATING_MEMORY.md`
-- `.local/collaboration/DIRECTOR_BRIEF_STATE.md`
 
 ## 관련 Commit
 

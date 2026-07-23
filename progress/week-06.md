@@ -40,7 +40,6 @@
 - `planning/07-reviews-staff-operations-admin-dashboard-ko.md`
 - `planning/requirements-traceability-ko.md`
 - `quality-reviews/step-07-completion-approval-packet-ko.md`
-- `.local/collaboration/OPERATING_MEMORY.md`
 
 ## 관련 Commit
 

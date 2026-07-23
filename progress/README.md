@@ -16,6 +16,7 @@ week-04.md
 week-05.md
 week-06.md
 week-07.md
+week-08.md
 ```
 
 각 주간 기록에는 아래 항목을 포함한다.

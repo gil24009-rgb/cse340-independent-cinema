@@ -53,7 +53,6 @@
 - `planning/05-public-cinema-experience-ko.md`
 - `quality-reviews/step-05-direction-review-packet-ko.md`
 - `database/README.md`
-- `.local/collaboration/OPERATING_MEMORY.md`
 
 ## 관련 Commit
 

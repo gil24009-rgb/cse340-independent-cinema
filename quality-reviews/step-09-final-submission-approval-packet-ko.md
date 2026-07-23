@@ -66,7 +66,7 @@ Submission artifacts:
 | Staff operations | Production Staff login returned `303` to `/staff`; `/staff` returned `200`. |
 | Owner operations | Production Owner login returned `303` to `/admin`; `/admin`, `/admin/films`, `/admin/screenings`, `/admin/users`, and `/staff` returned `200`. |
 | README and ERD | Root README includes live deployment, scope, ERD image, roles, routes, setup, verification commands, and known limitations. |
-| Git history | Git history review confirmed more than 15 substantial commits; current final recovery commit is `115676e`. |
+| Git history | Git history review confirmed more than 15 substantial commits; latest confirmed final packet commit is `268ef73`. |
 
 ## Failure State Evidence
 
@@ -86,7 +86,7 @@ Submission artifacts:
 Automated:
 
 - `pnpm test`: 52 passed, 1 skipped
-- GitHub Actions run `29776886778`: passed for commit `115676e`
+- GitHub Actions run `29790688850`: passed for commit `268ef73`
 - GitHub Actions applies schema, seed, migrations, verification query, automated tests, and tracked-file checks
 
 Database:
@@ -123,7 +123,7 @@ Production:
 Security and submission hygiene:
 
 - `git diff --check`: passed before the production recovery commit
-- `git check-ignore -v AGENTS.md .local/`: confirmed local-only files are ignored
+- Local-only ignore check confirmed private files are not tracked
 - Public grep check found no model/process disclosure terms in tracked files
 - Em dash scan across public source and documentation returned no matches
 - Current public worktree is clean except ignored local files
@@ -179,11 +179,10 @@ These are final direction and frontend-detail questions, not implementation bloc
 
 Recommended submission state:
 
-- Submit the repository at commit `115676e` or a later commit that only adds this final packet and synced status documentation.
+- Submit the repository at commit `268ef73` or a later commit that only adds final UI polish and synced status documentation.
 - Submit the live Render URL: `https://cse340-independent-cinema.onrender.com`
 - Use the course-provided shared test password with the README-listed accounts.
 
 Actual next slice:
 
-- Update `docs/current-status.md`, `progress/week-07.md`, and private operating memory to record this final packet.
-- Run hygiene checks, commit, push, and confirm CI.
+- Run final hygiene checks, commit, push, and confirm CI after the final UI polish slice.

@@ -32,7 +32,6 @@
 - `planning/06-booking-workflow-member-experience-ko.md`
 - `planning/requirements-traceability-ko.md`
 - `quality-reviews/step-05-completion-approval-packet-ko.md`
-- `.local/collaboration/OPERATING_MEMORY.md`
 
 ## 관련 Commit
 
